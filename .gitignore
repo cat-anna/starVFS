@@ -5,4 +5,6 @@ bin_*
 .vs
 ipch
 *.opensdf
+*.dll
+*.exe
 
