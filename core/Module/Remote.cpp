@@ -23,6 +23,7 @@ namespace StarVFS {
 namespace Modules {
 
 Remote::Remote(StarVFS *svfs, int port): iModule(svfs) {
+	m_Port = port;
 	m_ThreadRunning = false;
 	m_CanRun = true;
 
@@ -165,16 +166,14 @@ struct Remote::Connection : public BaseConnectionClass {
 //-------------------------------------------------------------------------------------------------
 
 void Remote::ThreadMain() {
-	 
 //	tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), Settings::Modules::Remote::BasePort);
 //	a.open(endpoint.protocol());
-
 //	deadline_timer deadline(io_service);
 
 	Connection c(this);
 
 	int id = 0;
-	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), RemoteHeaders::Settings::BasePort));
+	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), m_Port ? m_Port : RemoteHeaders::Settings::BasePort));
 	while (m_CanRun) {
 		//a.async_accept(c.m_Socket, [this, &c](boost::system::error_code ec) {
 		//	if (ec) {

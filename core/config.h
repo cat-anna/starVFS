@@ -18,7 +18,7 @@ using ContainerID = uint8_t;
 using StringID = uint32_t;
 
 using Char = char;
-using String = std::basic_string<Char>;
+using String = std::string;// std::basic_string<Char>;
 using CString = Char*;
 
 } //namespace StarVFS 

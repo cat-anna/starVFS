@@ -17,7 +17,7 @@ public:
 	FileHandle(HandleTable *Owner, uint16_t hid, uint16_t Generation):
 		m_Owner(Owner), m_HandleID(hid), m_Generation(Generation) { }
 
-	FileHandle(const FileHandle &) = delete;
+	FileHandle(const FileHandle &h) : m_Owner(nullptr), m_HandleID(0), m_Generation(0) { if (this != &h) h.CloneTo(*this); }
 	FileHandle(FileHandle &&o): 
 			m_Owner(std::move(o.m_Owner)), m_HandleID(std::move(o.m_HandleID)), m_Generation(std::move(o.m_Generation)) { 
 		o.m_Owner = nullptr; 
@@ -27,7 +27,11 @@ public:
 		Close(); 
 	}
 
-	FileHandle& operator=(const FileHandle&) = delete;
+	FileHandle& operator=(const FileHandle &h) {
+		if(this != &h)
+			h.CloneTo(*this);
+		return *this;
+	}
 	FileHandle& operator=(FileHandle&& o) {
 		m_Owner = std::move(o.m_Owner);
 		o.m_Owner = nullptr;
@@ -40,6 +44,13 @@ public:
 		std::swap(m_Owner, o.m_Owner);
 		std::swap(m_HandleID, o.m_HandleID);
 		std::swap(m_Generation, o.m_Generation);
+	}
+
+	void CloneTo(FileHandle &h) const;
+	FileHandle Clone() const {
+		FileHandle h;
+		CloneTo(h);
+		return h;
 	}
 
 	FileSize GetSize() const;
@@ -56,6 +67,8 @@ public:
 	operator bool() const { return IsHandleValid(); }
 	
 	void Close();
+
+	bool EnumerateChildren(HandleEnumerateFunc func) const;
 
 	uint16_t GetHandleID() const { return m_HandleID; }
 	uint16_t GetGeneration() const { return m_Generation; }

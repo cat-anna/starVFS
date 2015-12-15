@@ -1,5 +1,11 @@
 #pragma once
 
+#include <cstddef>
+#include <memory>
+#include <vector>
+#include <string>
+#include <functional>
+
 #include "config.h"
 
 namespace StarVFS {
@@ -14,6 +20,7 @@ struct File;
 
 class FileHandle;
 class HandleTable;
+using HandleEnumerateFunc = std::function<bool(FileID)>; //shall return false to break enumeration
 
 template<class T, class INDEX> class DynamicStringTable;
 using StringTable = DynamicStringTable<Char, StringID>;

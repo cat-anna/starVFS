@@ -60,6 +60,14 @@ bool FileHandle::IsHandleValid() const {
 
 //-------------------------------------------------------------------------------------------------
 
+bool FileHandle::EnumerateChildren(HandleEnumerateFunc func) const {
+	if (!m_Owner)
+		return false;
+	return m_Owner->HandleEnumerateChildren(*this, func);
+}
+
+//-------------------------------------------------------------------------------------------------
+
 void FileHandle::Close() {
 	if (!m_Owner)
 		return;
@@ -67,6 +75,12 @@ void FileHandle::Close() {
 	m_Owner = nullptr;
 	m_Generation = 0;
 	m_HandleID = 0;
+}
+
+void FileHandle::CloneTo(FileHandle &h) const {
+	if (!m_Owner)
+		return;
+	return m_Owner->HandleCloneTo(*this, h);
 }
 
 } //namespace StarVFS 

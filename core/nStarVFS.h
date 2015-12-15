@@ -8,5 +8,5 @@
 #include "FileHandle.h"
 #include "StarVFS.h"
 
-#include "Modules/iModule.h"
+#include "Module/iModule.h"
 

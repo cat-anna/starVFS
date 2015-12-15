@@ -124,12 +124,8 @@ FolderContainer::FolderContainer(const String &Path, unsigned Flags) :
 		iContainer(),
 		m_Path(Path) {
 
-//	if (m_Path.back() != '/')
-//		m_Path += '/';
-//
-//	SetReadable(true);
-//	SetWritable(true);
-//	SetReady(true);
+	if (m_Path.back() != '/')
+		m_Path += '/';
 }
 
 FolderContainer::~FolderContainer() {

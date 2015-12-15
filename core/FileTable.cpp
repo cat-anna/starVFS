@@ -24,6 +24,7 @@ FileTable::FileTable(unsigned Flags) {
 	auto *root = AllocNewFile();
 	root->m_Flags.Valid = 1;
 	root->m_Flags.Directory = 1;
+	root->m_Hash = FileIDHashAlgorithm::Hash("/", 1);
 	AddToHashTable(root);
 
 	m_Containers.push_back(nullptr);

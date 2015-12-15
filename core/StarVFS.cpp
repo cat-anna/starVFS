@@ -42,6 +42,12 @@ bool StarVFS::IsFileValid(FileID fid) const {
 	return m_FileTable->IsValid(fid);
 }
 
+bool StarVFS::IsFileDirectory(FileID fid) const {
+	auto f =  m_FileTable->GetFile(fid);
+	if (!f) return false;
+	return f->m_Flags.Directory > 0;
+}
+
 String StarVFS::GetFullFilePath(FileID fid) const {
 	return m_FileTable->GetFileFullPath(fid);
 }
@@ -82,7 +88,7 @@ FileHandle StarVFS::OpenFile(FileID fid, RWMode ReadMode) {
 
 //-----------------------------------------------------------------------------
 
-VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, unsigned ContainerFlags) {
+VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &MountPoint, unsigned ContainerFlags) {
 	Container c;
 	auto r = CreateContainer(c, ContainerFile, ContainerFlags);
 	if (r != VFSErrorCode::Success) {
@@ -153,11 +159,6 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 	if (!c) {
 		//TODO: log
 		return VFSErrorCode::UnknownContainerFormat;
-	}
-
-	if (!c->ReloadContainer()) {
-		//TODO: log
-		return VFSErrorCode::ContainerCriticalError;
 	}
 
 	STARVFSDebugLog("Created container %s for %s", typeid(*c.get()).name(), ContainerFile.c_str());

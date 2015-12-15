@@ -63,6 +63,9 @@ HandleTable::HandleData* HandleTable::GetDataFromHandle(const FileHandle& h) con
 	if (!hd->m_Flags.Used)
 		return nullptr;
 
+	if (!m_FileTable->IsValid(hd->m_FileID))
+		return nullptr;
+
 	return const_cast<HandleData*>(hd);
 }
 
@@ -74,12 +77,24 @@ FileHandle HandleTable::CreateHandle(FileID fid, RWMode ReadMode) {
 
 	auto h = AllocHandle();
 	h->m_Flags.Used = 1;
-//	++h->m_Generation;
 	h->m_FileID = fid;
 	h->m_Mode = ReadMode;
-//	h->
 
 	return FileHandle(this, h->m_HID, h->m_Generation);
+}
+
+void HandleTable::HandleCloneTo(const FileHandle& src, FileHandle& dst) {
+	dst.Close();
+	auto hd = GetDataFromHandle(src);
+	if (!hd)
+		return;
+
+	auto h = AllocHandle();
+	h->m_Flags.Used = 1;
+	h->m_FileID = hd->m_FileID;
+	h->m_Mode = hd->m_Mode;
+
+	dst = FileHandle(this, h->m_HID, h->m_Generation);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -136,6 +151,27 @@ void HandleTable::HandleClose(const FileHandle& h) {
 	++hd->m_Generation;
 	hd->m_Mode = RWMode::None;
 	hd->m_Flags.Used = 0;
+}
+
+bool HandleTable::HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFunc &func) const {
+	auto hd = GetDataFromHandle(h);
+	if (!h)
+		return false;
+	auto f = m_FileTable->GetFile(hd->m_FileID);
+	if (!f)
+		return false;
+	if (!f->m_Flags.Directory)
+		return false;
+
+	f = m_FileTable->GetFileFirstChild(f);
+
+	while (f) {
+		if(!func(f->m_GlobalFileID))
+			break;
+		f = m_FileTable->GetFileNextSibling(f);
+	}
+
+	return true;
 }
 
 } //namespace StarVFS 

@@ -1,0 +1,2 @@
+
+cli = helpers.CreateInstanceProxy("cli")

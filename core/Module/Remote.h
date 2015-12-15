@@ -18,6 +18,7 @@ public:
  	virtual ~Remote();
 private: 
 	volatile bool m_CanRun, m_ThreadRunning;
+	int m_Port;
 	void ThreadMain();
 	struct Connection;
 };

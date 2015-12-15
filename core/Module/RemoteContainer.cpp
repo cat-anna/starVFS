@@ -88,7 +88,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		char strPort[16];
 		sprintf(strPort, "%d", port);
 
-		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(Host), port);
+		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(Host), (short)port);
 		boost::system::error_code error;
 		m_Socket.connect(endpoint, error);
 
@@ -121,7 +121,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		m_FileTable.resize(hdr->ElementCount);
 		size_t len = hdr->ElementCount * sizeof(File);
 		memcpy(&m_FileTable[0], message.PullBytes(len), len);
-		m_FileCount = hdr->ElementCount;
+		m_FileCount = (FileID)hdr->ElementCount;
 		STARVFSErrorLog("table %d %d", hdr->ElementCount, len);
 		return true;
 	}

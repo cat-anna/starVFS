@@ -26,6 +26,8 @@ public:
 	bool HandleIsSymlink(const FileHandle& h) const;
 	bool HandleIsHandleValid(const FileHandle& h) const;
 	void HandleClose(const FileHandle& h);
+	bool HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFunc &func) const;
+	void HandleCloneTo(const FileHandle& src, FileHandle& dst);
 private: 
 	struct HandleData;
 	FileTable *m_FileTable;

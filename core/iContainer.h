@@ -84,3 +84,9 @@ private:
 } //namespace StarVFS 
 
 #endif
+
+/*
+	virtual container (each file is a set of functions)
+
+
+*/

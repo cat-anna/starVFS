@@ -11,7 +11,7 @@ workspace "StarVFS"
 	basedir "."
 	debugdir "."
 	targetdir(bindir)
-	
+  
 	defines {
 		"STARVFS_FOLDER_CONTAINER",
 	}
@@ -81,7 +81,12 @@ workspace "StarVFS"
 			"ConfigurationName=\"Release\"",
 			"RELEASE",	
 		}	
-		
+	
+	filter 'files:**.lua'
+		buildmessage 'Compiling %{file.relpath} with bin2c'
+		buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
+		buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
+
 	project "StarVFS"
 		location(bindir .. "StarVFS")
 		kind "StaticLib"
@@ -101,10 +106,17 @@ workspace "StarVFS"
 	project "svfs"
 		location(bindir .. "svfs")
 		kind "ConsoleApp"
-		links "StarVFS"
+		links {
+			"StarVFS",
+			"lua53",
+			"readline",
+		}
 		files {
 			"svfs/**",
 		}	
+		includedirs {
+			"%{cfg.objdir}",
+		}
 		
 	local i,v
 	for i,v in ipairs(os.matchfiles(os.getcwd() .. "/**/project.lua")) do

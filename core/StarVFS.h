@@ -16,15 +16,17 @@ public:
  	StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
 
-	VFSErrorCode OpenContainer(const String& ContainerFile, unsigned ContainerFlags = 0);
+	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/", unsigned ContainerFlags = 0);
 
 	/** Debug function. Prints all files in human-readable format. */
 	void DumpStructure(std::ostream &out) const;
 	void DumpFileTable(std::ostream &out) const;
 
-	FileID FindFile(const String& FileName);
+	bool ForcePath(const String& path);
 
+	FileID FindFile(const String& FileName);
 	bool IsFileValid(FileID fid) const;
+	bool IsFileDirectory(FileID fid) const;
 	String GetFullFilePath(FileID fid) const;
 	const CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
@@ -47,12 +49,6 @@ public:
 
 	FileTable* GetFileTable() { return m_FileTable.get(); }
 	HandleTable* GetHandleTable() { return m_HandleTable.get(); }
-
-//	FileReader OpenFile(const string& File);
-//	bool EnumerateFolder(const string &RootFolder, FileTable &files);
-//	FileWritter OpenFileForWrite(const string& File);
-//	/** Register internal data container with import priority to preserve order. */
-//	bool RegisterInternalContainer(const InternalFileNode *root, InternalContainerImportPriority Priority);
 protected:
 //	virtual bool CanLoadContainer(iContainer *container);
 //	virtual void OnContaierLoaded(iContainer *container);
