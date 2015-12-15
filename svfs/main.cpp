@@ -6,14 +6,15 @@
 #include <mutex>
 #include <iostream>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 #include "svfs.h"
 #include "cli.h"
 
-#include <core/Modules/Remote.h>
+#include "main.h"
 
-bool ParseArguments(int argc, char **argv, InitEnv &e);
-bool RunCLI(SVFS& svfs, InitEnv &e);
+static bool ParseArguments(int argc, char **argv, InitEnv &e);
+static bool LoadInitConfig(SharedLua Lua, SVFS& svfs, InitEnv &e);
 
 int main(int argc, char **argv) {
 //	svfs lvfs;
@@ -28,11 +29,9 @@ int main(int argc, char **argv) {
 //	}
 
 	auto e = std::make_unique<InitEnv>();
-	if (argc > 1) {
-		if (!ParseArguments(argc, argv, *e)) {
-			std::cout << "Unable to parse arguments!\n";
-			return 1;
-		}
+	if (argc > 1 && !ParseArguments(argc, argv, *e)) {
+		std::cout << "Unable to parse arguments!\n";
+		return 1;
 	}
 
 	auto lua = Lua::New();
@@ -47,18 +46,19 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	if(!svfs->LoadConfig(*e)) {
-		std::cout << "Unable to load initial configuration!\n";
+	if (!LoadInitConfig(lua, *svfs, *e)) {
+		printf("Unable to load initial config!\n");
 		return 1;
 	}
 
 	if (e->m_RunCLI) {
 		CLI cli(lua);
-		if (!cli.Enter(*svfs, *e)) {
+		if (!cli.Enter(*svfs)) {
 			std::cout << "Unable to run CLI!\n";
 			return 1;
 		}
 	}
+
 
 #if 0
 	StarVFS::StarVFS vfs;
@@ -98,18 +98,65 @@ int main(int argc, char **argv) {
 	}
 
 #endif
-
 	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-bool SVFSInit(SVFS& svfs, InitEnv &e) {
+static bool ExecuteCommandLinePipeline(SharedLua Lua, SVFS& svfs, InitEnv &e) {
 
-	if(e.m_StartRemoteServer)
-		svfs.LoadModule<StarVFS::Modules::Remote>(e.m_RemoteServerPort);
+//	std::cout << "[other settings] -> lua libs -> mounts -> injects -> scripts -> exports -> enter cli\n\n";
+
+	for (auto &it : e.m_LuaLibs) {
+		if (e.m_InitVerbose)
+			printf("Loading library %s\n", it.c_str());
+		if (!Lua->LoadLibrary(it.c_str()))
+			return false;
+	}
+
+	for (auto &it : e.m_Mounts) {
+		if (e.m_InitVerbose)
+			printf("Mounting %s to %s\n", it.m_Path.c_str(), it.m_MountPoint.c_str());
+		auto ret = svfs.OpenContainer(it.m_Path.c_str(), it.m_MountPoint.c_str(), 0);
+		if (ret != ::StarVFS::VFSErrorCode::Success) {
+			printf("Failed to mount container!\n");
+			return false;
+		}
+	}
+
+	//inject
+
+	for (auto &it : e.m_Scripts) {
+		bool isfile = false;// boost::filesystem::is_regular_file(it);
+		if (e.m_InitVerbose) {
+			if(isfile)
+				std::cout << "Executing file: " << it << "\n" << std::flush;
+			else
+				std::cout << "Executing chunk: " << it << "\n" << std::flush;
+		}
+		bool ret;
+		if (isfile) {
+			ret = Lua->ExecuteScriptFile(it.c_str());
+		} else {
+			ret = Lua->ExecuteScriptChunk(it.c_str());
+		}
+		if (!ret)
+			return false;
+	}
+
+	//export
 
 	return true;
+}
+
+static bool LoadInitConfig(SharedLua Lua, SVFS& svfs, InitEnv &e) {
+	if (!Lua)
+		return false;
+
+	if (e.m_StartRemoteServer)
+		svfs.StartServer(e.m_RemoteServerPort);
+
+	return ExecuteCommandLinePipeline(Lua, svfs, e);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -125,20 +172,16 @@ struct Parser {
 			("help", "produce help message")
 
 			("no-cli", po::bool_switch(), "Do not enter CLI")
+			("version,v", "Print version information and exit")
 
 			("remote", po::bool_switch(), "Start remote server")
 			("remote-port", po::value<int>()->default_value(0), "Set port for remote server")
 
-			("script,S", po::value<std::vector<std::string>>(), "Execute scipt before entering CLI")
-
-/*
-			mount,m  mount container at mountpoint file[:mountpoint[:type]]
-			export	TYPE:FILE:BASEPATH export content of BASEPATH
-
-			inject FILE:LOCATION
-
-*/
-
+			("library,l", po::value<std::vector<std::string>>(), "Load lua library")
+			("mount,m", po::value<std::vector<std::string>>(), "Mount container. format: FILE[:MOUNTPOINT]") //[:TYPE]
+//			("inject,i", po::value<std::vector<std::string>>(), "Inject file into vfs. format: SYSPATH:VPATH. Virtual path will be created if not exits") //[:TYPE]
+			("script,s", po::value<std::vector<std::string>>(), "Execute scipt before entering CLI. It may be file or chunk of code")
+//			("export", po::value<std::vector<std::string>>(), "Export vfs content. format: TYPE:OUTFILE[:BASEPATH]")
 			;
 	}
 
@@ -149,10 +192,28 @@ struct Parser {
 
 		if (vm.count("help")) {
 			std::cout << m_desc << "\n";
+			std::cout << "Arguments are processed in order:\n";
+			std::cout << "[other settings] -> lua libs -> mounts -> injects -> scripts -> exports -> enter cli\n\n";
+			exit(0);
 			return true;
 		}
 
-		m_Env.m_InitScripts = vm["script"].as<std::vector<std::string>>();
+		if (vm.count("version")) {
+			std::cout << "version\n";
+			exit(0);
+			return true;
+		}
+
+		if(!vm["library"].empty())
+			m_Env.m_LuaLibs = vm["library"].as<std::vector<std::string>>();
+		if(!vm["mount"].empty())
+			for (auto &it : vm["mount"].as<std::vector<std::string>>()) 
+				m_Env.m_Mounts.push_back(InitEnv::MountInfo::FromString(it));
+		if (!vm["inject"].empty())
+			for (auto &it : vm["inject"].as<std::vector<std::string>>())
+				m_Env.m_Injects.push_back(InitEnv::InjectInfo::FromString(it));
+		if (!vm["script"].empty())
+			m_Env.m_Scripts = vm["script"].as<std::vector<std::string>>();
 
 		m_Env.m_RunCLI = !vm["no-cli"].as<bool>();
 		m_Env.m_StartRemoteServer = vm["remote"].as<bool>();
@@ -163,7 +224,7 @@ struct Parser {
 
 };
 
-bool ParseArguments(int argc, char **argv, InitEnv &e) {
+static bool ParseArguments(int argc, char **argv, InitEnv &e) {
 	Parser p(e);
 	return p.Run(argc, argv);
 }

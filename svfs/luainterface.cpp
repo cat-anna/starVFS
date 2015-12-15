@@ -71,6 +71,58 @@ Lua::Lua() {
 
 //-------------------------------------------------------------------------------------------------
 
+bool Lua::LoadLibrary(const char *c) {
+	char buf[256];
+	sprintf(buf, "require(\"%s\")", c);
+
+	return ExecuteScriptChunk(buf);
+}
+
+bool Lua::ExecuteScriptFile(const char *fname) {
+	auto L = GetState();
+	int status = luaL_dofile(L, fname);
+	if (status) {
+		luaL_traceback(L, L, "", 1);
+		printf("Unable to execute file '%s'\nTrace:\n%s\n\n", fname, lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return false;
+	}
+	lua_settop(L, 0);
+	return true;
+}
+
+bool Lua::ExecuteScriptChunk(const char *code) {
+	auto L = GetState();
+	int status = luaL_dostring(L, code);
+	if (status) {
+		luaL_traceback(L, L, "", 1);
+		printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", code, lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return false;
+	}
+	lua_settop(L, 0);
+	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+struct scriptinfo {
+	const unsigned char *data;
+	const long *len;
+	const char *name;
+};
+
+static const scriptinfo scripttable[] = {
+	{ utils_lua, &utils_lua_size, "utils.lua" },
+	{ help_lua, &help_lua_size, "help.lua" },
+	{ main_lua, &main_lua_size, "main.lua" },
+	{ InstanceProxy_lua, &InstanceProxy_lua_size, "InstanceProxy.lua" },
+	{ console_lua, &console_lua_size, "console.lua" },
+	{ cli_lua, &cli_lua_size, "cli.lua" },
+	{ vfs_lua, &vfs_lua_size, "vfs.lua" },
+	{},
+};
+
 bool Lua::Initialize() {
 
 	luabridge::getGlobalNamespace(m_Lua.get())
@@ -78,36 +130,22 @@ bool Lua::Initialize() {
 	;
 
 	auto L = m_Lua.get();
-
-	auto load = [L](const char *data, unsigned len, const char *name) -> bool {
-		int status = luaL_loadbuffer(L, data, len, name);  
-		if(status) { 
+	for (const scriptinfo *si = scripttable; si->data; ++si) {
+		int status = luaL_loadbuffer(L, (const char*)si->data, *si->len, si->name);
+		if (status) {
 			printf("Error: %s\n", lua_tostring(L, -1));
 			lua_pop(L, 1);
-			printf("Unable to load script %s\n", name);
-			return false; 
-		} 
-		status = lua_pcall(L, 0, LUA_MULTRET, 0); 
-		if(status) { 
-			printf("Unable to execute script %s\n", name);
-			return false; 
-		} 
-		return true;
-	};
-
-#define do_script(DATA, LEN, NAME) do { if (!load(DATA, LEN, NAME)) return false; } while(0)
-
-	do_script((char*)utils_lua, utils_lua_size, "utils.lua");
-	do_script((char*)help_lua, help_lua_size, "help.lua");
-
-	do_script((char*)main_lua, main_lua_size, "main.lua");
-	do_script((char*)InstanceProxy_lua, InstanceProxy_lua_size, "InstanceProxy.lua");
-	do_script((char*)console_lua, console_lua_size, "console.lua");
-
-	do_script((char*)cli_lua, cli_lua_size, "cli.lua");
-	do_script((char*)vfs_lua, vfs_lua_size, "vfs.lua");
-
-//	int status = luaL_loadbuffer(L, line, len, "=stdin");  /* try it */
+			printf("Unable to load script %s\n", si->name);
+			return false;
+		}
+		status = lua_pcall(L, 0, LUA_MULTRET, 0);
+		if (status) {
+			luaL_traceback(L, L, "", 1);
+			printf("Unable to execute '%s'\nTrace:\n%s\n\n", si->name, lua_tostring(L, -1));
+			lua_pop(L, 1);
+			return false;
+		}
+	}
 
 	return true;
 }

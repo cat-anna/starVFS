@@ -28,8 +28,12 @@ struct Lua {
 	}
 
 	lua_State *GetState() { return m_Lua.get(); }
-
+	
 	bool Initialize();
+
+	bool LoadLibrary(const char *c);
+	bool ExecuteScriptFile(const char *fname);
+	bool ExecuteScriptChunk(const char *code);
 protected:
 	Lua();
 	virtual ~Lua() { }

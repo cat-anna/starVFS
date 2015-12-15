@@ -33,7 +33,7 @@ function ConcatPath(p)
 	return "/" .. table.concat(p, "/") 
 end
 
-Help.Register { Command="path", Brief="get full path of argumet", Usage="path ELEMENT" }
+Help.Register { Command="path", Brief="get full path of argumet", Usage="path(ELEMENT)" }
 function path(subpath)
 	if not subpath or subpath == "" then
 		return pwd()
@@ -42,7 +42,7 @@ function path(subpath)
 	return ConcatPath(SplitPath(subpath))
 end
 
-Help.Register { Command="fileinfo", Brief="get file info from id", Usage="fileinfo FileID" }
+Help.Register { Command="fileinfo", Brief="get file info from id", Usage="fileinfo(FileID)" }
 function fileinfo(id)
 	id = tonumber(id)
 	if not id then
@@ -66,7 +66,7 @@ function fileinfo(id)
 	}
 end
 
-Help.Register { Command="cd", Brief="goto folder", Usage="cd FOLDER" }
+Help.Register { Command="cd", Brief="goto folder", Usage="cd(FOLDER)" }
 function cd(subpath)
 	subpath = subpath or "/"
 
@@ -93,7 +93,7 @@ function pwd()
 	return ConcatPath(Path)
 end
 
-Help.Register { Command="ls", Brief="list content of directory", Usage="ls [PATH]" }
+Help.Register { Command="ls", Brief="list content of directory", Usage="ls([PATH])" }
 function ls(p)
 	if p then
 		p = path(p)
@@ -144,7 +144,7 @@ function ls(p)
 	end
 end
 
-Help.Register { Command="mount", Brief="mount container", Usage="mount CONTAINER [MOUNTPOINT]" }
+Help.Register { Command="mount", Brief="mount container", Usage="mount(CONTAINER, [MOUNTPOINT])" }
 function mount(what, where)
 	if not what then
 		return
@@ -162,7 +162,7 @@ Help.Register { Command="addmod", Brief="TBD" }
 function addmod(name, args)
 end
 
-Help.Register { Command="mkdir", Brief="create directories", Usage="mkdir PATH"}
+Help.Register { Command="mkdir", Brief="create directories", Usage="mkdir(PATH)"}
 function mkdir(p)
 	if not p then
 		print "mkdir requires an argument"

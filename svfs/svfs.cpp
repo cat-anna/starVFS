@@ -100,8 +100,3 @@ bool SVFS::Initialize() {
 }
 
 //-------------------------------------------------------------------------------------------------
-
-bool SVFS::LoadConfig(const InitEnv &env) {
-
-	return true;
-}

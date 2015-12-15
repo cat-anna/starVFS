@@ -352,11 +352,9 @@ void CLI::Exit(int ec) {
 	m_CanContinue = false;
 }
 
-bool CLI::Enter(SVFS& svfs, InitEnv &e) {
+bool CLI::Enter(SVFS& svfs) {
 	if (!m_Lua)
 		return false;
-	if (!e.m_RunCLI)
-		return true;
 
 	m_CanContinue = true;
 	Loop();

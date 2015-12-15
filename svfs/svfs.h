@@ -10,28 +10,20 @@
 #define LuaVFS_H
 
 #include <iostream>
-
-#include <core/nStarVFS.h>
+#include <memory>
 #include "luainterface.h"
 
-struct InitEnv {
-	std::vector<std::string> m_InitScripts;
-
-	bool m_RunCLI = true;
-
-	bool m_StartRemoteServer = false;
-	int m_RemoteServerPort = 0;
-};
+#include <core/nStarVFS.h>
+#include <core/Module/Remote.h>
 
 class SVFS : public StarVFS::StarVFS {
 public:
 	SVFS(SharedLua Lua);
  	~SVFS();
 
-
-	bool LoadConfig(const InitEnv &env);
-
 	bool Initialize();
+
+	void StartServer(int port) { LoadModule<::StarVFS::Modules::Remote>(port); }
 private:
 	SharedLua m_Lua;
 

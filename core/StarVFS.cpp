@@ -11,7 +11,7 @@
 #include "FolderContainer.h"
 #endif
 
-#include "Modules/RemoteContainer.h"
+#include "Module/RemoteContainer.h"
 
 namespace StarVFS {
 

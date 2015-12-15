@@ -18,7 +18,7 @@ public:
 
 	CLI& operator=(const CLI&) = delete;
 
-	bool Enter(SVFS& svfs, InitEnv &e);
+	bool Enter(SVFS& svfs);
 private:
 	SharedLua m_Lua;
 	bool m_CanContinue;
