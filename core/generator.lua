@@ -45,7 +45,8 @@ local function processModules(basedir, outdata)
 		end		
 	end
 	
-	local fbeg = [[namespace Module {
+	local fbeg = [[
+namespace Modules {
 	template<class T>
 	void RegisterModules(T t) {
 ]]

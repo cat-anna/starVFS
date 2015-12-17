@@ -8,5 +8,6 @@ group ""
 		}
 		
 include "generator.lua"
-		GenerateModules(bindir .. "SVFSRegister.h", path.getrelative(os.getcwd(), dir.base) .. "/")
-	
+		local outfile = bindir .. "SVFSRegister.h"
+		GenerateModules(outfile, path.getrelative(os.getcwd(), dir.base) .. "/")
+		files { outfile }
