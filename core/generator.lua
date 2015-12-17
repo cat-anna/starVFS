@@ -29,7 +29,6 @@ namespace Container {
 	outdata.functions[#outdata.functions + 1] = fbeg .. fm .. fend
 end
 
-
 local function processModules(basedir, outdata)
 	local files = { }
 	for i,v in ipairs(os.matchfiles(basedir .. "core/Module/*Module.h")) do
@@ -60,6 +59,36 @@ namespace Modules {
 	outdata.functions[#outdata.functions + 1] = fbeg .. fm .. fend
 end
 
+local function processExporters(basedir, outdata)
+	local files = { }
+	for i,v in ipairs(os.matchfiles(basedir .. "core/Exporter/*Exporter.h")) do
+		local n = string.match (v, "/([^i]%w+)%.h$")
+		if n then
+			local f = string.gsub(v, basedir, "", 1)
+			files[#files + 1] = {
+				file = f, 
+				name = n,
+			}
+			outdata.headers[#outdata.headers + 1] = f
+			
+		end		
+	end
+	
+	local fbeg = [[
+namespace Exporters {
+	template<class T>
+	void RegisterExporter(T t) {
+]]
+	local fm = ""
+	for i,v in ipairs(files) do
+		fm = fm .. string.format("\t\tt.RegisterExporter<%s>(\"%s\");\n", v.name, v.name)
+	end
+	local fend = [[
+	}
+}]]
+	outdata.functions[#outdata.functions + 1] = fbeg .. fm .. fend
+end
+
 function GenerateModules(outfilename, basedir)
 	basedir = basedir or ""
 	
@@ -75,6 +104,7 @@ function GenerateModules(outfilename, basedir)
 	
 	processContainers(basedir, outdata)
 	processModules(basedir, outdata)
+	processExporters(basedir, outdata)
 	
 	local genout = { }
 
@@ -107,6 +137,7 @@ template<class T>
 void RegisteerAll(T t) {
 	Container::RegisterContainers(t);
 	Module::RegisterModules(t);
+	Exporters::RegisterExporters(t);
 }
 ]]	
 
