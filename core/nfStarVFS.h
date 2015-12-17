@@ -17,7 +17,7 @@ using Container = std::unique_ptr<iContainer>;
 
 class FileTable;
 struct File;
-
+class StarVFS;
 class FileHandle;
 class HandleTable;
 using HandleEnumerateFunc = std::function<bool(FileID)>; //shall return false to break enumeration
