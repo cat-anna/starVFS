@@ -12,7 +12,7 @@ using u64 = uint64_t;
 struct Settings {
 	enum {
 		BasePort = 55555,
-		PortLimit = 100,
+		PortLimit = 10,
 		MaxMessageSize = 128 * 1024,
 	};
 };

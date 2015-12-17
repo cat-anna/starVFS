@@ -4,7 +4,7 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include "StarVFSInternal.h"
+#include "../StarVFSInternal.h"
 #include "iContainer.h"
 
 namespace StarVFS {

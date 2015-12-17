@@ -8,10 +8,10 @@
 #include "StarVFSInternal.h"
 
 #ifdef STARVFS_FOLDER_CONTAINER
-#include "FolderContainer.h"
+#include "Container/FolderContainer.h"
 #endif
 
-#include "Module/RemoteContainer.h"
+#include "Container/RemoteContainer.h"
 
 namespace StarVFS {
 

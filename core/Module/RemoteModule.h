@@ -6,16 +6,16 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef Remote_H
-#define Remote_H
+#ifndef RemoteModule_H
+#define RemoteModule_H
 
 namespace StarVFS {
 namespace Modules {
 
-class Remote : public iModule {
+class RemoteModule : public iModule {
 public:
- 	Remote(StarVFS *svfs, int port = 0);
- 	virtual ~Remote();
+	RemoteModule(StarVFS *svfs, int port = 0);
+ 	virtual ~RemoteModule();
 private: 
 	volatile bool m_CanRun, m_ThreadRunning;
 	int m_Port;

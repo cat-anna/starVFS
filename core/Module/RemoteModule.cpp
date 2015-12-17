@@ -7,7 +7,7 @@
 #define _WIN32_WINNT 0x0501
 
 #include "../StarVFSInternal.h"
-#include "Remote.h"
+#include "RemoteModule.h"
 
 #include <thread>
 #include <chrono>
@@ -22,7 +22,7 @@ using boost::asio::deadline_timer;
 namespace StarVFS {
 namespace Modules {
 
-Remote::Remote(StarVFS *svfs, int port): iModule(svfs) {
+RemoteModule::RemoteModule(StarVFS *svfs, int port): iModule(svfs) {
 	m_Port = port;
 	m_ThreadRunning = false;
 	m_CanRun = true;
@@ -41,7 +41,7 @@ Remote::Remote(StarVFS *svfs, int port): iModule(svfs) {
 	}).detach();
 }
 
-Remote::~Remote() {
+RemoteModule::~RemoteModule() {
 	m_CanRun = false;
 	while (m_ThreadRunning)
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -50,11 +50,11 @@ Remote::~Remote() {
 //-------------------------------------------------------------------------------------------------
 
 using BaseConnectionClass = RemoteHeaders::BaseConnection<boost::asio::io_service, tcp::socket>;
-struct Remote::Connection : public BaseConnectionClass {
-	Remote *m_Owner;
+struct RemoteModule::Connection : public BaseConnectionClass {
+	RemoteModule *m_Owner;
 	using MessageBuffer = RemoteHeaders::MessageBuffer;
 
-	Connection(Remote *Owner): BaseConnectionClass() {
+	Connection(RemoteModule *Owner): BaseConnectionClass() {
 		m_Owner = Owner;
 	}
 
@@ -165,7 +165,7 @@ struct Remote::Connection : public BaseConnectionClass {
 
 //-------------------------------------------------------------------------------------------------
 
-void Remote::ThreadMain() {
+void RemoteModule::ThreadMain() {
 //	tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), Settings::Modules::Remote::BasePort);
 //	a.open(endpoint.protocol());
 //	deadline_timer deadline(io_service);

@@ -3,7 +3,7 @@ dir = {
 	base = os.getcwd() .. "/",
 }
 
-bindir = dir.base .. "bin_" .. _ACTION .. "/"
+bindir = dir.base .. "bin_" .. (_ACTION or "") .. "/"
 
 workspace "StarVFS"
 	configurations { "Debug", "Release", }
@@ -85,15 +85,6 @@ workspace "StarVFS"
 			"ConfigurationName=\"Release\"",
 			"RELEASE",	
 		}	
-	
-
-	project "StarVFS"
-		location(bindir .. "StarVFS")
-		kind "StaticLib"
-		files {
-			"core/**",
-			"rdc/**",
-		}
 		
 	project "svfs"
 		location(bindir .. "svfs")
@@ -115,8 +106,11 @@ workspace "StarVFS"
 			buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
 			buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
 		
+	filter { }
+		
 	local i,v
 	for i,v in ipairs(os.matchfiles(os.getcwd() .. "/**/project.lua")) do
 		print("Found project: " .. v)
 		include(v)
 	end
+

@@ -14,7 +14,7 @@
 #include "luainterface.h"
 
 #include <core/nStarVFS.h>
-#include <core/Module/Remote.h>
+#include <core/Module/RemoteModule.h>
 
 class SVFS : public StarVFS::StarVFS {
 public:
@@ -23,7 +23,7 @@ public:
 
 	bool Initialize();
 
-	void StartServer(int port) { LoadModule<::StarVFS::Modules::Remote>(port); }
+	void StartServer(int port) { LoadModule<::StarVFS::Modules::RemoteModule>(port); }
 private:
 	SharedLua m_Lua;
 

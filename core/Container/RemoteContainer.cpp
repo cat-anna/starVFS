@@ -8,7 +8,7 @@
 
 #include "../StarVFSInternal.h"
 #include "RemoteContainer.h"
-#include "RemoteHeaders.h"
+#include "../Module/RemoteHeaders.h"
 
 #include <boost/asio.hpp>
 
