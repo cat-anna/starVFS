@@ -11,7 +11,7 @@
 
 #define HASH32_SEED 0xb3aa41c7 
 //4b1c764b 
-
+ 
 namespace StarVFS {
 
 FileIDHash Murmur3Hash32::Hash(const char *data, size_t len) {

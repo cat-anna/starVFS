@@ -15,6 +15,13 @@
 
 namespace StarVFS {
 
+#ifdef STARVFS_LOG_TO_SINK
+
+static void DefaultStarVFSLogSink(const char *file, const char *function, unsigned line, const char *log, const char *type)  { }
+void(*StarVFSLogSink)(const char *file, const char *function, unsigned line, const char *log, const char *type) = DefaultStarVFSLogSink;
+
+#endif
+
 StarVFS::StarVFS(unsigned FSFlags) {
 	m_FileTable = std::make_unique<FileTable>();
 	m_HandleTable = std::make_unique<HandleTable>(m_FileTable.get());

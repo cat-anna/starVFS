@@ -24,10 +24,10 @@ String FileHandle::GetFullPath() const {
 
 //-------------------------------------------------------------------------------------------------
 
-bool FileHandle::GetFileData(CharTable &data) const {
+bool FileHandle::GetFileData(CharTable &data, FileSize *fsize) const {
 	if (!m_Owner)
 		return false;
-	return m_Owner->HandleGetFileData(*this, data);
+	return m_Owner->HandleGetFileData(*this, data, fsize);
 }
 
 //-------------------------------------------------------------------------------------------------

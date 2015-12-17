@@ -309,7 +309,7 @@ const CString FileTable::GetFileName(FileID fid) const {
 	return (CString)m_StringTable->Get(m_FileTable[fid].m_NameStringID);
 }
 
-bool FileTable::GetFileData(FileID fid, CharTable &data) {
+bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
 	auto f = GetFile(fid);
 	if (!fid)
 		//TODO: log
@@ -318,7 +318,7 @@ bool FileTable::GetFileData(FileID fid, CharTable &data) {
 	if (!c)
 		//TODO: log
 		return false;
-	if (!c->GetFileData(f->m_ContainerFileID, data))
+	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
 		return false;
 	return true;
 }

@@ -1,9 +1,13 @@
 
-local bindir = "bin_" .. _ACTION .. "/"
+dir = {
+	base = os.getcwd() .. "/",
+}
+
+bindir = dir.base .. "bin_" .. _ACTION .. "/"
 
 workspace "StarVFS"
 	configurations { "Debug", "Release", }
-	platforms { "x32", "x64" }
+	platforms { "x32", "x64", }
 	language "C++"
 	
 	startproject "svfs"	
@@ -82,10 +86,6 @@ workspace "StarVFS"
 			"RELEASE",	
 		}	
 	
-	filter 'files:**.lua'
-		buildmessage 'Compiling %{file.relpath} with bin2c'
-		buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
-		buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
 
 	project "StarVFS"
 		location(bindir .. "StarVFS")
@@ -93,14 +93,6 @@ workspace "StarVFS"
 		files {
 			"core/**",
 			"rdc/**",
-		}
-		
-	project "rdcc"
-		location(bindir .. "rdcc")
-		kind "ConsoleApp"
-		links "StarVFS"
-		files {
-			"rdcc/**",
 		}
 		
 	project "svfs"
@@ -117,6 +109,11 @@ workspace "StarVFS"
 		includedirs {
 			"%{cfg.objdir}",
 		}
+		
+		filter 'files:**.lua'
+			buildmessage 'Compiling %{file.relpath} with bin2c'
+			buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
+			buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
 		
 	local i,v
 	for i,v in ipairs(os.matchfiles(os.getcwd() .. "/**/project.lua")) do

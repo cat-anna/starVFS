@@ -111,10 +111,10 @@ String HandleTable::HandleGetFullPath(const FileHandle& h) const {
 	return hd ? m_FileTable->GetFileFullPath(hd->m_FileID) : String();
 }
 
-bool HandleTable::HandleGetFileData(const FileHandle& h, CharTable &data) const {
+bool HandleTable::HandleGetFileData(const FileHandle& h, CharTable &data, FileSize *fsize) const {
 	auto hd = GetDataFromHandle(h);
 	if (!hd) return false;
-	return m_FileTable->GetFileData(hd->m_FileID, data);
+	return m_FileTable->GetFileData(hd->m_FileID, data, fsize);
 }
 
 RWMode HandleTable::HandleGetRWMode(const FileHandle& h) const {

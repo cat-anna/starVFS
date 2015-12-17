@@ -21,19 +21,38 @@ using Char = char;
 using String = std::string;// std::basic_string<Char>;
 using CString = Char*;
 
+extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned line, const char *log, const char *type);
+
 } //namespace StarVFS 
+
+#ifdef STARVFS_LOG_TO_SINK
+
+#define STARVFS_DEFINE_DEFAULT_LOG_API
+
+#define STARVFSLOG(What, fmt, ...)\
+	do { \
+		char buf[4096]; \
+		sprintf(buf, fmt, __VA_ARGS__); \
+		::StarVFS::StarVFSLogSink(__FILE__, __FUNCTION__, __LINE__, buf, #What);\
+	} while(0)
+
+#else
+
+#define STARVFS_DEFINE_DEFAULT_LOG_API
 
 #define STARVFSLOG(What, fmt, ...)\
 	do { \
 		char buf[1024]; \
-		sprintf(buf, "[%s][%s:%d] StarVFS: " fmt "\n", What, strrchr(__FILE__, '\\')+1, __LINE__, __VA_ARGS__); \
+		sprintf(buf, "[%s][%s:%d] StarVFS: " fmt "\n", #What, strrchr(__FILE__, '\\')+1, __LINE__, __VA_ARGS__); \
 		std::cout << buf << std::flush;\
 	} while(0)
 
-#define STARVFSErrorLog(fmt, ...) STARVFSLOG("ERROR", fmt, __VA_ARGS__)
+#endif
+
+#define STARVFSErrorLog(fmt, ...) STARVFSLOG(ERROR, fmt, __VA_ARGS__)
 
 #ifdef DEBUG 
-#define STARVFSDebugLog(fmt, ...) STARVFSLOG("DEBUG", fmt, __VA_ARGS__)
+#define STARVFSDebugLog(fmt, ...) STARVFSLOG(DEBUG, fmt, __VA_ARGS__)
 #else
 #define STARVFSDebugLog(fmt, ...) do { } while(0)
 #endif

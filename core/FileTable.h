@@ -67,7 +67,7 @@ public:
 
 	//delete
 
-	bool GetFileData(FileID fid, CharTable &data);
+	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 	
 	bool IsValid(FileID fid) const {
 		if (!fid || fid >= m_Allocated || !m_FileTable[fid].m_Flags.Valid)
