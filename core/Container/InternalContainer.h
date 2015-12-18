@@ -40,6 +40,7 @@ struct InternalFileFlags {
 
 class InternalContainer : public iContainer {
 public:
+
 //	using FileFlags = InternalFileFlags;
 //	using FileNode = InternalFileNode;
 //	

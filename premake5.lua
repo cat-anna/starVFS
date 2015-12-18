@@ -21,6 +21,8 @@ workspace "StarVFS"
 	}
 	includedirs {
 		".",
+		"..",
+		bindir,
 	}	
 	
 	flags { 

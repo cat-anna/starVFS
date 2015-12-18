@@ -15,7 +15,7 @@ local function processContainers(basedir, outdata)
 	end
 	
 	local fbeg = [[
-namespace Container {
+namespace Containers {
 	template<class T>
 	void RegisterContainers(T t) {
 ]]
@@ -148,4 +148,6 @@ void RegisteerAll(T t) {
 		f:write(v, "\n")
 	end	
 	f:close()
+	
+	print("Generated SVFS register " .. outfilename)
 end

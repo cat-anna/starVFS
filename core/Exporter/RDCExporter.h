@@ -12,13 +12,13 @@
 namespace StarVFS {
 namespace Exporters {
 
-class RDCExporter : public iExporter {
-public:
- 	RDCExporter();
- 	virtual ~RDCExporter();
-protected:
-private: 
-};
+//class RDCExporter : public iExporter {
+//public:
+// 	RDCExporter();
+// 	virtual ~RDCExporter();
+//protected:
+//private: 
+//};
 
 } //namespace Exporters 
 } //namespace StarVFS 

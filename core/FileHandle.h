@@ -59,6 +59,7 @@ public:
 	bool GetFileData(CharTable &data, FileSize *fsize = nullptr) const;
 
 	RWMode GetRWMode() const;
+	FileID GetFID() const;
 
 	bool IsDirectory() const;
 	bool IsSymlink() const;

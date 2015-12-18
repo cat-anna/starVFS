@@ -16,11 +16,11 @@ public:
  	HashFileTable();
  	~HashFileTable();
 	//bool Resize(FileID NewCapacity);
-	//FileID Lookup(FileIDHash Hash);
+	//FileID Lookup(FilePathHash Hash);
 	//void SortHashTable();
 	//void AddToHashTable(File* f);
 private:
-	//FileIDHash *m_HashTable;   //these tables must be synchronized
+	//FilePathHash *m_HashTable;   //these tables must be synchronized
 	//FileID *m_FileIDTable;	   //these tables must be synchronized
 	//FileID m_Allocated;
 	//FileID m_Capacity;

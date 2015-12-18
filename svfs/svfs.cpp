@@ -7,6 +7,8 @@
 #include "svfs.h"
 #include "luainterface.h"
 
+#include <SVFSRegister.h>
+
 SVFS::SVFS(SharedLua Lua) {
 	m_Lua = Lua;
 }
@@ -15,6 +17,18 @@ SVFS::~SVFS() {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+
+int SVFS::Export(const char *outfile, const char* vfsbase) {
+	STARVFSDebugLog("Export %s -> %s", vfsbase, outfile);
+
+	auto exporter = CreateExporter<::StarVFS::Exporters::InternalExporter>();
+
+	exporter->DoExport(vfsbase, outfile);
+
+	return 0;
+}
+
 
 bool SVFS::Initialize() {
 	if (m_Lua) {
@@ -73,6 +87,7 @@ bool SVFS::Initialize() {
 					.addFunction("GetModuleCount", &SVFS::GetModuleCount)
 					.addFunction("GetModule", &SVFS::GetModule)
 
+					.addFunction("Export", &SVFS::Export)
 				.endClass() 
 			 
 				.beginClass<FileHandle>("FileHandle")

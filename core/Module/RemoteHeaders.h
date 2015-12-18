@@ -45,7 +45,7 @@ struct GetFileRequest {
 	FindMode Mode;
 	RWMode RWMode;
 	OpenMode OpenMode;
-	FileIDHash Hash;
+	FilePathHash Hash;
 	FileID ID;
 	u8 Path[0];
 };

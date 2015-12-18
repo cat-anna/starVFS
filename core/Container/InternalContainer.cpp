@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "../StarVFSInternal.h"
+#include "InternalContainerHeaders.h"
 #include "InternalContainer.h"
 
 namespace StarVFS {

@@ -11,13 +11,11 @@
 
 namespace StarVFS {
 
-using FileIDHash = uint32_t;
-
 struct Murmur3Hash32 {
-	static FileIDHash Hash(const char *data, size_t len);
+	static FilePathHash Hash(const char *data, size_t len);
 };
 
-using FileIDHashAlgorithm = Murmur3Hash32;
+using FilePathHashAlgorithm = Murmur3Hash32;
 
 } //namespace StarVFS 
 

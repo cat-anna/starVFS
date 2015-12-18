@@ -16,7 +16,7 @@
 #include <core/nStarVFS.h>
 #include <core/Module/RemoteModule.h>
 
-class SVFS : public StarVFS::StarVFS {
+class SVFS : public ::StarVFS::StarVFS {
 public:
 	SVFS(SharedLua Lua);
  	~SVFS();
@@ -46,6 +46,8 @@ private:
 	
 	void CoutDumpStructure() { DumpStructure(std::cout); }
 	void CoutDumpFileTable() { DumpFileTable(std::cout); }
+
+	int Export(const char *outfile, const char* vfsbase);
 
 };
 

@@ -10,13 +10,13 @@
 namespace StarVFS {
 namespace Exporters {
 
-RDCExporter::RDCExporter() {
-
-}
-
-RDCExporter::~RDCExporter() {
-
-}
+//RDCExporter::RDCExporter() {
+//
+//}
+//
+//RDCExporter::~RDCExporter() {
+//
+//}
 
 } //namespace Exporters 
 } //namespace StarVFS 

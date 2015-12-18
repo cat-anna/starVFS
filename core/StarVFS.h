@@ -47,6 +47,12 @@ public:
 		return m_Modules[mid].get();
 	}
 
+	template<class T, class ...ARGS>
+	std::unique_ptr<T> CreateExporter(ARGS ...args) {
+		static_assert(std::is_base_of<Exporters::iExporter, T>::value, "Invalid exporter class!");
+		return std::make_unique<T>(this, std::forward<ARGS>(args)...);
+	}
+
 	FileTable* GetFileTable() { return m_FileTable.get(); }
 	HandleTable* GetHandleTable() { return m_HandleTable.get(); }
 protected:
