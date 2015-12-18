@@ -10,11 +10,7 @@
 
 #include "svfs.h"
 #include "cli.h"
-
-#include "main.h"
-
-static bool ParseArguments(int argc, char **argv, InitEnv &e);
-static bool LoadInitConfig(SharedLua Lua, SVFS& svfs, InitEnv &e);
+#include "arguments.h"
 
 int main(int argc, char **argv) {
 //	svfs lvfs;
@@ -28,12 +24,6 @@ int main(int argc, char **argv) {
 //		return 1;
 //	}
 
-	auto e = std::make_unique<InitEnv>();
-	if (argc > 1 && !ParseArguments(argc, argv, *e)) {
-		std::cout << "Unable to parse arguments!\n";
-		return 1;
-	}
-
 	auto lua = Lua::New();
 	if (!lua->Initialize()) {
 		printf("Unable to initialize lua vm!\n");
@@ -46,11 +36,17 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	if (!LoadInitConfig(lua, *svfs, *e)) {
-		printf("Unable to load initial config!\n");
-		return 1;
+	if (argc > 1){
+		Parser p;
+		if (!p.Run(argc, argv)) {
+			std::cout << "Unable to parse arguments!\n";
+			return 1;
+		}
+		if (!lua->ExecuteScriptChunk(p.GetInitScript().c_str(), "initscript"))
+			return 1;
 	}
 
+	auto e = std::make_unique<InitEnv>();
 	if (e->m_RunCLI) {
 		CLI cli(lua);
 		if (!cli.Enter(*svfs)) {
@@ -99,132 +95,4 @@ int main(int argc, char **argv) {
 
 #endif
 	return 0;
-}
-
-//-------------------------------------------------------------------------------------------------
-
-static bool ExecuteCommandLinePipeline(SharedLua Lua, SVFS& svfs, InitEnv &e) {
-
-//	std::cout << "[other settings] -> lua libs -> mounts -> injects -> scripts -> exports -> enter cli\n\n";
-
-	for (auto &it : e.m_LuaLibs) {
-		if (e.m_InitVerbose)
-			printf("Loading library %s\n", it.c_str());
-		if (!Lua->LoadLibrary(it.c_str()))
-			return false;
-	}
-
-	for (auto &it : e.m_Mounts) {
-		if (e.m_InitVerbose)
-			printf("Mounting %s to %s\n", it.m_Path.c_str(), it.m_MountPoint.c_str());
-		auto ret = svfs.OpenContainer(it.m_Path.c_str(), it.m_MountPoint.c_str(), 0);
-		if (ret != ::StarVFS::VFSErrorCode::Success) {
-			printf("Failed to mount container!\n");
-			return false;
-		}
-	}
-
-	//inject
-
-	for (auto &it : e.m_Scripts) {
-		bool isfile = false;// boost::filesystem::is_regular_file(it);
-		if (e.m_InitVerbose) {
-			if(isfile)
-				std::cout << "Executing file: " << it << "\n" << std::flush;
-			else
-				std::cout << "Executing chunk: " << it << "\n" << std::flush;
-		}
-		bool ret;
-		if (isfile) {
-			ret = Lua->ExecuteScriptFile(it.c_str());
-		} else {
-			ret = Lua->ExecuteScriptChunk(it.c_str());
-		}
-		if (!ret)
-			return false;
-	}
-
-	//export
-
-	return true;
-}
-
-static bool LoadInitConfig(SharedLua Lua, SVFS& svfs, InitEnv &e) {
-	if (!Lua)
-		return false;
-
-	if (e.m_StartRemoteServer)
-		svfs.StartServer(e.m_RemoteServerPort);
-
-	return ExecuteCommandLinePipeline(Lua, svfs, e);
-}
-
-//-------------------------------------------------------------------------------------------------
-
-namespace po = boost::program_options;
-
-struct Parser {
-	po::options_description m_desc;
-	InitEnv &m_Env;
-
-	Parser(InitEnv &e): m_desc("Allowed options"), m_Env(e) {
-		m_desc.add_options()
-			("help", "produce help message")
-
-			("no-cli", po::bool_switch(), "Do not enter CLI")
-			("version,v", "Print version information and exit")
-
-			("remote", po::bool_switch(), "Start remote server")
-			("remote-port", po::value<int>()->default_value(0), "Set port for remote server")
-
-			("library,l", po::value<std::vector<std::string>>(), "Load lua library")
-			("mount,m", po::value<std::vector<std::string>>(), "Mount container. format: FILE[:MOUNTPOINT]") //[:TYPE]
-//			("inject,i", po::value<std::vector<std::string>>(), "Inject file into vfs. format: SYSPATH:VPATH. Virtual path will be created if not exits") //[:TYPE]
-			("script,s", po::value<std::vector<std::string>>(), "Execute scipt before entering CLI. It may be file or chunk of code")
-//			("export", po::value<std::vector<std::string>>(), "Export vfs content. format: TYPE:OUTFILE[:BASEPATH]")
-			;
-	}
-
-	bool Run(int argc, char **argv) {
-		po::variables_map vm;
-		po::store(po::parse_command_line(argc, argv, m_desc), vm);
-		po::notify(vm);
-
-		if (vm.count("help")) {
-			std::cout << m_desc << "\n";
-			std::cout << "Arguments are processed in order:\n";
-			std::cout << "[other settings] -> lua libs -> mounts -> injects -> scripts -> exports -> enter cli\n\n";
-			exit(0);
-			return true;
-		}
-
-		if (vm.count("version")) {
-			std::cout << "version\n";
-			exit(0);
-			return true;
-		}
-
-		if(!vm["library"].empty())
-			m_Env.m_LuaLibs = vm["library"].as<std::vector<std::string>>();
-		if(!vm["mount"].empty())
-			for (auto &it : vm["mount"].as<std::vector<std::string>>()) 
-				m_Env.m_Mounts.push_back(InitEnv::MountInfo::FromString(it));
-		if (!vm["inject"].empty())
-			for (auto &it : vm["inject"].as<std::vector<std::string>>())
-				m_Env.m_Injects.push_back(InitEnv::InjectInfo::FromString(it));
-		if (!vm["script"].empty())
-			m_Env.m_Scripts = vm["script"].as<std::vector<std::string>>();
-
-		m_Env.m_RunCLI = !vm["no-cli"].as<bool>();
-		m_Env.m_StartRemoteServer = vm["remote"].as<bool>();
-		m_Env.m_RemoteServerPort = vm["remote-port"].as<int>();
-
-		return true;
-	}
-
-};
-
-static bool ParseArguments(int argc, char **argv, InitEnv &e) {
-	Parser p(e);
-	return p.Run(argc, argv);
 }

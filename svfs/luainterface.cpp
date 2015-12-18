@@ -91,12 +91,12 @@ bool Lua::ExecuteScriptFile(const char *fname) {
 	return true;
 }
 
-bool Lua::ExecuteScriptChunk(const char *code) {
+bool Lua::ExecuteScriptChunk(const char *code, const char *name) {
 	auto L = GetState();
 	int status = luaL_dostring(L, code);
 	if (status) {
 		luaL_traceback(L, L, "", 1);
-		printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", code, lua_tostring(L, -1));
+		printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", name ? name : code, lua_tostring(L, -1));
 		lua_pop(L, 1);
 		return false;
 	}
