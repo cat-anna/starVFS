@@ -130,14 +130,15 @@ struct InternalExporter::ExporterImpl {
 		outfile << "#include <cstdint>\n";
 		outfile << "#include <StarVFS/core/config.h>\n";
 		outfile << "#include <StarVFS/core/Container/InternalContainerHeaders.h>\n";
-		outfile << "using namespace StarVFS::Containers::InternalContainerHeaders;\n";
 		outfile << "\n";
 //enter namespace
+		outfile << "using namespace StarVFS::Containers::InternalContainerHeaders;\n";
+		outfile << "\n";
 		outfile << "extern const " << m_FileTableTypeName << " " << m_FileTableName << "[];\n";
 		outfile << "extern const " << m_FileDataTableTypeName << " " << m_FileDataTableName << "[];\n";
 		outfile << "extern const " << m_ContainerMetaTypeName << " " << m_ContainerMetaName << ";\n";
-//container meta
 		outfile << "\n";
+//container meta
 		outfile << "const " << m_ContainerMetaTypeName << " " << m_ContainerMetaName << " = {\n";
 		outfile << xsprintf(buf, "\t(VersionMagic)0x%08x,\n", m_Meta.m_VersionMagic);
 		outfile << xsprintf(buf, "\t0x%02x,\n", m_Meta.m_Flags);
@@ -235,7 +236,7 @@ ExportResult InternalExporter::DoExport(const String &VFSBase, const String &Loc
 	std::ofstream outfile(LocalFileName, std::ios::out);
 	exporter.WriteCcode(outfile);
 	outfile.close();
-	return ExportResult::FatalError;
+	return ExportResult::Sucess;
 }
 
 } //namespace Exporters 
