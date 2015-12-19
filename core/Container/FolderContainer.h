@@ -14,7 +14,7 @@ namespace Containers {
 
 class FolderContainer : public iContainer {
 public:
-	FolderContainer(const String &Path, unsigned Flags = 0);
+	FolderContainer(const String &Path = "");
 	virtual ~FolderContainer();
 
 	virtual bool ReloadContainer() override;
@@ -32,11 +32,8 @@ public:
 //	virtual FileReader GetFileReader(const RawFilePointer *file) const override;
 //	virtual FileWritter GetFileWritter(const string& file) override;
 //	virtual FileWritter GetFileWritter(const RawFilePointer *filee) override;
-
 //	virtual bool FileExists(const string& file) const override;
-
 //	virtual const string& GetFileName() const override;
-
 //	virtual bool EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const override;
 private:
 	enum class FileType {

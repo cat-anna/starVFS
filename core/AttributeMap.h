@@ -74,7 +74,19 @@ public:
 		std::unordered_map<String_t, AttribData> m_Attribs;
 	};
 
-	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const { return nullptr; }
+	const AttributeMapInstance& GetAttributeMap() const {
+		if (!m_AttributeMapInstance) m_AttributeMapInstance = GetAttributeMapInstance();
+		return *m_AttributeMapInstance;
+	}
+	AttributeMapInstance& GetAttributeMap() {
+		if (!m_AttributeMapInstance) m_AttributeMapInstance = GetAttributeMapInstance();
+		return *m_AttributeMapInstance;
+	}
+
+	bool GetAttribute(const String_t &Name, String_t &Value) const { return GetAttributeMap().Get(Name, Value); }
+	bool SetAttribute(const String_t &Name, const String_t &Value) { return GetAttributeMap().Set(Name, Value); }
+	bool AttributeExists(const String_t &Name) const { return GetAttributeMap().Exists(Name); }
+	std::vector<String> GetAttributeNames() const { return GetAttributeMap().GetAttributeNames(); }
 protected: 
 	template<class T>
 	struct OwnedAttributeMapInstance final : public AttributeMapInstance {
@@ -92,6 +104,10 @@ protected:
 	static std::unique_ptr<OwnedAttributeMapInstance<T>> CreateAttributeMapInstance() {
 		return std::make_unique<OwnedAttributeMapInstance<T>>();
 	}
+
+	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const { return nullptr; }
+private:
+	mutable std::unique_ptr<AttributeMapInstance> m_AttributeMapInstance;
 };
 
 } //namespace StarVFS 

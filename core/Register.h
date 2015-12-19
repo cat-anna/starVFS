@@ -20,20 +20,64 @@ public:
 	template<class T> 
 	void RegisterContainer(const char *Name) {
 		static_assert(std::is_base_of <iContainer, T>::value, "Invalid container class");
+		m_ContainerMap[Name].CreateFunc = &CreateContainer<T>;
+	}
+	Container CreateContainer(const char *Name) const {
+		auto it = m_ContainerMap.find(Name);
+		if (it == m_ContainerMap.end())
+			return nullptr;
+		return it->second.CreateFunc(m_Owner);
 	}
 
 	template<class T>
 	void RegisterExporter(const char *Name) {
 		static_assert(std::is_base_of <Exporters::iExporter, T>::value, "Invalid exporter class");
+		m_ExporterMap[Name].CreateFunc = &CreateExporter<T>;
+	}
+	std::unique_ptr<Exporters::iExporter> CreateExporter(const char *Name) const {
+		auto it = m_ExporterMap.find(Name);
+		if (it == m_ExporterMap.end())
+			return nullptr;
+		return it->second.CreateFunc(m_Owner);
 	}
 
 	template<class T>
 	void RegisterModule(const char *Name) {
 		static_assert(std::is_base_of <Modules::iModule, T>::value, "Invalid module class");
+		m_ModuleMap[Name].CreateFunc = &CreateModule<T>;
 	}
-protected:
+	Modules::iModule* CreateModule(const char *Name) const {
+		auto it = m_ModuleMap.find(Name);
+		if (it == m_ModuleMap.end())
+			return nullptr;
+		return it->second.CreateFunc(m_Owner);
+	}
 private: 
 	StarVFS *m_Owner;
+
+	template<class T>
+	static Modules::iModule* CreateModule(StarVFS *svfs) { return svfs->AddModule<T>(); }
+	template<class T>
+	static std::unique_ptr<Exporters::iExporter> CreateExporter(StarVFS *svfs) { return svfs->CreateExporter<T>(); }
+	template<class T>
+	static Container CreateContainer(StarVFS *svfs) { return std::make_unique<T>(); }
+
+	struct ModuleInfo {
+		Modules::iModule*(*CreateFunc)(StarVFS *svfs);
+		ModuleInfo(): CreateFunc(nullptr) {}
+	};
+	struct ExporterInfo {
+		std::unique_ptr<Exporters::iExporter>(*CreateFunc)(StarVFS *svfs);
+		ExporterInfo(): CreateFunc(nullptr) {}
+	};
+	struct ContainerInfo {
+		Container(*CreateFunc)(StarVFS *svfs);
+		ContainerInfo(): CreateFunc(nullptr) {}
+	};
+
+	std::unordered_map<std::string, ModuleInfo> m_ModuleMap;
+	std::unordered_map<std::string, ExporterInfo> m_ExporterMap;
+	std::unordered_map<std::string, ContainerInfo> m_ContainerMap;
 };
 
 } //namespace StarVFS 

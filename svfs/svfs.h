@@ -23,7 +23,7 @@ public:
 
 	bool Initialize();
 
-	void StartServer(const char* port) { LoadModule<::StarVFS::Modules::RemoteModule>(port); }
+	void StartServer(const char* port) { AddModule<::StarVFS::Modules::RemoteModule>(port); }
 private:
 	SharedLua m_Lua;
 

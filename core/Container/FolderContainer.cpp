@@ -121,7 +121,7 @@ private:
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-FolderContainer::FolderContainer(const String &Path, unsigned Flags) :
+FolderContainer::FolderContainer(const String &Path) :
 		iContainer(),
 		m_Path(Path) {
 

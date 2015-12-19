@@ -65,8 +65,7 @@ static void InstallAttribMap(lua_State *lua) {
 	struct Helper {
 		int GetAttribs(lua_State *l) {
 			auto *a = (AttributeMap*)this;
-			auto m = a->GetAttributeMapInstance();
-			auto v = m->GetAttributeNames();
+			auto v = a->GetAttributeNames();
 
 			lua_createtable(l, v.size(), 0);
 
@@ -83,7 +82,7 @@ static void InstallAttribMap(lua_State *lua) {
 			if (!name || !value)
 				return 0;
 			auto *a = (AttributeMap*)this;
-			auto m = a->GetAttributeMapInstance();
+			auto m = &a->GetAttributeMap();
 
 			return m->Set(a, name, value) ? 1 : 0;
 		}
@@ -96,7 +95,7 @@ static void InstallAttribMap(lua_State *lua) {
 			}
 
 			auto *a = (AttributeMap*)this;
-			auto m = a->GetAttributeMapInstance();
+			auto m = &a->GetAttributeMap();
 			StarVFS::String v;
 			if (!m->Get(a, name, v)) {
 				lua_pushnil(l);

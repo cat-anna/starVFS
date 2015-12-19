@@ -17,6 +17,7 @@ public:
  	virtual ~StarVFS();
 
 	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/", unsigned ContainerFlags = 0);
+	VFSErrorCode MountContainer(Container c, const String &MountPoint);
 
 	/** Debug function. Prints all files in human-readable format. */
 	void DumpStructure(std::ostream &out) const;
@@ -35,15 +36,14 @@ public:
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);
 
 	template<class T, class ...ARGS>
-	bool LoadModule(ARGS ...args) {
+	Modules::iModule* AddModule(ARGS ...args) {
 		static_assert(std::is_base_of<Modules::iModule, T>::value , "Invalid module class!");
 		m_Modules.push_back(std::make_unique<T>(this, std::forward<ARGS>(args)...));
-		return true;
+		return m_Modules.back().get();
 	}
 	size_t GetModuleCount() const { return m_Modules.size(); }
 	Modules::iModule* GetModule(size_t mid) {
-		if (mid >= GetModuleCount()) 
-			return nullptr;
+		if (mid >= GetModuleCount())  return nullptr;
 		return m_Modules[mid].get();
 	}
 

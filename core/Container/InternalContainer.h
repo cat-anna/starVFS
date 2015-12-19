@@ -41,6 +41,18 @@ struct InternalFileFlags {
 class InternalContainer : public iContainer {
 public:
 
+	virtual bool ReloadContainer() override { return false; }
+
+	virtual FileID GetFileCount() const override{ return 0; }
+
+	virtual bool RegisterFiles(FileTable *table) const override { return false; }
+
+	virtual const String& GetFileName() const override { return ""; }
+	virtual RWMode GetRWMode() const override { return RWMode::None; };
+
+	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const override { return false; }
+
+
 //	using FileFlags = InternalFileFlags;
 //	using FileNode = InternalFileNode;
 //	

@@ -103,6 +103,10 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 		return r;
 	}
 
+	return MountContainer(std::move(c), MountPoint);
+}
+
+VFSErrorCode StarVFS::MountContainer(Container c, const String &MountPoint) {
 	if (!c->ReloadContainer()) {
 		//TODO: log
 		return VFSErrorCode::ContainerCriticalError;

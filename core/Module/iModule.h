@@ -18,6 +18,9 @@ public:
  	virtual ~iModule();
 
 	StarVFS* GetVFS() { return m_SVFS; }
+
+	virtual bool Enable() = 0;
+	virtual bool Disable() = 0;
 private: 
 	StarVFS *m_SVFS;
 };
