@@ -1,7 +1,7 @@
 
-local function processContainers(basedir, outdata, addout)
+local function process(basedir, searchpattern, namespace, regfunc, outdata, addout)
 	local files = { }
-	for i,v in ipairs(os.matchfiles(basedir .. "core/Container/*Container.h")) do
+	for i,v in ipairs(os.matchfiles(basedir .. searchpattern)) do
 		local n = string.match (v, "/([^i]%w+)%.h$")
 		if n then
 			local f = string.gsub(v, basedir, "", 1)
@@ -17,79 +17,18 @@ local function processContainers(basedir, outdata, addout)
 		end		
 	end
 	
-	addout "namespace Containers {"
+	addout(string.format("namespace %s {", namespace)) 
 	addout "	template<class T>"
-	addout "	void RegisterContainers(T t) {"
+	addout(string.format("	void Register%s(T t) {", namespace))  
 	for i,v in ipairs(files) do
-		addout (string.format("#ifndef %s", v.define:upper()))
-		addout(string.format("\t\tt.RegisterContainer<%s>(\"%s\");", v.name, v.name))
+		addout(string.format("#ifndef %s", v.define:upper()))
+		addout(string.format("\t\tt.%s<%s>(\"%s\");", regfunc, v.name, v.name))
 		addout "#endif"
 	end
 	addout "	}"
 	addout "}"
 end
 
-local function processModules(basedir, outdata, addout)
-	local files = { }
-	for i,v in ipairs(os.matchfiles(basedir .. "core/Module/*Module.h")) do
-		local n = string.match (v, "/([^i]%w+)%.h$")
-		if n then
-			local f = string.gsub(v, basedir, "", 1)
-			files[#files + 1] = {
-				file = f, 
-				name = n,
-				define = "STARVFS_DISABLE_" .. n,
-			}
-			outdata.headers[#outdata.headers + 1] =  {
-				file = f,
-				define = "STARVFS_DISABLE_" .. n,
-			}
-		end		
-	end
-	
-	addout "namespace Modules {"
-	addout "	template<class T>"
-	addout "	void RegisterModules(T t) {"
-	for i,v in ipairs(files) do
-		addout (string.format("#ifndef %s", v.define:upper()))
-		addout(string.format("\t\tt.RegisterModule<%s>(\"%s\");", v.name, v.name))
-		addout "#endif"
-	end
-	addout "	}"
-	addout "}"
-end
-
-local function processExporters(basedir, outdata, addout)
-	local files = { }
-	for i,v in ipairs(os.matchfiles(basedir .. "core/Exporter/*Exporter.h")) do
-		local n = string.match (v, "/([^i]%w+)%.h$")
-		if n then
-			local f = string.gsub(v, basedir, "", 1)
-			files[#files + 1] = {
-				file = f, 
-				name = n,
-				define = "STARVFS_DISABLE_" .. n,
-			}
-			outdata.headers[#outdata.headers + 1] =  {
-				file = f,
-				define = "STARVFS_DISABLE_" .. n,
-			}
-		end		
-	end
-	
-	addout "namespace Exporters {"
-	addout "	template<class T>"
-	addout "	void RegisterExporters(T t) {"
-	local fm = ""
-	for i,v in ipairs(files) do
-		addout (string.format("#ifndef %s", v.define:upper()))
-		addout(string.format("\t\tt.RegisterExporter<%s>(\"%s\");", v.name, v.name))
-		addout "#endif"
-	end
-	addout "	}"
-	addout "}"
-end
-		
 function GenerateModules(outfilename, basedir)
 	basedir = basedir or ""
 	
@@ -143,9 +82,9 @@ function GenerateModules(outfilename, basedir)
 		exporterout(...)
 	end		
 	
-	processContainers(basedir, outdata, containerout)
-	processModules(basedir, outdata, moduleout)
-	processExporters(basedir, outdata, exporterout)
+	process(basedir, "core/Container/*Container.h", "Containers", "RegisterContainer", outdata, containerout)
+	process(basedir, "core/Module/*Module.h", "Modules", "RegisterModule", outdata, moduleout)
+	process(basedir, "core/Exporter/*Exporter.h", "Exporters", "RegisterExporter", outdata, exporterout)	
 	
 	addout "/*"
 	addout " * Automatically generated file"
