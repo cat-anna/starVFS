@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include "svfs.h"
 #include "luainterface.h"
+#include "svfslua.h"
 
 #include <SVFSRegister.h>
 
@@ -18,7 +19,6 @@ SVFS::~SVFS() {
 
 //-------------------------------------------------------------------------------------------------
 
-
 int SVFS::Export(const char *outfile, const char* vfsbase) {
 	STARVFSDebugLog("Export %s -> %s", vfsbase, outfile);
 
@@ -29,87 +29,45 @@ int SVFS::Export(const char *outfile, const char* vfsbase) {
 	return 0;
 }
 
-
 bool SVFS::Initialize() {
-	if (m_Lua) {
-
-		using ::StarVFS::FileHandle;
-
-		struct FileHandleHelper {
-
-			int IsDirectory() { return ((FileHandle*)this)->IsDirectory() ? 1 : 0; }
-			int IsSymlink() { return ((FileHandle*)this)->IsSymlink() ? 1 : 0; }
-			int IsHandleValid() { return ((FileHandle*)this)->IsHandleValid() ? 1 : 0; }
-
-			int EnumerateChildren(lua_State *Lua) {
-				auto *h = (FileHandle*)this;
-				if (!h) return 0;
-				int c = 0;
-				lua_createtable(Lua, 0, 0);
-				bool succ = h->EnumerateChildren([Lua, &c](::StarVFS::FileID fid) {
-					++c;
-					lua_pushinteger(Lua, c);
-					lua_pushinteger(Lua, fid);
-					lua_settable(Lua, -3);
-					return true;
-				});
-				if (!succ) {
-					lua_pop(Lua, 1);
-					lua_pushnil(Lua);
-					return 1;
-				}
-				return 1;
-			}
-		};
-
-		luabridge::getGlobalNamespace(m_Lua->GetState())
-			.beginNamespace("api")
-				.beginClass<::StarVFS::Modules::iModule>("iModule")
-				.endClass()
-				.beginClass<::StarVFS::iContainer>("iContainer")
-				.endClass()
-				.beginClass<SVFS>("StarVFS")
-					.addFunction("DumpStructure", &SVFS::CoutDumpStructure)
-					.addFunction("DumpFileTable", &SVFS::CoutDumpFileTable)
-
-					.addFunction("ForcePath", &SVFS::RawForcePath)
-
-					.addFunction("OpenContainer", &SVFS::RawOpenContainer)
-					.addFunction("OpenFile", &SVFS::RawOpenFile)
-
-					.addFunction("GetFullFilePath", &SVFS::GetFullFilePath)
-					.addFunction("GetFileName", &SVFS::RawGetFileName)
-					.addFunction("GetFileSize", (int(SVFS::*)(int))&SVFS::GetFileSize)
-					.addFunction("IsFileValid", (int(SVFS::*)(int))&SVFS::IsFileValid)
-					.addFunction("IsFileDirectory", &SVFS::RawIsFileDirectory)
-		//FileID FindFile(const String& FileName);
-
-					.addFunction("GetModuleCount", &SVFS::GetModuleCount)
-					.addFunction("GetModule", &SVFS::GetModule)
-
-					.addFunction("Export", &SVFS::Export)
-				.endClass() 
-			 
-				.beginClass<FileHandle>("FileHandle")
-					//.addFunction("Clone", &FileHandle::Clone)
-					.addFunction("GetSize", &FileHandle::GetSize)
-					//.addFunction("GetFullPath", &FileHandle::GetFullPath)
-					//.addFunction("GetRWMode", &FileHandle::GetRWMode)
-					.addFunction("IsDirectory", (int(FileHandle::*)())&FileHandleHelper::IsDirectory)
-					.addFunction("IsSymlink", (int(FileHandle::*)())&FileHandleHelper::IsSymlink)
-					.addFunction("IsValid", (int(FileHandle::*)()) &FileHandleHelper::IsHandleValid)
-					//.addFunction("Close", &FileHandle::Close)
-					.addCFunction("GetChildren", (int(FileHandle::*)(lua_State *))&FileHandleHelper::EnumerateChildren)
-//bool GetFileData(CharTable &data) const;
-				.endClass()
-			.endNamespace()
-			;
-		luabridge::getGlobalNamespace(m_Lua->GetState())
-			.beginNamespace("inst")
-				.addVariable<SVFS*>("svfs", this, false)
-			.endNamespace()
-			;
+	if (!m_Lua) {
+		return false;
 	}
+
+	svfslua::Install(m_Lua->GetState());
+
+	luabridge::getGlobalNamespace(m_Lua->GetState())
+		.beginNamespace("api")
+			.beginClass<SVFS>("StarVFS")
+				.addFunction("DumpStructure", &SVFS::CoutDumpStructure)
+				.addFunction("DumpFileTable", &SVFS::CoutDumpFileTable)
+
+				.addFunction("ForcePath", &SVFS::RawForcePath)
+
+				.addFunction("OpenContainer", &SVFS::RawOpenContainer)
+				.addFunction("OpenFile", &SVFS::RawOpenFile)
+
+				.addFunction("GetFullFilePath", &SVFS::GetFullFilePath)
+				.addFunction("GetFileName", &SVFS::RawGetFileName)
+				.addFunction("GetFileSize", (int(SVFS::*)(int))&SVFS::GetFileSize)
+				.addFunction("IsFileValid", (int(SVFS::*)(int))&SVFS::IsFileValid)
+				.addFunction("IsFileDirectory", &SVFS::RawIsFileDirectory)
+	//FileID FindFile(const String& FileName);
+
+				.addFunction("GetModuleCount", &SVFS::GetModuleCount)
+				.addFunction("GetModule", &SVFS::GetModule)
+
+				.addFunction("Export", &SVFS::Export)
+			.endClass() 
+			 
+		.endNamespace()
+		;
+
+	luabridge::getGlobalNamespace(m_Lua->GetState())
+		.beginNamespace("inst")
+			.addVariable<SVFS*>("svfs", this, false)
+		.endNamespace()
+		;
 
 	return true;
 }

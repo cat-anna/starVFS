@@ -22,7 +22,7 @@ using boost::asio::deadline_timer;
 namespace StarVFS {
 namespace Modules {
 
-RemoteModule::RemoteModule(StarVFS *svfs, int port): iModule(svfs) {
+RemoteModule::RemoteModule(StarVFS *svfs, const String &port): iModule(svfs) {
 	m_Port = port;
 	m_ThreadRunning = false;
 	m_CanRun = true;
@@ -173,7 +173,12 @@ void RemoteModule::ThreadMain() {
 	Connection c(this);
 
 	int id = 0;
-	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), m_Port ? m_Port : RemoteHeaders::Settings::BasePort));
+	short port = (short)strtol(m_Port.c_str(), nullptr, 10);
+	if (port == 0) {
+		port = (short)RemoteHeaders::Settings::BasePort;
+		m_Port = std::to_string(port);
+	}
+	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));
 	while (m_CanRun) {
 		//a.async_accept(c.m_Socket, [this, &c](boost::system::error_code ec) {
 		//	if (ec) {

@@ -69,6 +69,15 @@ Lua::Lua() {
 	luaL_openlibs(GetState());
 }
 
+
+//-------------------------------------------------------------------------------------------------
+
+void Lua::RegisterAPI() {
+	luabridge::getGlobalNamespace(m_Lua.get())
+		.addCFunction("debug", &lua_Debug)
+		;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool Lua::LoadLibrary(const char *c) {
@@ -124,10 +133,7 @@ static const scriptinfo scripttable[] = {
 };
 
 bool Lua::Initialize() {
-
-	luabridge::getGlobalNamespace(m_Lua.get())
-		.addCFunction("debug", &lua_Debug)
-	;
+	RegisterAPI();
 
 	auto L = m_Lua.get();
 	for (const scriptinfo *si = scripttable; si->data; ++si) {

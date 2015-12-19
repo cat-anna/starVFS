@@ -7,8 +7,9 @@
 #include "../StarVFSInternal.h"
 #include "FolderContainer.h"
 
-#ifdef STARVFS_FOLDER_CONTAINER
+#ifndef STARVFS_DISABLE_FOLDERCONTAINER
 namespace StarVFS {
+namespace Containers {
 
 #if 0
 struct FolderContainerPointer : RawFilePointer {
@@ -356,5 +357,7 @@ const string& FolderContainer::GetFileName() const
 
 #endif
 
+} //namespace Containers 
 } //namespace StarVFS 
+
 #endif

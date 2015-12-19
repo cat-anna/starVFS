@@ -55,6 +55,10 @@ public:
 
 	FileTable* GetFileTable() { return m_FileTable.get(); }
 	HandleTable* GetHandleTable() { return m_HandleTable.get(); }
+
+#ifndef STARVFS_DISABLE_REGISTER
+	Register* GetRegister();
+#endif
 protected:
 //	virtual bool CanLoadContainer(iContainer *container);
 //	virtual void OnContaierLoaded(iContainer *container);
@@ -63,7 +67,10 @@ private:
 	std::unique_ptr<FileTable> m_FileTable;
 	std::unique_ptr<HandleTable> m_HandleTable;
 	std::vector<std::unique_ptr<Modules::iModule>> m_Modules;
-
+#ifndef STARVFS_DISABLE_REGISTER
+	std::unique_ptr<Register> m_Register;
+#endif
+	
 	VFSErrorCode CreateContainer(Container& out, const String& ContainerFile, unsigned ContainerFlags);
 };
 

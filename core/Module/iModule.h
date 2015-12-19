@@ -12,7 +12,7 @@
 namespace StarVFS {
 namespace Modules {
 
-class iModule {
+class iModule : public AttributeMap {
 public:
  	iModule(StarVFS *svfs);
  	virtual ~iModule();

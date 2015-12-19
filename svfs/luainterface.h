@@ -9,6 +9,8 @@
 #ifndef luainterface_H
 #define luainterface_H
 
+#include <memory>
+
 #include <lua/lua.hpp>
 #include <LuaBridge/LuaBridge.h>
 
@@ -37,6 +39,8 @@ struct Lua {
 protected:
 	Lua();
 	virtual ~Lua() { }
+
+	void RegisterAPI();
 private:
 	std::unique_ptr<lua_State, LuaDeleter> m_Lua;
 };

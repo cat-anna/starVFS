@@ -180,7 +180,6 @@ struct InternalExporter::ExporterImpl {
 		outfile << "};\n";		
 		outfile << "\n";
 //filetable
-		uint8_t;
 		outfile << "const " << m_FileTableTypeName << " " << m_FileTableName << "[] = {\n";
 		for (auto &f : m_Files) {
 			auto name = svfs->GetFileName(f.m_VFSFID);

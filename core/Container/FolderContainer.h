@@ -8,8 +8,9 @@
 #pragma once
 #ifndef FolderContainer_H
 #define FolderContainer_H
-
+#ifndef STARVFS_DISABLE_FOLDERCONTAINER
 namespace StarVFS {
+namespace Containers {
 
 class FolderContainer : public iContainer {
 public:
@@ -63,6 +64,8 @@ private:
 //	mutable std::unordered_map<string, FolderContainerPointer*> m_PtrMap;
 };
 
+} //namespace Containers 
 } //namespace StarVFS 
 
+#endif
 #endif

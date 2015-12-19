@@ -10,7 +10,7 @@
 #define RemoteContainer_H
 
 namespace StarVFS {
-namespace Modules {
+namespace Containers {
 
 class RemoteContainer : public iContainer {
 public:
@@ -34,7 +34,7 @@ private:
 	struct Connection;
 	std::unique_ptr<Connection> m_Connection;
 };
-} //namespace Modules 
+} //namespace Containers 
 } //namespace StarVFS 
 
 #endif

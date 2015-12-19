@@ -18,7 +18,7 @@ enum class ExportResult {
 	LocalFileWriteError,
 };
 
-class iExporter {
+class iExporter : public AttributeMap {
 public:
  	iExporter(StarVFS *svfs);
  	virtual ~iExporter();

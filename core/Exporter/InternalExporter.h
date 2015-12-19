@@ -21,9 +21,18 @@ public:
 
 	void SetNamespace(const CString n) { m_Namespace = n; }
 	void SetNamespace(const String &n) { m_Namespace = n; }
+	const String& GetNamespace() const { return m_Namespace; }
 
 	void SetName(const CString n) { m_Name = n; }
 	void SetName(const String &n) { m_Name = n; }
+	const String& GetName() const { return m_Name; }
+
+	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const {
+		auto atm = CreateAttributeMapInstance<InternalExporter>();
+		atm->AddAttrib("Namespace", &InternalExporter::GetNamespace, &InternalExporter::SetNamespace);
+		atm->AddAttrib("Name", &InternalExporter::GetName, &InternalExporter::SetName);
+		return atm;
+	}
 protected:
 private: 
 	struct ExporterImpl;

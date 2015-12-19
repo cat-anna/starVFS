@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 		printf("Unable to initialize svfs!\n");
 		return 1;
 	}
-
+	
 	if (argc > 1){
 		Parser p;
 		if (!p.Run(argc, argv)) {
