@@ -16,19 +16,61 @@
 
 #include "arguments.h"
 
-#if 0
+struct BaseStringSet {
+	virtual ~BaseStringSet() {}
+	virtual bool split(const std::string &value) = 0;
+protected:
+	bool xsplit(const char *&input, std::string &first) {
+		if (!input || !*input)
+			return true;
 
-static bool LoadInitConfig(SharedLua Lua, SVFS& svfs, InitEnv &e) {
-	if (!Lua)
-		return false;
+		auto dd = strchr(input, ':');
+		if (!dd) {
+			first = input;
+			input = nullptr;
+		} else {
+			first = std::string(input, dd - input);
+			input = dd + 1;
+		}
 
-	if (e.m_StartRemoteServer)
-		svfs.StartServer(e.m_RemoteServerPort);
+		return true;
+	}
 
-	return ExecuteCommandLinePipeline(Lua, svfs, e);
-}
+	template<class ...ARGS>
+	bool xsplit(const char *input, std::string &first, ARGS& ... args) {
+		xsplit(input, first);
+		return xsplit(input, args...);
+	}
+};
 
-#endif
+struct MountInfo : public BaseStringSet {
+	std::string m_Path, m_MountPoint;
+	virtual bool split(const std::string &value) override {
+		xsplit(value.c_str(), m_Path, m_MountPoint);
+		if (m_MountPoint.empty())
+			m_MountPoint = "/";
+		if (m_MountPoint.front() != '/')
+			m_MountPoint = std::string("/") + m_MountPoint;
+		return true;
+	}
+	static MountInfo FromString(const std::string &value) {
+		MountInfo r;
+		r.split(value);
+		return r;
+	}
+};
+
+struct InjectInfo : public BaseStringSet {
+	//std::string m_Path, m_MountPoint;
+	virtual bool split(const std::string &value) override {
+		return false;// xsplit(value.c_str(), m_Path, m_MountPoint);
+	}
+	static InjectInfo FromString(const std::string &value) {
+		InjectInfo r;
+		// r.split(value);
+		return r;
+	}
+};
 
 //-------------------------------------------------------------------------------------------------
 
@@ -67,8 +109,23 @@ struct Parser::PrivData  {
 		return true;
 	}
 	bool ProcessInitialSettings() {
-		//	m_Env.m_StartRemoteServer = vm["remote"].as<bool>();
-		//	m_Env.m_RemoteServerPort = vm["remote-port"].as<int>();
+		if (m_vm["remote"].as<bool>()) {
+			int port = m_vm["remote-port"].as<int>();
+			std::string sport;
+			if (port <= 0 || port >= 0xFFFF) {
+				port = 0;
+				sport = "<default>";
+			} else {
+				sport = std::to_string(port);
+			}
+			
+			AddPrint("Starting remote server at port %s", sport.c_str());
+			AddLine("RemoteServer = vfs.GetRegister():CreateModule('RemoteModule')");
+			if(port)
+				AddLine("RemoteServer:SetAttribute('Port', '%d')", port);
+			AddLine("RemoteServer:Enable()");
+			AddLine("");
+		}
 		return true;
 	}
 
@@ -85,7 +142,7 @@ struct Parser::PrivData  {
 		if (!m_vm["mount"].empty()) {
 			AddPrint("Mounting containers...");
 			for (auto &it : m_vm["mount"].as<std::vector<std::string>>()) {
-				auto info = InitEnv::MountInfo::FromString(it);
+				auto info = MountInfo::FromString(it);
 				AddPrint("Mounting %s on %s", info.m_Path.c_str(), info.m_MountPoint.c_str());
 				AddLine("mount('%s', '%s')", info.m_Path.c_str(), info.m_MountPoint.c_str());
 			}
@@ -129,7 +186,7 @@ struct Parser::PrivData  {
 	}
 
 	bool ProcessFinalSettings() { 
-		//	m_Env.m_RunCLI = !vm["no-cli"].as<bool>();
+		//	m_Env.m_RunCLI = 
 		return true;
 	}
 
@@ -153,7 +210,7 @@ struct Parser::PrivData  {
 			;
 	}
 
-	bool Run(int argc, char **argv) {
+	bool Run(InitEnv& out, int argc, char **argv) {
 		po::store(po::parse_command_line(argc, argv, m_desc), m_vm);
 		po::notify(m_vm);
 
@@ -183,6 +240,8 @@ struct Parser::PrivData  {
 			exit(0);
 		}
 
+		out.m_RunCLI = !m_vm["no-cli"].as<bool>();
+
 		return true;
 	}
 };
@@ -192,10 +251,10 @@ struct Parser::PrivData  {
 Parser::Parser() {
 }
 
-bool Parser::Run(int argc, char **argv) {
+bool Parser::Run(InitEnv& out, int argc, char **argv) {
 	m_InitScriptLines.clear();
 	auto data = std::make_unique<PrivData>();
-	if (!data->Run(argc, argv))
+	if (!data->Run(out, argc, argv))
 		return false;
 	m_InitScriptLines.swap(data->m_Lines);
 	return true;

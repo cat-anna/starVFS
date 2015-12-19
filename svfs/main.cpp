@@ -36,9 +36,10 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
+	InitEnv initenv;
 	if (argc > 1){
 		Parser p;
-		if (!p.Run(argc, argv)) {
+		if (!p.Run(initenv, argc, argv)) {
 			std::cout << "Unable to parse arguments!\n";
 			return 1;
 		}
@@ -46,8 +47,7 @@ int main(int argc, char **argv) {
 			return 1;
 	}
 
-	auto e = std::make_unique<InitEnv>();
-	if (e->m_RunCLI) {
+	if (initenv.m_RunCLI) {
 		CLI cli(lua);
 		if (!cli.Enter(*svfs)) {
 			std::cout << "Unable to run CLI!\n";
