@@ -19,7 +19,7 @@ local function process(basedir, searchpattern, namespace, regfunc, outdata, addo
 	
 	addout(string.format("namespace %s {", namespace)) 
 	addout "	template<class T>"
-	addout(string.format("	void Register%s(T t) {", namespace))  
+	addout(string.format("	void Register%s(T &t) {", namespace))  
 	for i,v in ipairs(files) do
 		addout(string.format("#ifndef %s", v.define:upper()))
 		addout(string.format("\t\tt.%s<%s>(\"%s\");", regfunc, v.name, v.name))
@@ -108,7 +108,7 @@ function GenerateModules(outfilename, basedir)
 	
 addout [[
 template<class T>
-void RegisterAll(T t) {
+void RegisterAll(T &t) {
 	Containers::RegisterContainers(t);
 	Modules::RegisterModules(t);
 	Exporters::RegisterExporters(t);

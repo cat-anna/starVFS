@@ -75,16 +75,16 @@ public:
 	};
 
 	const AttributeMapInstance& GetAttributeMap() const {
-		if (!m_AttributeMapInstance) m_AttributeMapInstance = GetAttributeMapInstance();
-		return *m_AttributeMapInstance;
+		if (!s_AttributeMapInstance) s_AttributeMapInstance = GetAttributeMapInstance();
+		return *s_AttributeMapInstance;
 	}
 	AttributeMapInstance& GetAttributeMap() {
-		if (!m_AttributeMapInstance) m_AttributeMapInstance = GetAttributeMapInstance();
-		return *m_AttributeMapInstance;
+		if (!s_AttributeMapInstance) s_AttributeMapInstance = GetAttributeMapInstance();
+		return *s_AttributeMapInstance;
 	}
 
-	bool GetAttribute(const String_t &Name, String_t &Value) const { return GetAttributeMap().Get(Name, Value); }
-	bool SetAttribute(const String_t &Name, const String_t &Value) { return GetAttributeMap().Set(Name, Value); }
+	bool GetAttribute(const String_t &Name, String_t &Value) const { return GetAttributeMap().Get(this, Name, Value); }
+	bool SetAttribute(const String_t &Name, const String_t &Value) { return GetAttributeMap().Set(this, Name, Value); }
 	bool AttributeExists(const String_t &Name) const { return GetAttributeMap().Exists(Name); }
 	std::vector<String> GetAttributeNames() const { return GetAttributeMap().GetAttributeNames(); }
 protected: 
@@ -107,8 +107,11 @@ protected:
 
 	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const { return nullptr; }
 private:
-	mutable std::unique_ptr<AttributeMapInstance> m_AttributeMapInstance;
+	static std::unique_ptr<AttributeMapInstance> s_AttributeMapInstance;
 };
+
+template<class STRING>
+std::unique_ptr<typename BaseAttributeMap<STRING>::AttributeMapInstance> BaseAttributeMap<STRING>::s_AttributeMapInstance;
 
 } //namespace StarVFS 
 

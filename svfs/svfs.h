@@ -47,8 +47,6 @@ private:
 	void CoutDumpStructure() { DumpStructure(std::cout); }
 	void CoutDumpFileTable() { DumpFileTable(std::cout); }
 
-	int Export(const char *outfile, const char* vfsbase);
-
 };
 
 #endif

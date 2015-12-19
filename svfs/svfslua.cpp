@@ -9,6 +9,48 @@
 #include "svfslua.h"
 #include <core/nStarVFS.h>
 
+static void InstallRegister(lua_State *lua) {
+	using ::StarVFS::Register;
+
+	struct Helper {
+		static int PushVectorAsTable(const std::vector<::StarVFS::String> &vec, lua_State *Lua) {
+			lua_createtable(Lua, vec.size(), 0);
+			int c = 0;
+			for(auto &it: vec) {
+				++c;
+				lua_pushinteger(Lua, c);
+				lua_pushstring(Lua, it.c_str());
+				lua_settable(Lua, -3);
+			}
+			return 1;
+		}
+
+		int GetRegisteredContainers(lua_State *Lua) {
+			auto *r = (Register*)this;
+			return PushVectorAsTable(r->GetRegisteredContainers(), Lua);
+		}
+		int GetRegisteredExporters(lua_State *Lua) {
+			auto *r = (Register*)this;
+			return PushVectorAsTable(r->GetRegisteredExporters(), Lua);
+		}
+		int GetRegisteredModules(lua_State *Lua) {
+			auto *r = (Register*)this;
+			return PushVectorAsTable(r->GetRegisteredModules(), Lua);
+		}
+	};
+
+	luabridge::getGlobalNamespace(lua)
+		.beginNamespace("api")
+			.beginClass<Register>("Register")
+				.addFunction("CreateModule", &Register::CreateModule)
+				.addCFunction("GetRegisteredModules", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredModules)
+				.addCFunction("GetRegisteredExporters", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredExporters)
+				.addCFunction("GetRegisteredContainers", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredContainers)
+			.endClass()
+		.endNamespace()
+		;
+}
+
 static void InstallStarVFS(lua_State *lua) {
 
 }
@@ -77,16 +119,13 @@ static void InstallAttribMap(lua_State *lua) {
 
 			return 1;
 		}
-
 		int Set(const char *name, const char *value) {
 			if (!name || !value)
 				return 0;
 			auto *a = (AttributeMap*)this;
-			auto m = &a->GetAttributeMap();
 
-			return m->Set(a, name, value) ? 1 : 0;
+			return a->SetAttribute(name, value) ? 1 : 0;
 		}
-
 		int Get(lua_State *l) {
 			const char *name = lua_tostring(l, -1);
 			if (!name) {
@@ -95,9 +134,8 @@ static void InstallAttribMap(lua_State *lua) {
 			}
 
 			auto *a = (AttributeMap*)this;
-			auto m = &a->GetAttributeMap();
 			StarVFS::String v;
-			if (!m->Get(a, name, v)) {
+			if (!a->SetAttribute(name, v)) {
 				lua_pushnil(l);
 				return 1;
 			}
@@ -136,6 +174,8 @@ static void InstalliModule(lua_State *lua) {
 	luabridge::getGlobalNamespace(lua)
 		.beginNamespace("api")
 			.deriveClass<iModule, AttributeMap>("iModule")
+				.addFunction("Enable", &iModule::Enable)
+				.addFunction("Disable", &iModule::Disable)
 			.endClass()
 		.endNamespace()
 		;
@@ -156,6 +196,7 @@ static void InstalliExporter(lua_State *lua) {
 
 void svfslua::Install(lua_State *lua) {
 	try {
+		InstallRegister(lua);
 		InstallStarVFS(lua);
 		InstallFileHandle(lua);
 

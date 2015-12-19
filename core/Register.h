@@ -15,12 +15,13 @@ namespace StarVFS {
 class Register final {
 public:
 	Register(StarVFS *Owner);
+	Register(const Register&) = delete;
  	~Register();
 
 	template<class T> 
 	void RegisterContainer(const char *Name) {
 		static_assert(std::is_base_of <iContainer, T>::value, "Invalid container class");
-		m_ContainerMap[Name].CreateFunc = &CreateContainer<T>;
+		m_ContainerMap[Name].CreateFunc = &DoCreateContainer<T>;
 	}
 	Container CreateContainer(const char *Name) const {
 		auto it = m_ContainerMap.find(Name);
@@ -28,11 +29,18 @@ public:
 			return nullptr;
 		return it->second.CreateFunc(m_Owner);
 	}
+	std::vector<String> GetRegisteredContainers() const {
+		std::vector<String> v;
+		v.reserve(m_ContainerMap.size());
+		for (auto &it : m_ContainerMap)
+			v.emplace_back(it.first);
+		return v;
+	}
 
 	template<class T>
 	void RegisterExporter(const char *Name) {
 		static_assert(std::is_base_of <Exporters::iExporter, T>::value, "Invalid exporter class");
-		m_ExporterMap[Name].CreateFunc = &CreateExporter<T>;
+		m_ExporterMap[Name].CreateFunc = &DoCreateExporter<T>;
 	}
 	std::unique_ptr<Exporters::iExporter> CreateExporter(const char *Name) const {
 		auto it = m_ExporterMap.find(Name);
@@ -40,11 +48,18 @@ public:
 			return nullptr;
 		return it->second.CreateFunc(m_Owner);
 	}
+	std::vector<String> GetRegisteredExporters() const {
+		std::vector<String> v;
+		v.reserve(m_ExporterMap.size());
+		for (auto &it : m_ExporterMap)
+			v.emplace_back(it.first);
+		return v;
+	}
 
 	template<class T>
 	void RegisterModule(const char *Name) {
 		static_assert(std::is_base_of <Modules::iModule, T>::value, "Invalid module class");
-		m_ModuleMap[Name].CreateFunc = &CreateModule<T>;
+		m_ModuleMap[Name].CreateFunc = &DoCreateModule<T>;
 	}
 	Modules::iModule* CreateModule(const char *Name) const {
 		auto it = m_ModuleMap.find(Name);
@@ -52,15 +67,22 @@ public:
 			return nullptr;
 		return it->second.CreateFunc(m_Owner);
 	}
+	std::vector<String> GetRegisteredModules() const {
+		std::vector<String> v;
+		v.reserve(m_ModuleMap.size());
+		for (auto &it : m_ModuleMap)
+			v.emplace_back(it.first);
+		return v;
+	}
 private: 
 	StarVFS *m_Owner;
 
 	template<class T>
-	static Modules::iModule* CreateModule(StarVFS *svfs) { return svfs->AddModule<T>(); }
+	static Modules::iModule* DoCreateModule(StarVFS *svfs) { return svfs->AddModule<T>(); }
 	template<class T>
-	static std::unique_ptr<Exporters::iExporter> CreateExporter(StarVFS *svfs) { return svfs->CreateExporter<T>(); }
+	static std::unique_ptr<Exporters::iExporter> DoCreateExporter(StarVFS *svfs) { return svfs->CreateExporter<T>(); }
 	template<class T>
-	static Container CreateContainer(StarVFS *svfs) { return std::make_unique<T>(); }
+	static Container DoCreateContainer(StarVFS *svfs) { return std::make_unique<T>(); }
 
 	struct ModuleInfo {
 		Modules::iModule*(*CreateFunc)(StarVFS *svfs);

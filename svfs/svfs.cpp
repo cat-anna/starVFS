@@ -19,16 +19,6 @@ SVFS::~SVFS() {
 
 //-------------------------------------------------------------------------------------------------
 
-int SVFS::Export(const char *outfile, const char* vfsbase) {
-	STARVFSDebugLog("Export %s -> %s", vfsbase, outfile);
-
-	auto exporter = CreateExporter<::StarVFS::Exporters::InternalExporter>();
-
-	exporter->DoExport(vfsbase, outfile);
-
-	return 0;
-}
-
 bool SVFS::Initialize() {
 	if (!m_Lua) {
 		return false;
@@ -38,7 +28,13 @@ bool SVFS::Initialize() {
 
 	luabridge::getGlobalNamespace(m_Lua->GetState())
 		.beginNamespace("api")
-			.beginClass<SVFS>("StarVFS")
+			.beginClass<::StarVFS::StarVFS>("StarVFS")
+				.addFunction("GetRegister", &::StarVFS::StarVFS::GetRegister)
+
+				.addFunction("GetModule", &SVFS::GetModule)
+				.addFunction("GetModuleCount", &SVFS::GetModuleCount)
+			.endClass()
+			.deriveClass<SVFS, ::StarVFS::StarVFS >("SVFS")
 				.addFunction("DumpStructure", &SVFS::CoutDumpStructure)
 				.addFunction("DumpFileTable", &SVFS::CoutDumpFileTable)
 
@@ -54,10 +50,6 @@ bool SVFS::Initialize() {
 				.addFunction("IsFileDirectory", &SVFS::RawIsFileDirectory)
 	//FileID FindFile(const String& FileName);
 
-				.addFunction("GetModuleCount", &SVFS::GetModuleCount)
-				.addFunction("GetModule", &SVFS::GetModule)
-
-				.addFunction("Export", &SVFS::Export)
 			.endClass() 
 			 
 		.endNamespace()

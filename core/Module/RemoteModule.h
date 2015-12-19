@@ -20,7 +20,7 @@ public:
 	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const { 
 		auto atm = CreateAttributeMapInstance<RemoteModule>();
 		atm->AddAttrib("Port", &RemoteModule::GetPort, &RemoteModule::SetPort);
-		return atm;
+		return std::unique_ptr<AttributeMapInstance> (atm.release());
 	}
 
 	void SetPort(const String& port) { m_Port = port; }

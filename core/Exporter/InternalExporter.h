@@ -31,7 +31,7 @@ public:
 		auto atm = CreateAttributeMapInstance<InternalExporter>();
 		atm->AddAttrib("Namespace", &InternalExporter::GetNamespace, &InternalExporter::SetNamespace);
 		atm->AddAttrib("Name", &InternalExporter::GetName, &InternalExporter::SetName);
-		return atm;
+		return std::unique_ptr<AttributeMapInstance>(atm.release());
 	}
 protected:
 private: 
