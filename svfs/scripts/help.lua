@@ -60,7 +60,8 @@ function Help.Register(info)
 	HelpData[info.Command] = info
 end
 
-function Help.Api(obj)
+Help.Register { Command="api", Brief="Get functions available in object", Usage="api(object)" }
+function api(obj)
 	if not obj then
 		return
 	end
@@ -69,7 +70,7 @@ function Help.Api(obj)
 			local p = nil;
 			for n,v in pairs(t) do 
 				if (type(n) == "string") and (not string.find(n, "__")) then
-					print(n, " = ", v);
+					print(string.format("%-30s = %s", n, tostring(v)))
 				end;
 				if n == "__parent" then 
 					p = v;

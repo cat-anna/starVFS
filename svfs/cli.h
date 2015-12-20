@@ -10,6 +10,7 @@
 
 #include "svfs.h"
 #include "luainterface.h"
+#include "arguments.h"
 
 class CLI {
 public:
@@ -18,10 +19,11 @@ public:
 
 	CLI& operator=(const CLI&) = delete;
 
-	bool Enter(SVFS& svfs);
+	bool Enter(SVFS& svfs, InitEnv &env);
 private:
 	SharedLua m_Lua;
 	bool m_CanContinue;
+	bool m_BashMode;
 
 	bool InstallApi();
 	void Loop();
@@ -29,6 +31,9 @@ private:
 	//for lua
 	void Exit(int ec);
 
+	int loadline(lua_State *L);
+	int pushline(lua_State *L, int firstline);
+	int multiline(lua_State *L);
 };
 
 #endif

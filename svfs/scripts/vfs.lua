@@ -1,7 +1,13 @@
 
-vfs = helpers.CreateInstanceProxy("svfs")
+vfs = inst.svfs
+Register = vfs:GetRegister()
 
 local Path = { }
+
+function prompt()
+	local p = ConcatPath(Path)
+	return p .. "> "
+end
 
 local function SplitPath(subpath)
 	local p = { }
@@ -50,19 +56,19 @@ function fileinfo(id)
 		return nil
 	end
 
-	if not vfs.IsFileValid(id) then
+	if not vfs:IsFileValid(id) then
 		return nil
 	end
 	
-	local fname = vfs.GetFileName(id)
-	local fsize = vfs.GetFileSize(id)
+	local fname = vfs:GetFileName(id)
+	local fsize = vfs:GetFileSize(id)
 
 	return {
 		id = function () return id end,
 		name = function() return fname end,
 		size = function() return fsize end,
-		fullpath = function() return vfs.GetFullPath(id) end,
-		directory = function() return vfs.IsFileDirectory(id) end,
+		fullpath = function() return vfs:GetFullPath(id) end,
+		directory = function() return vfs:IsFileDirectory(id) end,
 	}
 end
 
@@ -73,7 +79,7 @@ function cd(subpath)
 	local r = SplitPath(subpath)
 	local rp = ConcatPath(r)
 	
-	local h = vfs.OpenFile(rp, 1, 1)
+	local h = vfs:OpenFile(rp, 1, 1)
 	if h:IsValid() == 0 then
 		print "Not a valid file"
 		return 
@@ -101,7 +107,7 @@ function ls(p)
 		p = pwd()
 	end
 	
-	local h = vfs.OpenFile(p, 1, 1)
+	local h = vfs:OpenFile(p, 1, 1)
 	if h:IsValid() == 0 then
 		return
 	end
@@ -151,7 +157,7 @@ function mount(what, where)
 	end
 	where = where or "/"
 	
-	return vfs.OpenContainer(what, where, 0)
+	return vfs:OpenContainer(what, where, 0)
 end
 
 Help.Register { Command="lsmod", Brief="TBD" }
@@ -170,5 +176,5 @@ function mkdir(p)
 	end
 	p = path(p)
 	
-	return vfs.ForcePath(p)
+	return vfs:ForcePath(p)
 end

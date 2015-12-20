@@ -178,8 +178,23 @@ static int dolibrary(lua_State *L, const char *name) {
 	return report(L, status);
 }
 
-static const char *get_prompt(lua_State *L, int firstline) {
-	return (firstline ? "# " : "> ");
+static void get_prompt(lua_State *L, int firstline) {
+	if(firstline) {
+		lua_getglobal(L, "prompt");
+		if (lua_isnil(L, -1)) {
+			lua_pop(L, 1);
+			lua_pushstring(L, "# ");
+			return;
+		}
+		if (lua_isstring(L, -1))
+			return;
+
+		if (lua_isfunction(L, -1) || lua_iscfunction(L, -1)) {
+			lua_call(L, 0, 1);
+			return;
+		}
+	}
+	lua_pushstring(L, "> ");
 }
 
 /* mark in error messages for incomplete statements */
@@ -206,22 +221,33 @@ static int incomplete(lua_State *L, int status) {
 /*
 ** Prompt the user, read a line, and push it into the Lua stack.
 */
-static int pushline(lua_State *L, int firstline) {
+int CLI::pushline(lua_State *L, int firstline) {
 	char buffer[LUA_MAXINPUT];
 	char *b = buffer;
 	size_t l;
-	const char *prmt = get_prompt(L, firstline);
-	int readstatus = lua_readline(L, b, prmt);
+	get_prompt(L, firstline);
+	int readstatus = lua_readline(L, b, lua_tostring(L, -1));
+	lua_pop(L, 1); /* remove prompt */
 	if (readstatus == 0)
 		return 0;  /* no input (prompt will be popped by caller) */
-//	lua_pop(L, 1);  /* remove prompt */
+
 	l = strlen(b);
 	if (l > 0 && b[l - 1] == '\n')  /* line ends with newline? */
 		b[--l] = '\0';  /* remove it */
+
 	if (firstline && b[0] == '=')  /* for compatibility with 5.2, ... */
 		lua_pushfstring(L, "return %s", b + 1);  /* change '=' to 'return' */
-	else
+	else {
+		if (firstline && m_BashMode) {
+			lua_getglobal(L, b);
+			if (lua_isfunction(L, -1) || lua_iscfunction(L, -1)) {
+				strcat(b, "()");
+				l += 2;
+			}
+			lua_pop(L, 1);
+		}
 		lua_pushlstring(L, b, l);
+	}
 	lua_freeline(L, b);
 	return 1;
 }
@@ -250,7 +276,7 @@ static int addreturn(lua_State *L) {
 /*
 ** Read multiple lines until a complete Lua statement
 */
-static int multiline(lua_State *L) {
+int CLI::multiline(lua_State *L) {
 	for (;;) {  /* repeat until gets a complete statement */
 		size_t len;
 		const char *line = lua_tolstring(L, 1, &len);  /* get what it has */
@@ -271,7 +297,7 @@ static int multiline(lua_State *L) {
 ** the final status of load/call with the resulting function (if any)
 ** in the top of the stack.
 */
-static int loadline(lua_State *L) {
+int CLI::loadline(lua_State *L) {
 	int status;
 	lua_settop(L, 0);
 	if (!pushline(L, 1))
@@ -329,7 +355,6 @@ CLI::CLI(SharedLua Lua) {
 //-------------------------------------------------------------------------------------------------
 
 bool CLI::InstallApi() {
-
 	luabridge::getGlobalNamespace(m_Lua->GetState())
 		.beginNamespace("api")
 			.beginClass<CLI>("CLI")
@@ -352,9 +377,11 @@ void CLI::Exit(int ec) {
 	m_CanContinue = false;
 }
 
-bool CLI::Enter(SVFS& svfs) {
+bool CLI::Enter(SVFS& svfs, InitEnv &env) {
 	if (!m_Lua)
 		return false;
+
+	m_BashMode = env.m_BashMode;
 
 	m_CanContinue = true;
 	Loop();

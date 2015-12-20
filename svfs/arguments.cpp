@@ -155,6 +155,9 @@ struct Parser::PrivData  {
 	}
 
 	bool GenInitScriptEnv() {
+		AddLine("--StarVFS cli init script");
+		AddLine("--Generated automatically from commandline");
+		AddLine("");
 		return true;
 	}
 	bool ProcessInitialSettings() {
@@ -187,9 +190,6 @@ struct Parser::PrivData  {
 			}
 			AddLine("");
 		}
-
-		AddLine("local Register = vfs.GetRegister()");
-		AddLine("");
 
 		if (!m_vm["mount"].empty()) {
 			AddPrint("Mounting containers...");
@@ -287,6 +287,8 @@ struct Parser::PrivData  {
 			("export,e", po::value<std::vector<std::string>>(), "Export vfs content. format: EXPORTER:OUTFILE[:BASEPATH[:PARAM=VALUE]]")
 			
 			("list-exporters", po::bool_switch(), "List available exporters")
+
+			("no-bash-mode", po::bool_switch(), "disable Bash-like function call")
 			;
 	}
 
@@ -321,6 +323,7 @@ struct Parser::PrivData  {
 		}
 
 		out.m_RunCLI = !m_vm["no-cli"].as<bool>();
+		out.m_BashMode = !m_vm["no-bash-mode"].as<bool>();
 
 		return true;
 	}

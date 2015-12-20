@@ -1,2 +1,6 @@
 
-cli = helpers.CreateInstanceProxy("cli")
+cli = inst.cli
+
+--function prompt()
+--	return "? "
+--end

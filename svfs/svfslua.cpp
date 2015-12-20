@@ -56,7 +56,6 @@ static void InstallRegister(lua_State *lua) {
 
 			lua_pushstring(Lua, "__index");
 			lua_getglobal(Lua, "SubPointerCallMetaMethod");
-			//luabridge::push(Lua, ptr.get());
 			lua_settable(Lua, -3);
 			lua_pushstring(Lua, "__parent");
 			luabridge::push(Lua, ptr.get());
@@ -74,14 +73,7 @@ static void InstallRegister(lua_State *lua) {
 
 			lua_pushvalue(Lua, -1);
 			lua_setmetatable(Lua, -2);
-			//
-	//		lua_pushinteger(Lua, c);
-	//		lua_pushstring(Lua, it.c_str());
-	//		lua_settable(Lua, -3);
-	//
-	//		lua_pushinteger(Lua, c);
-	//		lua_pushstring(Lua, it.c_str());
-	//		lua_settable(Lua, -3);
+
 			return 1;
 		}
 	};
