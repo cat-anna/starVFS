@@ -8,3 +8,4 @@ ipch
 *.dll
 *.exe
 
+*.hlp
