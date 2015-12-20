@@ -12,3 +12,19 @@ function utils.explode(div,str)
     return arr
 end
 
+function SubPointerCallMetaMethod(table, key)
+	local v = table.p
+	if not v then
+		print "SubPointerCallMetaMethod: v is nil!"
+		os.exit(1)
+	end
+	local f = v[key]
+	if not f then
+		print "SubPointerCallMetaMethod: f is nil!"
+		return nil
+	end
+	return function(t, ...)
+		return f(v, ...)
+	end
+end
+

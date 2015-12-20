@@ -7,11 +7,7 @@
 
 #include "StarVFSInternal.h"
 
-#ifdef STARVFS_FOLDER_CONTAINER
-#include "Container/FolderContainer.h"
-#endif
-
-#include "Container/RemoteContainer.h"
+#include "SVFSRegister.h"
 
 namespace StarVFS {
 
@@ -129,10 +125,10 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 	Container c;
 	do {
 		if (boost::filesystem::is_directory(ContainerFile)) {
-#ifndef STARVFS_DISABLE_FOLDERCONTAINER
+#ifdef STARVFS_DISABLE_FOLDERCONTAINER
 			//AddLogf(Error, "File '%s' is an directory!", File.c_str());
 #else 
-			c.reset(new Containers::FolderContainer(ContainerFile, ContainerFlags));
+			c.reset(new Containers::FolderContainer(ContainerFile));
 #endif
 			break;
 		}

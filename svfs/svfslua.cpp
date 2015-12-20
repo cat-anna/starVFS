@@ -9,6 +9,11 @@
 #include "svfslua.h"
 #include <core/nStarVFS.h>
 
+using ::StarVFS::AttributeMap;
+
+using ::StarVFS::Exporters::iExporter;
+using SmartExporter = std::shared_ptr<iExporter>;
+
 static void InstallRegister(lua_State *lua) {
 	using ::StarVFS::Register;
 
@@ -37,12 +42,55 @@ static void InstallRegister(lua_State *lua) {
 			auto *r = (Register*)this;
 			return PushVectorAsTable(r->GetRegisteredModules(), Lua);
 		}
+
+		int CreateExporter(lua_State *Lua) {
+			const char * exporter = lua_tostring(Lua, -1);
+			if (!exporter)
+				return 0;
+			auto *r = (Register*)this;
+			auto ptr = r->CreateExporter(exporter);
+			if (!ptr)
+				return 0;
+
+			lua_createtable(Lua, 0, 0);
+
+			lua_pushstring(Lua, "__index");
+			lua_getglobal(Lua, "SubPointerCallMetaMethod");
+			//luabridge::push(Lua, ptr.get());
+			lua_settable(Lua, -3);
+			lua_pushstring(Lua, "__parent");
+			luabridge::push(Lua, ptr.get());
+			lua_getmetatable(Lua, -1);
+			lua_rotate(Lua, -2, 1);
+			lua_pop(Lua, 1);
+			lua_settable(Lua, -3);
+			lua_pushstring(Lua, "p");
+			luabridge::push(Lua, ptr.get());
+			lua_settable(Lua, -3);
+
+			lua_pushstring(Lua, "shared");
+			luabridge::push(Lua, std::shared_ptr<iExporter>(ptr.release()));
+			lua_settable(Lua, -3);
+
+			lua_pushvalue(Lua, -1);
+			lua_setmetatable(Lua, -2);
+			//
+	//		lua_pushinteger(Lua, c);
+	//		lua_pushstring(Lua, it.c_str());
+	//		lua_settable(Lua, -3);
+	//
+	//		lua_pushinteger(Lua, c);
+	//		lua_pushstring(Lua, it.c_str());
+	//		lua_settable(Lua, -3);
+			return 1;
+		}
 	};
 
 	luabridge::getGlobalNamespace(lua)
 		.beginNamespace("api")
 			.beginClass<Register>("Register")
 				.addFunction("CreateModule", &Register::CreateModule)
+				.addCFunction("CreateExporter", (int(Register::*)(lua_State *Lua))&Helper::CreateExporter)
 				.addCFunction("GetRegisteredModules", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredModules)
 				.addCFunction("GetRegisteredExporters", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredExporters)
 				.addCFunction("GetRegisteredContainers", (int(Register::*)(lua_State *Lua))&Helper::GetRegisteredContainers)
@@ -182,11 +230,18 @@ static void InstalliModule(lua_State *lua) {
 }
 
 static void InstalliExporter(lua_State *lua) {
-	using ::StarVFS::AttributeMap;
-	using ::StarVFS::Exporters::iExporter;
+	struct Helper {
+		int DoExport(const char *vfsbase, const char *localfile) {
+			auto This = (iExporter*)this;
+			return (int)This->DoExport(vfsbase, localfile);
+		}
+	};;
 	luabridge::getGlobalNamespace(lua)
 		.beginNamespace("api")
 			.deriveClass<iExporter, AttributeMap>("iExporter")
+				.addFunction("DoExport", (int(iExporter::*)(const char*, const char *))&Helper::DoExport)
+			.endClass()
+			.beginClass<SmartExporter>("SmartExporter")
 			.endClass()
 		.endNamespace()
 		;

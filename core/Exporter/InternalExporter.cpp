@@ -134,8 +134,8 @@ struct InternalExporter::ExporterImpl {
 //enter namespace
 		outfile << "using namespace StarVFS::Containers::InternalContainerHeaders;\n";
 		outfile << "\n";
-		outfile << "extern const " << m_FileTableTypeName << " " << m_FileTableName << "[];\n";
-		outfile << "extern const " << m_FileDataTableTypeName << " " << m_FileDataTableName << "[];\n";
+		outfile << "static const " << m_FileTableTypeName << " " << m_FileTableName << "[];\n";
+		outfile << "static const " << m_FileDataTableTypeName << " " << m_FileDataTableName << "[];\n";
 		outfile << "extern const " << m_ContainerMetaTypeName << " " << m_ContainerMetaName << ";\n";
 		outfile << "\n";
 //container meta
@@ -150,7 +150,7 @@ struct InternalExporter::ExporterImpl {
 		outfile << "};\n";
 		outfile << "\n";
 //filedatatable
-		outfile << "const " << m_FileDataTableTypeName << " " << m_FileDataTableName << "[] = {\n";
+		outfile << "static const " << m_FileDataTableTypeName << " " << m_FileDataTableName << "[] = {\n";
 		outfile << "\t0, /* Heading zero */\n";
 		FileSize CurrentOffset = 1;
 		for (auto &f : m_Files) {
@@ -180,7 +180,7 @@ struct InternalExporter::ExporterImpl {
 		outfile << "};\n";		
 		outfile << "\n";
 //filetable
-		outfile << "const " << m_FileTableTypeName << " " << m_FileTableName << "[] = {\n";
+		outfile << "static const " << m_FileTableTypeName << " " << m_FileTableName << "[] = {\n";
 		for (auto &f : m_Files) {
 			auto name = svfs->GetFileName(f.m_VFSFID);
 			outfile << xsprintf(buf, "\t{ 0x%02x, %d, (const ::StarVFS::CString)\"%s\", %d, 0x%08xu, 0x%08xu, %d, %d, %d, %d, },\n", 
@@ -220,6 +220,7 @@ InternalExporter::InternalExporter(StarVFS *svfs):
 }
 
 InternalExporter::~InternalExporter() {
+	int i = 0;
 }
 
 //-------------------------------------------------------------------------------------------------

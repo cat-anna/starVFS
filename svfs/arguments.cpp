@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <string>
 #include <memory>
+#include <map>
 #include <vector>
 #include <list>
 #include <mutex>
@@ -20,11 +21,11 @@ struct BaseStringSet {
 	virtual ~BaseStringSet() {}
 	virtual bool split(const std::string &value) = 0;
 protected:
-	bool xsplit(const char *&input, std::string &first) {
+	static bool xsplit(const char *&input, char delim, std::string &first) {
 		if (!input || !*input)
 			return true;
 
-		auto dd = strchr(input, ':');
+		auto dd = strchr(input, delim);
 		if (!dd) {
 			first = input;
 			input = nullptr;
@@ -36,17 +37,41 @@ protected:
 		return true;
 	}
 
+	static bool vecSplit(const char *input, std::vector<std::string> &vec, char delim) {
+		while (input) {
+			std::string s;
+			if (!xsplit(input, delim, s))
+				return false;
+			vec.emplace_back(std::move(s));
+		}
+		return true;
+	}
+
+	static bool vec2map(const std::vector<std::string> &vec, std::map<std::string, std::string> &map, char delim) {
+		for (auto &it : vec) {
+			auto pos = it.find(delim);
+			if (pos == std::string::npos) {
+				map[it] = "1";
+				continue;
+			}
+			auto name = it.substr(0, pos);
+			auto value = it.substr(pos + 1, it.length() - pos - 1);
+			map[name] = value;
+		}
+		return false;
+	}
+
 	template<class ...ARGS>
-	bool xsplit(const char *input, std::string &first, ARGS& ... args) {
-		xsplit(input, first);
-		return xsplit(input, args...);
+	static bool xsplit(const char *input, char delim, std::string &first, ARGS& ... args) {
+		xsplit(input, ':', first);
+		return xsplit(input, ':', args...);
 	}
 };
 
 struct MountInfo : public BaseStringSet {
 	std::string m_Path, m_MountPoint;
 	virtual bool split(const std::string &value) override {
-		xsplit(value.c_str(), m_Path, m_MountPoint);
+		xsplit(value.c_str(), ':', m_Path, m_MountPoint);
 		if (m_MountPoint.empty())
 			m_MountPoint = "/";
 		if (m_MountPoint.front() != '/')
@@ -72,6 +97,30 @@ struct InjectInfo : public BaseStringSet {
 	}
 };
 
+struct ExportInfo : public BaseStringSet {
+	//std::string m_Path, m_MountPoint;
+	std::string m_Exporter, m_OutFile, m_BasePath, m_Arguemnts;
+	std::map<std::string, std::string> GetArgs() const {
+		std::vector<std::string> vec;
+		std::map<std::string, std::string> map;
+		vecSplit(m_Arguemnts.c_str(), vec, ',');
+		vec2map(vec, map, '=');
+		return map;
+	}
+	virtual bool split(const std::string &value) override {
+		xsplit(value.c_str(), ':', m_Exporter, m_OutFile, m_BasePath, m_Arguemnts);
+		if (m_BasePath.empty())
+			m_BasePath = "/";
+		if (m_BasePath.front() != '/')
+			m_BasePath = std::string("/") + m_BasePath;
+		return true;
+	}
+	static ExportInfo FromString(const std::string &value) {
+		ExportInfo r;
+		r.split(value);
+		return r;
+	}
+};
 //-------------------------------------------------------------------------------------------------
 
 namespace po = boost::program_options;
@@ -139,6 +188,9 @@ struct Parser::PrivData  {
 			AddLine("");
 		}
 
+		AddLine("local Register = vfs.GetRegister()");
+		AddLine("");
+
 		if (!m_vm["mount"].empty()) {
 			AddPrint("Mounting containers...");
 			for (auto &it : m_vm["mount"].as<std::vector<std::string>>()) {
@@ -182,11 +234,37 @@ struct Parser::PrivData  {
 		}
 
 		//export
+		if (!m_vm["export"].empty()) {
+			AddPrint("Exporting vfs content...");
+			AddLine("");
+			int idx = 0;
+			for (auto &it : m_vm["export"].as<std::vector<std::string>>()) {
+				++idx;
+				auto info = ExportInfo::FromString(it);
+				char valname[32];
+				sprintf(valname, "Exporter_%02d", idx);
+
+				AddPrint("Exporting %s to %s using %s with%s arguments %s", info.m_BasePath.c_str(), info.m_OutFile.c_str(), info.m_Exporter.c_str(), info.m_Arguemnts.empty() ? "out" : "", info.m_Arguemnts.c_str());
+				
+				AddLine("local %s = Register:CreateExporter([[%s]])", valname, info.m_Exporter.c_str());
+				auto map = info.GetArgs();
+				for (auto &it : map)
+					AddLine("%s:SetAttribute([[%s]], [[%s]])", valname, it.first.c_str(), it.second.c_str());
+
+				AddLine("%s:DoExport([[%s]], [[%s]])", valname, info.m_BasePath.c_str(), info.m_OutFile.c_str());
+				AddLine("");
+			}
+		}
 		return true;
 	}
 
 	bool ProcessFinalSettings() { 
 		//	m_Env.m_RunCLI = 
+		if (m_vm["list-exporters"].as<bool>()) {
+			AddLine("print 'List of known exporters:'");
+			AddLine("print(table.unpack(Register:GetRegisteredExporters()))");
+			AddLine("");
+		}
 		return true;
 	}
 
@@ -206,7 +284,9 @@ struct Parser::PrivData  {
 			("mount,m", po::value<std::vector<std::string>>(), "Mount container. format: FILE[:MOUNTPOINT]") //[:TYPE]
 																											 //			("inject,i", po::value<std::vector<std::string>>(), "Inject file into vfs. format: SYSPATH:VPATH. Virtual path will be created if not exits") //[:TYPE]
 			("script,s", po::value<std::vector<std::string>>(), "Execute scipt before entering CLI. It may be file or chunk of code")
-			//			("export", po::value<std::vector<std::string>>(), "Export vfs content. format: TYPE:OUTFILE[:BASEPATH]")
+			("export,e", po::value<std::vector<std::string>>(), "Export vfs content. format: EXPORTER:OUTFILE[:BASEPATH[:PARAM=VALUE]]")
+			
+			("list-exporters", po::bool_switch(), "List available exporters")
 			;
 	}
 
