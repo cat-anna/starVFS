@@ -12,12 +12,22 @@
 namespace StarVFS {
 namespace Exporters {
 
-class iExporter {
+enum class ExportResult {
+	Sucess,
+	FatalError,
+	LocalFileWriteError,
+};
+
+class iExporter : public AttributeMap {
 public:
- 	iExporter();
+ 	iExporter(StarVFS *svfs);
  	virtual ~iExporter();
+
+	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const = 0;
 protected:
+	StarVFS* GetSVFS() const { return m_SVFS; }
 private: 
+	StarVFS *m_SVFS;
 };
 
 } //namespace Exporters 

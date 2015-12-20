@@ -122,6 +122,11 @@ RWMode HandleTable::HandleGetRWMode(const FileHandle& h) const {
 	return hd ? hd->m_Mode : RWMode::None;
 }
 
+FileID HandleTable::HandleGetFID(const FileHandle& h) {
+	auto hd = GetDataFromHandle(h);
+	return hd ? hd->m_FileID : FileID(0);
+}
+
 bool HandleTable::HandleIsDirectory(const FileHandle& h) const {
 	auto hd = GetDataFromHandle(h);
 	if (!hd) return 0;

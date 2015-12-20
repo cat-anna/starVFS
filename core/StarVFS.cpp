@@ -103,6 +103,10 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 		return r;
 	}
 
+	return MountContainer(std::move(c), MountPoint);
+}
+
+VFSErrorCode StarVFS::MountContainer(Container c, const String &MountPoint) {
 	if (!c->ReloadContainer()) {
 		//TODO: log
 		return VFSErrorCode::ContainerCriticalError;
@@ -125,10 +129,10 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 	Container c;
 	do {
 		if (boost::filesystem::is_directory(ContainerFile)) {
-#ifndef STARVFS_FOLDER_CONTAINER
+#ifndef STARVFS_DISABLE_FOLDERCONTAINER
 			//AddLogf(Error, "File '%s' is an directory!", File.c_str());
 #else 
-			c.reset(new FolderContainer(ContainerFile, ContainerFlags));
+			c.reset(new Containers::FolderContainer(ContainerFile, ContainerFlags));
 #endif
 			break;
 		}
@@ -146,7 +150,7 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 			if (host) {
 				*host++ = 0;
 				int intport = port ? strtol(port, nullptr, 10) : 0;
-				c = std::make_unique<Modules::RemoteContainer>(host, intport);
+				c = std::make_unique<Containers::RemoteContainer>(host, intport);
 			}
 		}
 
@@ -173,5 +177,15 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 	out.swap(c);
 	return VFSErrorCode::Success;
 }
+
+//-----------------------------------------------------------------------------
+
+#ifndef STARVFS_DISABLE_REGISTER
+Register* StarVFS::GetRegister() {
+	if (!m_Register)
+		m_Register = std::make_unique<Register>(this);
+	return m_Register.get();
+}
+#endif
 
 } //namespace StarVFS 

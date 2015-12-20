@@ -28,6 +28,7 @@ public:
 	void HandleClose(const FileHandle& h);
 	bool HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFunc &func) const;
 	void HandleCloneTo(const FileHandle& src, FileHandle& dst);
+	FileID HandleGetFID(const FileHandle& h);
 private: 
 	struct HandleData;
 	FileTable *m_FileTable;

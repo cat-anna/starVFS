@@ -17,10 +17,11 @@ workspace "StarVFS"
 	targetdir(bindir)
   
 	defines {
-		"STARVFS_FOLDER_CONTAINER",
 	}
 	includedirs {
 		".",
+		"..",
+		bindir,
 	}	
 	
 	flags { 

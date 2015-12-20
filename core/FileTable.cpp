@@ -24,7 +24,7 @@ FileTable::FileTable(unsigned Flags) {
 	auto *root = AllocNewFile();
 	root->m_Flags.Valid = 1;
 	root->m_Flags.Directory = 1;
-	root->m_Hash = FileIDHashAlgorithm::Hash("/", 1);
+	root->m_Hash = FilePathHashAlgorithm::Hash("/", 1);
 	AddToHashTable(root);
 
 	m_Containers.push_back(nullptr);
@@ -183,10 +183,10 @@ File* FileTable::AllocNewFile(const CString fullpath) {
 	if (!parent)
 		return nullptr;
 
-	return AllocNewFile(parent, FileIDHashAlgorithm::Hash(fullpath, strlen(fullpath)), path + 1);
+	return AllocNewFile(parent, FilePathHashAlgorithm::Hash(fullpath, strlen(fullpath)), path + 1);
 }
 
-File* FileTable::AllocNewFile(File *Parent, FileIDHash PathHash, const CString FName) {
+File* FileTable::AllocNewFile(File *Parent, FilePathHash PathHash, const CString FName) {
 	if (!Parent)
 		return nullptr;
 
@@ -206,7 +206,7 @@ File* FileTable::AllocNewFile(File *Parent, FileIDHash PathHash, const CString F
 
 //-------------------------------------------------------------------------------------------------
 
-FileID FileTable::Lookup(FileIDHash Hash) {
+FileID FileTable::Lookup(FilePathHash Hash) {
 	for (FileID i = 1; i < m_Allocated; ++i)
 		if (m_HashTable[i] == Hash)
 			return m_FileIDTable[i];
@@ -214,7 +214,7 @@ FileID FileTable::Lookup(FileIDHash Hash) {
 }
 
 FileID FileTable::Lookup(const CString Path, size_t PathLen) {
-	return Lookup(FileIDHashAlgorithm::Hash(Path, PathLen));
+	return Lookup(FilePathHashAlgorithm::Hash(Path, PathLen));
 }
 
 File* FileTable::AllocFile(const String& InternalFullPath) {
@@ -224,7 +224,7 @@ File* FileTable::AllocFile(const String& InternalFullPath) {
 	return AllocNewFile((const CString)InternalFullPath.c_str());
 }
 
-File* FileTable::AllocFile(FileID Parent, FileIDHash PathHash, const CString FileName) {
+File* FileTable::AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName) {
 	if (!PathHash)
 		return nullptr;
 	auto fid = Lookup(PathHash);
@@ -335,18 +335,18 @@ bool FileTable::Realloc(FileID NewCapacity) {
 	if (NewCapacity <= m_Capacity)
 		return true;
 
-	size_t element = sizeof(FileIDHash) + sizeof(FileID) + sizeof(File);
+	size_t element = sizeof(FilePathHash) + sizeof(FileID) + sizeof(File);
 	auto NewMemory = std::unique_ptr<char[]>(new char[element * NewCapacity]);
 	if (!NewMemory)
 		return false;
 
 	memset(NewMemory.get(), 0, element * NewCapacity);
-	FileIDHash *NewHashTable = (FileIDHash*)NewMemory.get();
-	FileID *NewFileIDTable = (FileID*)((char*)NewHashTable + sizeof(FileIDHash) * NewCapacity);
+	FilePathHash *NewHashTable = (FilePathHash*)NewMemory.get();
+	FileID *NewFileIDTable = (FileID*)((char*)NewHashTable + sizeof(FilePathHash) * NewCapacity);
 	File *NewFileTable = (File*)((char*)NewFileIDTable + sizeof(FileID) * NewCapacity);
 
 	if (m_Allocated > 0) {
-		memcpy(NewHashTable, m_HashTable, sizeof(FileIDHash) * m_Allocated);
+		memcpy(NewHashTable, m_HashTable, sizeof(FilePathHash) * m_Allocated);
 		memcpy(NewFileIDTable, m_FileIDTable, sizeof(FileID) * m_Allocated);
 		memcpy(NewFileTable, m_FileTable, sizeof(File) * m_Allocated);
 	}

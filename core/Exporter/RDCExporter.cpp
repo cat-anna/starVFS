@@ -10,7 +10,7 @@
 namespace StarVFS {
 namespace Exporters {
 
-RDCExporter::RDCExporter() {
+RDCExporter::RDCExporter(StarVFS *svfs) : iExporter(svfs) {
 
 }
 

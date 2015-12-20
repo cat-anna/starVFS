@@ -14,8 +14,8 @@
  
 namespace StarVFS {
 
-FileIDHash Murmur3Hash32::Hash(const char *data, size_t len) {
-	FileIDHash h;
+FilePathHash Murmur3Hash32::Hash(const char *data, size_t len) {
+	FilePathHash h;
 	MurmurHash3_x86_32(data, len, HASH32_SEED, &h);
 	return h;
 }

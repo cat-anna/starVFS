@@ -16,14 +16,14 @@
 #include <core/nStarVFS.h>
 #include <core/Module/RemoteModule.h>
 
-class SVFS : public StarVFS::StarVFS {
+class SVFS : public ::StarVFS::StarVFS {
 public:
 	SVFS(SharedLua Lua);
  	~SVFS();
 
 	bool Initialize();
 
-	void StartServer(int port) { LoadModule<::StarVFS::Modules::RemoteModule>(port); }
+	void StartServer(const char* port) { AddModule<::StarVFS::Modules::RemoteModule>(port); }
 private:
 	SharedLua m_Lua;
 

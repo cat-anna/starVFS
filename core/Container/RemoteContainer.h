@@ -10,11 +10,11 @@
 #define RemoteContainer_H
 
 namespace StarVFS {
-namespace Modules {
+namespace Containers {
 
 class RemoteContainer : public iContainer {
 public:
-	RemoteContainer(const String &Host, int Port);
+	RemoteContainer(const String &Host = "", int Port = 0);
 	virtual ~RemoteContainer();
 
 	virtual bool ReloadContainer() override;
@@ -34,7 +34,7 @@ private:
 	struct Connection;
 	std::unique_ptr<Connection> m_Connection;
 };
-} //namespace Modules 
+} //namespace Containers 
 } //namespace StarVFS 
 
 #endif

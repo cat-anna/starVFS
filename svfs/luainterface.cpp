@@ -69,6 +69,15 @@ Lua::Lua() {
 	luaL_openlibs(GetState());
 }
 
+
+//-------------------------------------------------------------------------------------------------
+
+void Lua::RegisterAPI() {
+	luabridge::getGlobalNamespace(m_Lua.get())
+		.addCFunction("debug", &lua_Debug)
+		;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool Lua::LoadLibrary(const char *c) {
@@ -91,12 +100,12 @@ bool Lua::ExecuteScriptFile(const char *fname) {
 	return true;
 }
 
-bool Lua::ExecuteScriptChunk(const char *code) {
+bool Lua::ExecuteScriptChunk(const char *code, const char *name) {
 	auto L = GetState();
 	int status = luaL_dostring(L, code);
 	if (status) {
 		luaL_traceback(L, L, "", 1);
-		printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", code, lua_tostring(L, -1));
+		printf("Unable to execute chunk '%s'\nTrace:\n%s\n\n", name ? name : code, lua_tostring(L, -1));
 		lua_pop(L, 1);
 		return false;
 	}
@@ -124,10 +133,7 @@ static const scriptinfo scripttable[] = {
 };
 
 bool Lua::Initialize() {
-
-	luabridge::getGlobalNamespace(m_Lua.get())
-		.addCFunction("debug", &lua_Debug)
-	;
+	RegisterAPI();
 
 	auto L = m_Lua.get();
 	for (const scriptinfo *si = scripttable; si->data; ++si) {

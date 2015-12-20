@@ -12,13 +12,25 @@
 namespace StarVFS {
 namespace Modules {
 
-class RemoteModule : public iModule {
+class RemoteModule final : public iModule {
 public:
-	RemoteModule(StarVFS *svfs, int port = 0);
+	RemoteModule(StarVFS *svfs, const String &port = "0");
  	virtual ~RemoteModule();
-private: 
+
+	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const { 
+		auto atm = CreateAttributeMapInstance<RemoteModule>();
+		atm->AddAttrib("Port", &RemoteModule::GetPort, &RemoteModule::SetPort);
+		return std::unique_ptr<AttributeMapInstance> (atm.release());
+	}
+
+	void SetPort(const String& port) { m_Port = port; }
+	const String& GetPort() const { return m_Port; }
+
+	virtual bool Enable() override;
+	virtual bool Disable() override;
+private:
 	volatile bool m_CanRun, m_ThreadRunning;
-	int m_Port;
+	String m_Port;
 	void ThreadMain();
 	struct Connection;
 };

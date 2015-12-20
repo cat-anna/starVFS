@@ -11,11 +11,14 @@
 #include "../Module/RemoteHeaders.h"
 
 #include <boost/asio.hpp>
+#include <thread>
 
 using boost::asio::ip::tcp;
 
 namespace StarVFS {
-namespace Modules {
+namespace Containers {
+
+namespace RemoteHeaders = Modules::RemoteHeaders;
 
 using BaseConnectionClass = RemoteHeaders::BaseConnection<boost::asio::io_service, tcp::socket>;
 struct RemoteContainer::Connection : public BaseConnectionClass {
@@ -232,5 +235,5 @@ bool RemoteContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 
 //-------------------------------------------------------------------------------------------------
 
-} //namespace Modules 
+} //namespace Containers 
 } //namespace StarVFS 

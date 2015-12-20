@@ -12,12 +12,15 @@
 namespace StarVFS {
 namespace Modules {
 
-class iModule {
+class iModule : public AttributeMap {
 public:
  	iModule(StarVFS *svfs);
  	virtual ~iModule();
 
 	StarVFS* GetVFS() { return m_SVFS; }
+
+	virtual bool Enable() = 0;
+	virtual bool Disable() = 0;
 private: 
 	StarVFS *m_SVFS;
 };

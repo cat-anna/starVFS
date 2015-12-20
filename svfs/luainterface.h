@@ -9,6 +9,8 @@
 #ifndef luainterface_H
 #define luainterface_H
 
+#include <memory>
+
 #include <lua/lua.hpp>
 #include <LuaBridge/LuaBridge.h>
 
@@ -33,10 +35,12 @@ struct Lua {
 
 	bool LoadLibrary(const char *c);
 	bool ExecuteScriptFile(const char *fname);
-	bool ExecuteScriptChunk(const char *code);
+	bool ExecuteScriptChunk(const char *code, const char *name = nullptr);
 protected:
 	Lua();
 	virtual ~Lua() { }
+
+	void RegisterAPI();
 private:
 	std::unique_ptr<lua_State, LuaDeleter> m_Lua;
 };

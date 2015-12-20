@@ -22,12 +22,23 @@ using boost::asio::deadline_timer;
 namespace StarVFS {
 namespace Modules {
 
-RemoteModule::RemoteModule(StarVFS *svfs, int port): iModule(svfs) {
-	m_Port = port;
+RemoteModule::RemoteModule(StarVFS *svfs, const String &port): iModule(svfs), m_Port(port) {
 	m_ThreadRunning = false;
-	m_CanRun = true;
+	m_CanRun = false;
+}
 
-	std::thread([this](){ 
+RemoteModule::~RemoteModule() {
+	Disable();
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool RemoteModule::Enable() {
+	if (m_ThreadRunning)
+		return true;
+
+	m_CanRun = true;
+	std::thread([this]() {
 		m_ThreadRunning = true;
 		try {
 			ThreadMain();
@@ -41,10 +52,11 @@ RemoteModule::RemoteModule(StarVFS *svfs, int port): iModule(svfs) {
 	}).detach();
 }
 
-RemoteModule::~RemoteModule() {
+bool RemoteModule::Disable() {
 	m_CanRun = false;
 	while (m_ThreadRunning)
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -173,7 +185,12 @@ void RemoteModule::ThreadMain() {
 	Connection c(this);
 
 	int id = 0;
-	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), m_Port ? m_Port : RemoteHeaders::Settings::BasePort));
+	short port = (short)strtol(m_Port.c_str(), nullptr, 10);
+	if (port == 0) {
+		port = (short)RemoteHeaders::Settings::BasePort;
+		m_Port = std::to_string(port);
+	}
+	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));
 	while (m_CanRun) {
 		//a.async_accept(c.m_Socket, [this, &c](boost::system::error_code ec) {
 		//	if (ec) {

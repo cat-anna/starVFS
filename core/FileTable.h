@@ -41,7 +41,7 @@ struct File final {
 	FileID m_NextSibling;		//ignored when not a directory
 	FileID m_FirstChild;
 	FileID m_SymLinkIndex;		//valid if SymLink flag
-	FileIDHash m_Hash;
+	FilePathHash m_Hash;
 };
 
 static_assert(std::is_pod<File>::value, "File structure must be a POD type");
@@ -63,7 +63,7 @@ public:
 	FileID Lookup(const CString Path, size_t PathLen);
 
 	File* AllocFile(const String& InternalFullPath);
-	File* AllocFile(FileID Parent, FileIDHash PathHash, const CString FileName);
+	File* AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName);
 
 	//delete
 
@@ -105,17 +105,17 @@ private:
 	FileID m_Capacity;
 	FileID m_Allocated;
 	std::unique_ptr<char[]> m_Memory;
-	FileIDHash *m_HashTable;   //these tables must be synchronized
+	FilePathHash *m_HashTable;   //these tables must be synchronized
 	FileID *m_FileIDTable;	   //these tables must be synchronized
 	File *m_FileTable;
 
 //Internal functions, mutex shall be locked before calling them
 	bool EnsureCapacity(FileID RequiredEmptySpace);
 	bool Realloc(FileID NewCapacity);
-	FileID Lookup(FileIDHash Hash);
+	FileID Lookup(FilePathHash Hash);
 
 	File* AllocNewFile();
-	File* AllocNewFile(File *Parent, FileIDHash PathHash, const CString FName);
+	File* AllocNewFile(File *Parent, FilePathHash PathHash, const CString FName);
 	File* AllocNewFile(const CString fullpath);
 
 	void AddToHashTable(File* f);

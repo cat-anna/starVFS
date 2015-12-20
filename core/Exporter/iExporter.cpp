@@ -9,11 +9,13 @@
 namespace StarVFS {
 namespace Exporters {
 
-iExporter::iExporter() {
+iExporter::iExporter(StarVFS *svfs): m_SVFS(svfs) {
 }
 
 iExporter::~iExporter() {
 }
+
+//-------------------------------------------------------------------------------------------------
 
 } //namespace Exporters 
 } //namespace StarVFS 

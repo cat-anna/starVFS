@@ -32,6 +32,12 @@ bool FileHandle::GetFileData(CharTable &data, FileSize *fsize) const {
 
 //-------------------------------------------------------------------------------------------------
 
+FileID FileHandle::GetFID() const {
+	if (!m_Owner)
+		return FileID(0);
+	return m_Owner->HandleGetFID(*this);
+}
+
 RWMode FileHandle::GetRWMode() const {
 	if (!m_Owner)
 		return RWMode::None;
