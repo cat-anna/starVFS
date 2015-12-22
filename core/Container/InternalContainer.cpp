@@ -41,6 +41,11 @@ namespace Containers {
 //InternalContainer::~InternalContainer() {
 //}
 
+InternalContainer::InternalContainer(FileTableInterface  *fti):
+		iContainer(fti) {
+
+}
+
 #if 0
 
 const string& InternalContainer::GetFileName() const {

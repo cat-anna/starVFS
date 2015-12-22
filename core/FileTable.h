@@ -83,10 +83,11 @@ public:
 	File* GetFileNextSibling(const File *f) const { return GetFile(f->m_NextSibling); }
 
 	iContainer* GetContainer(ContainerID cid) {
-		if (cid >= m_Containers.size())
+		if (cid >= m_ContainerTable.size())
 			return nullptr;
-		return m_Containers[cid].get();
+		return m_ContainerTable[cid].m_Container.get();
 	}
+
 	const CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const;
 
@@ -94,8 +95,13 @@ public:
 	const File* GetTable() const { return m_FileTable.get(); }
 	FileID GetAllocatedFileCount() { return m_Allocated; }
 private:
+	struct ContainerInfo {
+		std::unique_ptr<iContainer> m_Container;
+		std::unique_ptr<FileTableInterface> m_Interface;
+	};
+
 	std::unique_ptr<StringTable> m_StringTable;
-	std::vector<std::unique_ptr<iContainer>> m_Containers;
+	std::vector<ContainerInfo> m_ContainerTable;
 	HashFileTable m_HashFileTable;
 	std::unique_ptr<File[]> m_FileTable;
 

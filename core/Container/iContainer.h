@@ -13,7 +13,7 @@ namespace StarVFS {
 
 class iContainer {
 public:
- 	iContainer();
+ 	iContainer(FileTableInterface  *fti);
  	virtual ~iContainer();
 
 	/** Reload container internal file table */
@@ -28,8 +28,8 @@ public:
 	virtual const String& GetFileName() const = 0;
 	virtual RWMode GetRWMode() const = 0;
 
-	void SetContainerID(ContainerID id) { m_ContainerID = id; }
-	ContainerID GetContainerID() const { return m_ContainerID; }
+	FileTableInterface* GetFileTableInterface() { return m_FTI; }
+	const FileTableInterface* GetFileTableInterface() const { return m_FTI; }
 
 	/** Container shall not do any buffering. */
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const = 0;
@@ -38,7 +38,6 @@ public:
 	//alloc file
 
 	//virtual bool GetFileSize(FileID ContainerFileID, FileSize &Size) const = 0;
-
 //	/** Get file reader. Returns nullptr if file cannot be read */
 //	virtual FileReader GetFileReader(const string& file) const;
 //	/** Get file reader. Returns nullptr if file cannot be read */
@@ -78,7 +77,7 @@ public:
 //	virtual bool EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const;
 protected:
 private: 
-	ContainerID m_ContainerID;
+	FileTableInterface *m_FTI;
 };
 
 } //namespace StarVFS 

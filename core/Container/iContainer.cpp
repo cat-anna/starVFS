@@ -9,14 +9,13 @@
 
 namespace StarVFS {
 
-iContainer::iContainer() {
+iContainer::iContainer(FileTableInterface  *fti): m_FTI(fti) {
 }
 
 iContainer::~iContainer() {
 }
 
 #if 0
-
 iContainer::iContainer():
 		BaseClass(),
 		m_Flags(0) {

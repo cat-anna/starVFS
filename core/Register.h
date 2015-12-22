@@ -82,7 +82,7 @@ private:
 	template<class T>
 	static std::unique_ptr<Exporters::iExporter> DoCreateExporter(StarVFS *svfs) { return svfs->CreateExporter<T>(); }
 	template<class T>
-	static Container DoCreateContainer(StarVFS *svfs) { return std::make_unique<T>(); }
+	static Container DoCreateContainer(StarVFS *svfs) { return nullptr; }// std::make_unique<T>(); }
 
 	struct ModuleInfo {
 		Modules::iModule*(*CreateFunc)(StarVFS *svfs);

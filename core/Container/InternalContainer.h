@@ -40,6 +40,7 @@ struct InternalFileFlags {
 
 class InternalContainer : public iContainer {
 public:
+	InternalContainer(FileTableInterface  *fti);
 
 	virtual bool ReloadContainer() override { return false; }
 

@@ -14,7 +14,7 @@ namespace Containers {
 
 class RemoteContainer : public iContainer {
 public:
-	RemoteContainer(const String &Host = "", int Port = 0);
+	RemoteContainer(FileTableInterface  *fti);
 	virtual ~RemoteContainer();
 
 	virtual bool ReloadContainer() override;

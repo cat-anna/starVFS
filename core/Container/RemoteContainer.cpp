@@ -160,9 +160,8 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-RemoteContainer::RemoteContainer(const String &Host, int Port) {
-	m_Host = Host;
-	m_Port = Port;
+RemoteContainer::RemoteContainer(FileTableInterface  *fti):
+		iContainer(fti), m_Host(), m_Port() {
 }
 
 RemoteContainer::~RemoteContainer() {
