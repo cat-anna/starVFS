@@ -144,16 +144,19 @@ RWMode FolderContainer::GetRWMode() const { return RWMode::RW; }
 bool FolderContainer::ReloadContainer() {
 	m_FileEntry.clear();
 
-	std::function<void(const String&, const String&, FileType)> handler;
+	std::function<void(const String&, FileType)> handler;
 
-	handler = [this, &handler](const String& path, const String& Subpath, FileType type) {
-		m_FileEntry.emplace_back(Entry{ type, path, Subpath });
-//		printf("%s -> %s\n", path.c_str(), Subpath.c_str());
-		if (type == FileType::Directory)
-			EnumerateFolder(path + "/", Subpath + "/", handler);
+	handler = [this, &handler](const String& path, FileType type) {
+		auto subpath = path.substr(m_Path.length() - 1, path.length() - m_Path.length() + 1);
+
+		for (auto &it : subpath)
+			if (it == '\\')
+				it = '/';
+
+		m_FileEntry.emplace_back(Entry{ type, path, subpath });
 	};
 
-	if (!EnumerateFolder(m_Path, "/", handler)) {
+	if (!EnumerateFolder(m_Path, handler)) {
 		STARVFSErrorLog("Failed to enumerate folder %s", m_Path.c_str());
 		return false;
 	}
@@ -183,8 +186,12 @@ bool FolderContainer::RegisterFiles(FileTable *table) const {
 
 		if (f.m_Type == FileType::Directory)
 			fptr->m_Flags.Directory = 1;
-		else
-			fptr->m_Size = (FileSize)boost::filesystem::file_size(f.m_FullPath);
+		else 
+			try {
+				fptr->m_Size = (FileSize)boost::filesystem::file_size(f.m_FullPath);
+			} 
+			catch (...) {
+			}
 	}
 
 	return true;
@@ -219,28 +226,44 @@ bool FolderContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 //-------------------------------------------------------------------------------------------------
 
 template <class T>
-bool FolderContainer::EnumerateFolder(const String &Path, const String& BaseSubPath, T func) {
+bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 
 	using boost::filesystem::directory_iterator;
+	using boost::filesystem::recursive_directory_iterator;
 	boost::filesystem::path p(Path);
 	if (!boost::filesystem::is_directory(Path))
 		return false;
 	
-	for (directory_iterator it(Path); it != directory_iterator(); ++it) {
-		auto item = it->path();
-		FileType type;
+	try {
+		recursive_directory_iterator it(Path);
+		//recursive_directory_iterator jt();
 
-		String fullPath = Path;
-		fullPath += item.filename().string();
-		String SubPath = BaseSubPath;
-		SubPath += item.filename().string();
+		for (; it != recursive_directory_iterator();) {
+			auto item = it->path();
+			FileType type;
 
-		if (boost::filesystem::is_regular_file(item))
-			type = FileType::File;
-		else
-			type = FileType::Directory;
+			String fullPath = item.string();
 
-		func(fullPath, SubPath, type);
+			if (boost::filesystem::is_regular_file(item))
+				type = FileType::File;
+			else
+				type = FileType::Directory;
+
+			func(fullPath, type);
+
+			while(it != recursive_directory_iterator())
+				try {
+					++it;
+					break;
+				} 
+				catch (...) {
+					it.no_push();
+				}
+			}
+	}
+	catch (const std::exception &e) {
+		STARVFSErrorLog("Exception: %s", e.what());
+		return true;
 	}
 
 	return true;

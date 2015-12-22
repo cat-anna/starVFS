@@ -46,7 +46,7 @@ private:
 		String m_SubPath;
 	};
 
-	template <class T> static bool EnumerateFolder(const String &Path, const String& BaseSubPath, T func);
+	template <class T> static bool EnumerateFolder(const String &Path, T func);
 
 	String m_Path;
 

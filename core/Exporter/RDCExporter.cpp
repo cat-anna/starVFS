@@ -11,11 +11,9 @@ namespace StarVFS {
 namespace Exporters {
 
 RDCExporter::RDCExporter(StarVFS *svfs) : iExporter(svfs) {
-
 }
 
 RDCExporter::~RDCExporter() {
-	int i = 0;
 }
 
 } //namespace Exporters 

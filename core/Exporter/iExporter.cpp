@@ -13,7 +13,6 @@ iExporter::iExporter(StarVFS *svfs): m_SVFS(svfs) {
 }
 
 iExporter::~iExporter() {
-	int i = 0;
 }
 
 //-------------------------------------------------------------------------------------------------

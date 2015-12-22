@@ -220,7 +220,6 @@ InternalExporter::InternalExporter(StarVFS *svfs):
 }
 
 InternalExporter::~InternalExporter() {
-	int i = 0;
 }
 
 //-------------------------------------------------------------------------------------------------

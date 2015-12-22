@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <cassert>
 
 namespace StarVFS {
 
@@ -62,3 +63,6 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 #endif
 
 #define STARVFSDebugInfoLog STARVFSDebugLog
+
+
+#define StarVFSAssert assert
