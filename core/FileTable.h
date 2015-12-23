@@ -68,12 +68,10 @@ public:
 	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 	
 	bool IsValid(FileID fid) const {
-		if (!fid || fid >= m_Allocated || !m_FileTable[fid].m_Flags.Valid)
-			return false;
-		return true;
+		return fid && fid < m_Allocated &&  m_FileTable[fid].m_Flags.Valid;
 	}
 	File* GetFile(FileID fid) const {
-		if (!fid || fid >= m_Allocated || !m_FileTable[fid].m_Flags.Valid)
+		if (!IsValid(fid))
 			return nullptr;
 		return &m_FileTable[fid];
 	}
