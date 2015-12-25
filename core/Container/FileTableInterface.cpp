@@ -17,5 +17,80 @@ FileTableInterface::FileTableInterface(FileTable *Owner, ContainerID cid):
 FileTableInterface::~FileTableInterface() {
 }
 
+//-------------------------------------------------------------------------------------------------
+
+bool FileTableInterface::EnsureReserve(FileID count) {
+	return m_Owner->EnsureCapacity(count);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+FileID FileTableInterface::FindFile(const String& InternalFullPath) {
+	return m_Owner->Lookup(InternalFullPath);
+}
+
+FileID FileTableInterface::FindFile(FilePathHash PathHash) {
+	return m_Owner->Lookup(PathHash);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+FileID FileTableInterface::AllocFileID(const String& InternalFullPath) {
+	auto f = m_Owner->AllocFile(InternalFullPath);
+	if (!f)
+		return 0;
+	f->m_ContainerFileID = 0;
+	f->m_ContainerID = m_CID;
+	return f->m_GlobalFileID;
+}
+
+FileID FileTableInterface::AllocFileID(FileID Parent, FilePathHash PathHash, const CString FileName) {
+	auto f = m_Owner->AllocFile(Parent, PathHash, FileName);
+	if (!f)
+		return 0;
+	f->m_ContainerFileID = 0;
+	f->m_ContainerID = m_CID;
+	return f->m_GlobalFileID;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) {
+	auto f = m_Owner->GetRawFile(fid);
+	if (!f)
+		return  false;
+	f->m_ContainerFileID = cfid;
+	f->m_Size = Size;
+	f->m_Flags.intval = 0;
+	f->m_Flags.Valid = 1;
+	return true;
+}
+
+bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) {
+	auto f = m_Owner->GetRawFile(fid);
+	if (!f)
+		return  false;
+	f->m_ContainerFileID = cfid;
+	f->m_Size = 0;
+	f->m_Flags.intval = 0;
+	f->m_Flags.Valid = 1;
+	f->m_Flags.Directory = 1;
+	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool FileTableInterface::IsFileValid(FileID fid) const { 
+	return m_Owner->IsValid(fid);
+}
+
+bool FileTableInterface::IsDirectory(FileID fid) const { 
+	return m_Owner->IsDirectory(fid); 
+}
+
+bool FileTableInterface::IsFile(FileID fid) const { 
+	return m_Owner->IsFile(fid); 
+}
+
 } //namespace Containers 
 } //namespace StarVFS 

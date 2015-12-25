@@ -16,15 +16,15 @@ public:
  	StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
 
-	template<class T>
-	Containers::iContainer* CreateContainer(const String &MountPoint) {
+	template<class T, class ...ARGS>
+	std::pair<VFSErrorCode, Containers::iContainer*> CreateContainer(const String &MountPoint, ARGS ... args) {
 		static_assert(std::is_base_of<Containers::iContainer, T>::value , "Invalid container class!");
-		auto c = std::make_unique<T>(NewFileTableInterface());
+		Container c = std::make_unique<T>(NewFileTableInterface(MountPoint), std::forward<ARGS>(args)...);
 		auto cptr = c.get();
-		auto r = MountContainer(c, MountPoint);
+		auto r = MountContainer(std::move(c), MountPoint);
 		if (r != VFSErrorCode::Success)
-			return nullptr;
-		return cptr;
+			cptr = nullptr;
+		return std::make_pair(r, cptr);
 	}
 
 	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/");
@@ -72,10 +72,9 @@ private:
 	std::unique_ptr<Internals> m_Internals;
 	std::unique_ptr<FileTable> m_FileTable;
 
-	VFSErrorCode CreateContainer(Container& out, const String& ContainerFile);
 	VFSErrorCode MountContainer(Container c, String MountPoint);
 	VFSErrorCode ReloadContainer(ContainerID cid);
-	Containers::FileTableInterface* NewFileTableInterface();
+	Containers::FileTableInterface* NewFileTableInterface(const String &MountPoint, bool Force = false);
 	Modules::iModule* InsertModule(std::unique_ptr<Modules::iModule> module);
 };
 

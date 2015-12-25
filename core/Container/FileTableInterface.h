@@ -30,9 +30,9 @@ public:
 	//bool CreateLink()
 	//bool DeleteFile()
 
-	bool IsFileValid(FileID fid) const { return m_Owner->IsValid(fid); }
-	bool IsDirectory(FileID fid) const { return false; }// return m_Owner->IsValid(fid); }
-	bool IsFile(FileID fid) const { return false; }// return m_Owner->IsValid(fid); }
+	bool IsFileValid(FileID fid) const;
+	bool IsDirectory(FileID fid) const;
+	bool IsFile(FileID fid) const;
 
 	const CString GetFileName(FileID fid) const { return m_Owner->GetFileName(fid); }
 	String GetFileFullPath(FileID fid) const { return m_Owner->GetFileFullPath(fid); }

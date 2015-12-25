@@ -56,8 +56,6 @@ public:
 	void DumpFileTable(std::ostream &out) const;
 	void DumpHashTable(std::ostream &out) const;
 
-	//bool AddMultipleLayers(...);
-
 	File* AllocFile(const String& InternalFullPath);
 	File* AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName);
 	
@@ -65,13 +63,22 @@ public:
 
 	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 	
-	bool IsValid(FileID fid) const {
-		return fid && fid < m_Allocated &&  m_FileTable[fid].m_Flags.Valid;
-	}
+	bool IsValid(FileID fid) const { return fid && fid < m_Allocated && m_FileTable[fid].m_Flags.Valid; }
 	File* GetFile(FileID fid) const {
-		if (!IsValid(fid))
-			return nullptr;
+		if (!IsValid(fid)) return nullptr;
 		return &m_FileTable[fid];
+	}
+	File* GetRawFile(FileID fid) const {
+		if (!fid || fid >= m_Allocated) return nullptr;
+		return &m_FileTable[fid];
+	}
+	bool IsFile(FileID fid) const {
+		auto f = GetFile(fid);
+		return f && !f->m_Flags.Directory;
+	}
+	bool IsDirectory(FileID fid) const {
+		auto f = GetFile(fid);
+		return f && f->m_Flags.Directory;
 	}
 
 	File* GetFileParent(const File *f) const { return GetFile(f->m_ParentFileID); }
@@ -85,7 +92,8 @@ public:
 	const File* GetTable() const { return m_FileTable.get(); }
 	FileID GetAllocatedFileCount() { return m_Allocated; }
 
-	Containers::FileTableInterface *AllocateInterface();
+	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);
+	bool EnsureCapacity(FileID RequiredEmptySpace);
 private:
 	std::unique_ptr<StringTable> m_StringTable;
 	std::vector<UniqueFileTableInterface> m_Interfaces;
@@ -95,7 +103,6 @@ private:
 	FileID m_Capacity, m_Allocated;
 
 //Internal functions, mutex shall be locked before calling them
-	bool EnsureCapacity(FileID RequiredEmptySpace);
 	bool Realloc(FileID NewCapacity);
 
 	File* AllocNewFile();

@@ -12,6 +12,7 @@ namespace StarVFS {
 FileTable::FileTable(unsigned Flags) {
 	m_Capacity = m_Allocated = 0;
 	m_FileTable = nullptr;
+	m_Interfaces.push_back(nullptr);
 
 	m_StringTable = std::make_unique<StringTable>();
 	Realloc(Settings::Initial::FileTableSize);
@@ -290,7 +291,7 @@ bool FileTable::Realloc(FileID NewCapacity) {
 
 //-------------------------------------------------------------------------------------------------
 
-Containers::FileTableInterface *FileTable::AllocateInterface() {
+Containers::FileTableInterface *FileTable::AllocateInterface(const String& MountPoint) {
 	ContainerID cid = m_Interfaces.size();
 	m_Interfaces.emplace_back(std::make_unique<Containers::FileTableInterface>(this, cid));
 	return m_Interfaces.back().get();

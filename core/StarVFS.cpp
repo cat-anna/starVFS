@@ -27,12 +27,13 @@ struct StarVFS::Internals {
 		String m_MountPoint;
 
 		ContainerInfo() { }
-		ContainerInfo(ContainerInfo&) = delete;
+		ContainerInfo(const ContainerInfo&) = delete;
+		ContainerInfo(ContainerInfo&& oth) : m_Container(std::move(oth.m_Container)), m_MountPoint(std::move(oth.m_MountPoint)) { }
 	};
 
 	std::unique_ptr<HandleTable> m_HandleTable;
 	std::vector<std::unique_ptr<Modules::iModule>> m_Modules;
-	std::vector<std::unique_ptr<ContainerInfo>> m_Containers;
+	std::vector<ContainerInfo> m_Containers;
 #ifndef STARVFS_DISABLE_REGISTER
 	std::unique_ptr<Register> m_Register;
 #endif
@@ -121,41 +122,18 @@ FileHandle StarVFS::OpenFile(FileID fid, RWMode ReadMode) {
 //-----------------------------------------------------------------------------
 
 VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &MountPoint) {
-	Container c;
-	auto r = CreateContainer(c, ContainerFile);
-	if (r != VFSErrorCode::Success) {
-		//TODO: log
-		return r;
-	}
-
-	return MountContainer(std::move(c), MountPoint);
-}
-
-VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
-	StarVFSAssert(c);
-
-	m_Internals->m_Containers.emplace_back(std::make_unique<Internals::ContainerInfo>());
-	Internals::ContainerInfo &ci = *m_Internals->m_Containers.back();
-	ci.m_Container.swap(c);
-	ci.m_MountPoint.swap(MountPoint);
-
-	auto cid = ci.m_Container->GetFileTableInterface()->GetContainerID();
-
-	return ReloadContainer(cid);
-}
-
-VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFile) {
 	//if (!boost::filesystem::exists(ContainerFile)) {
 	//	//AddLogf(Error, "File '%s' does not exists!", FileName.c_str());
 	//	return VFSErrorCode::ContainerDoesNotExits;
 	//}
 
-	Container c;
+	std::pair<VFSErrorCode, Containers::iContainer*>  result = std::make_pair(VFSErrorCode::InternalError, nullptr);
 	do {
 		if (boost::filesystem::is_directory(ContainerFile)) {
 #ifdef STARVFS_DISABLE_FOLDERCONTAINER
 			//AddLogf(Error, "File '%s' is an directory!", File.c_str());
 #else 
+			result = CreateContainer<Containers::FolderContainer>(MountPoint, ContainerFile);
 //			c.reset(new Containers::FolderContainer(ContainerFile));
 #endif
 			break;
@@ -191,15 +169,23 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 //	AddLogf(Error, "Unable to open container for file '%s'!", FileName.c_str());
 //	return nullptr;
 
-	if (!c) {
-		//TODO: log
-		return VFSErrorCode::UnknownContainerFormat;
-	}
+	if (result.second)
+		STARVFSDebugLog("Created container %s for %s", typeid(*result.second).name(), ContainerFile.c_str());
 
-	STARVFSDebugLog("Created container %s for %s", typeid(*c.get()).name(), ContainerFile.c_str());
+	return result.first;
+}
 
-	out.swap(c);
-	return VFSErrorCode::Success;
+VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
+	StarVFSAssert(c);
+
+	m_Internals->m_Containers.emplace_back();
+	Internals::ContainerInfo &ci = m_Internals->m_Containers.back();
+	ci.m_Container.swap(c);
+	ci.m_MountPoint.swap(MountPoint);
+
+	auto cid = ci.m_Container->GetFileTableInterface()->GetContainerID();
+
+	return ReloadContainer(cid);
 }
 
 //-----------------------------------------------------------------------------
@@ -207,9 +193,14 @@ VFSErrorCode StarVFS::CreateContainer(Container& out, const String& ContainerFil
 VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {
 	StarVFSAssert(cid < m_Internals->m_Containers.size());
 	auto &ci = m_Internals->m_Containers[cid];
-	if (!ci->m_Container->ReloadContainer()) {
+	if (!ci.m_Container->ReloadContainer()) {
 		STARVFSErrorLog("Failed to reload cid: %d", cid);
 		return VFSErrorCode::ContainerCriticalError;
+	}
+
+	if (!ci.m_Container->RegisterContent()) {
+		STARVFSErrorLog("Failed to register container content cid: %d", cid);
+		return VFSErrorCode::InternalError;
 	}
 //
 //	cin->SetContainerID((ContainerID)m_Containers.size());
@@ -228,13 +219,13 @@ VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {
 //		STARVFSErrorLog("Faield to register files for container %d", m_Containers.size());
 //		return false;
 //	}
-	return VFSErrorCode::InternalError;
+	return VFSErrorCode::Success;
 }
 
 //-----------------------------------------------------------------------------
 
-Containers::FileTableInterface* StarVFS::NewFileTableInterface() {
-	return m_FileTable->AllocateInterface();
+Containers::FileTableInterface* StarVFS::NewFileTableInterface(const String &MountPoint, bool Force) {
+	return m_FileTable->AllocateInterface(MountPoint);
 }
 
 //-----------------------------------------------------------------------------

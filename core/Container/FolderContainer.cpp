@@ -136,7 +136,6 @@ bool FolderContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 
 template <class T>
 bool FolderContainer::EnumerateFolder(const String &Path, T func) {
-
 	using boost::filesystem::directory_iterator;
 	using boost::filesystem::recursive_directory_iterator;
 	boost::filesystem::path p(Path);
