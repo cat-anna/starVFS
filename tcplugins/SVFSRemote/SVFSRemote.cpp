@@ -47,7 +47,7 @@ void SVFSRemote::Init(int PluginNr, tProgressProc pProgressProc, tLogProc pLogPr
 
 //-----------------------------------------------------------------------------
 
-void SVFSRemote::SVFSRemote::DoSVFSScan() {
+void SVFSRemote::DoSVFSScan() {
 //	m_SVFS->OpenContainer("d:\\bin\\", "/");
 	m_SVFS->OpenContainer("tcp://127.0.0.1:5555", "/");
 }

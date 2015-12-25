@@ -17,7 +17,6 @@
 #include "Hash.h"
 #include "HashFileTable.h"
 #include "FileTable.h"
-#include "FileTableInterface.h"
 #include "HandleTable.h"
 
 #include "nStarVFS.h"

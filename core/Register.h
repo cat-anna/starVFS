@@ -20,7 +20,7 @@ public:
 
 	template<class T> 
 	void RegisterContainer(const char *Name) {
-		static_assert(std::is_base_of <iContainer, T>::value, "Invalid container class");
+		static_assert(std::is_base_of <Containers::iContainer, T>::value, "Invalid container class");
 		m_ContainerMap[Name].CreateFunc = &DoCreateContainer<T>;
 	}
 	Container CreateContainer(const char *Name) const {

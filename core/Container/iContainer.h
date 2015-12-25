@@ -9,7 +9,11 @@
 #ifndef iContainer_H
 #define iContainer_H
 
+#include "../StarVFSInternal.h"
+#include "FileTableInterface.h"
+
 namespace StarVFS {
+namespace Containers {
 
 class iContainer {
 public:
@@ -18,18 +22,18 @@ public:
 
 	/** Reload container internal file table */
 	virtual bool ReloadContainer() = 0;
+	/** TBD */
+	virtual bool RegisterContent() const = 0;
 
 	/** Get total number of files in container. Folders shall be counted. All children shall have bigger id than parent. */
 	virtual FileID GetFileCount() const = 0;
 	/** Retrive info about all file in container. */
 
-	virtual bool RegisterFiles(FileTable *table) const = 0;
-
 	virtual const String& GetFileName() const = 0;
 	virtual RWMode GetRWMode() const = 0;
 
 	FileTableInterface* GetFileTableInterface() { return m_FTI; }
-	const FileTableInterface* GetFileTableInterface() const { return m_FTI; }
+	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
 
 	/** Container shall not do any buffering. */
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const = 0;
@@ -80,6 +84,7 @@ private:
 	FileTableInterface *m_FTI;
 };
 
+} //namespace Containers 
 } //namespace StarVFS 
 
 #endif

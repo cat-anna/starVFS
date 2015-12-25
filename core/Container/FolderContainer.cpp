@@ -4,134 +4,22 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
-#include "../StarVFSInternal.h"
+#include "iContainer.h"
 #include "FolderContainer.h"
 
 #ifndef STARVFS_DISABLE_FOLDERCONTAINER
 namespace StarVFS {
 namespace Containers {
 
-#if 0
-struct FolderContainerPointer : RawFilePointer {
-	string SubPath;
-	FileSize Size = 0;
-
-	virtual FileSize GetFileSize() const
-	{
-		return Size;
-	};
-};
-
-//-------------------------------------------------------------------------------------------------
-
-class FolderFileReader : public iFileReader {
-	GABI_DECLARE_CLASS_NOCREATOR(FolderFileReader, iFileReader);
-public:
-	FolderFileReader(iContainer *Owner) : BaseClass(Owner)
-	{}
-	~FolderFileReader()
-	{}
-
-	bool Open(const string& FileName)
-	{
-		std::ifstream inp(FileName.c_str(), std::ios::in | std::ios::binary);
-		if (!inp) throw false;
-		m_DataLen = static_cast<FileSize>(boost::filesystem::file_size(FileName));
-		m_Data.reset(new char[m_DataLen + 1]);
-		m_Data[m_DataLen] = 0;
-		inp.read(&m_Data[0], m_DataLen);
-		inp.close();
-		m_FileName = FileName;
-		return true;
-	}
-
-	virtual FileSize Size() const
-	{
-		return m_DataLen;
-	}
-	virtual const char* GetFileData() const
-	{
-		return &m_Data[0];
-	}
-	virtual const string& FileName() const
-	{
-		return m_FileName;
-	}
-private:
-	std::unique_ptr<char[]> m_Data;
-	FileSize m_DataLen;
-	string m_FileName;
-};
-
-GABI_IMPLEMENT_CLASS_NOCREATOR(FolderFileReader);
-
-//-------------------------------------------------------------------------------------------------
-
-class FolderFileWritter : public iFileWritter {
-	GABI_DECLARE_CLASS_NOCREATOR(FolderFileWritter, iFileWritter);
-public:
-	FolderFileWritter(iContainer *Owner, const string& Name) : BaseClass(Owner), m_FileName(Name)
-	{}
-	~FolderFileWritter()
-	{
-		std::ofstream inp(m_FileName.c_str(), std::ios::out | std::ios::binary);
-		if (!inp) throw false;
-		inp.write(&m_Data[0], m_DataLen);
-		inp.close();
-	}
-
-	bool SetFileData(const char* data, FileSize size) override
-	{
-		m_DataLen = size;
-		m_Data.reset(new char[m_DataLen + 1]);
-		m_Data[m_DataLen] = 0;
-		memcpy(&m_Data[0], data, m_DataLen);
-		return true;
-	}
-
-	bool OwnData(std::unique_ptr<char[]> data, FileSize size)
-	{
-		m_Data.reset();
-		m_Data.swap(data);
-		m_DataLen = size;
-		return true;
-	}
-
-	virtual FileSize Size() const
-	{
-		return m_DataLen;
-	}
-	virtual const char* GetFileData() const
-	{
-		return &m_Data[0];
-	}
-	virtual const string& FileName() const
-	{
-		return m_FileName;
-	}
-private:
-	std::unique_ptr<char[]> m_Data;
-	FileSize m_DataLen;
-	string m_FileName;
-};
-
-#endif 
-
-//------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-
-FolderContainer::FolderContainer(const String &Path) :
-		iContainer(),
-		m_Path(Path) {
+FolderContainer::FolderContainer(FileTableInterface *fti, String Path) :
+		iContainer(fti),
+		m_Path(std::move(Path)) {
 
 	if (m_Path.back() != '/')
 		m_Path += '/';
 }
 
 FolderContainer::~FolderContainer() {
-//	m_PtrMap.clear();
-//	m_PtrList.clear();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -141,7 +29,7 @@ RWMode FolderContainer::GetRWMode() const { return RWMode::RW; }
 
 //-------------------------------------------------------------------------------------------------
 
-bool FolderContainer::ReloadContainer() {
+bool FolderContainer::ScanPath() {
 	m_FileEntry.clear();
 
 	std::function<void(const String&, FileType)> handler;
@@ -153,7 +41,14 @@ bool FolderContainer::ReloadContainer() {
 			if (it == '\\')
 				it = '/';
 
-		m_FileEntry.emplace_back(Entry{ type, path, subpath });
+		uint64_t fsize = 0;
+		if (type == FileType::File)
+			try {
+				fsize = (FileSize)boost::filesystem::file_size(path);
+			} 
+			catch (...) {
+			}
+		m_FileEntry.emplace_back(Entry{ type, path, subpath, fsize, });
 	};
 
 	if (!EnumerateFolder(m_Path, handler)) {
@@ -165,39 +60,53 @@ bool FolderContainer::ReloadContainer() {
 	return true;
 }
 
-FileID FolderContainer::GetFileCount() const {
-	return static_cast<FileID>(m_FileEntry.size());
+bool FolderContainer::ReloadContainer() {
+	return ScanPath();
 }
 
-bool FolderContainer::RegisterFiles(FileTable *table) const {
-	if (!table)
+bool FolderContainer::RegisterContent() const {
+	auto fti = GetFileTableInterface();
+	StarVFSAssert(fti);
+
+	auto fcount = GetFileCount();
+
+	if (!fti->EnsureReserve(fcount)) {
+		STARVFSErrorLog("Failed to reload folder container");
 		return false;
-	for (FileID i = 0, j = (FileID)m_FileEntry.size(); i < j; ++i) {
-		auto &f = m_FileEntry[i];
+	}
 
-		auto fptr = table->AllocFile(f.m_SubPath);
+	for (FileID cfid = 0, j = fcount; cfid < j; ++cfid) {
+		auto &f = m_FileEntry[cfid];
 
-		if (!fptr)
-			return false;
+		FileID fid = fti->AllocFileID(f.m_SubPath);
+		if (!fid){
+			STARVFSErrorLog("Failed to alloc fileid for %s", f.m_SubPath.c_str());
+			continue;
+		}
 
-		fptr->m_Flags.Valid = 1;
-		fptr->m_ContainerID = GetContainerID();
-		fptr->m_ContainerFileID = i;
-
-		if (f.m_Type == FileType::Directory)
-			fptr->m_Flags.Directory = 1;
-		else 
-			try {
-				fptr->m_Size = (FileSize)boost::filesystem::file_size(f.m_FullPath);
-			} 
-			catch (...) {
-			}
+		bool success;
+		switch (f.m_Type) {
+		case FileType::Directory:
+			success = fti->CreateDirectory(fid, cfid);
+			break;
+		case FileType::File:
+			success = fti->CreateFile(fid, cfid, static_cast<FileSize>(f.m_FileSize));
+			break;
+		default:
+			STARVFSErrorLog("Invalid FileType value!");
+			StarVFSAssert(false);
+			continue;
+		}
 	}
 
 	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
+
+FileID FolderContainer::GetFileCount() const {
+	return static_cast<FileID>(m_FileEntry.size());
+}
 
 bool FolderContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
 	out.reset();
@@ -236,7 +145,6 @@ bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 	
 	try {
 		recursive_directory_iterator it(Path);
-		//recursive_directory_iterator jt();
 
 		for (; it != recursive_directory_iterator();) {
 			auto item = it->path();
@@ -269,6 +177,8 @@ bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 	return true;
 }
 
+//-------------------------------------------------------------------------------------------------
+
 #if 0
 
 FileWritter FolderContainer::GetFileWritter(const string& file)
@@ -278,22 +188,6 @@ FileWritter FolderContainer::GetFileWritter(const string& file)
 	boost::filesystem::create_directories(p.parent_path());
 	auto ptr = std::make_shared<FolderFileWritter>(const_cast<FolderContainer*>(this), s);
 	return ptr;
-}
-
-FileReader FolderContainer::GetFileReader(const string& file) const
-{
-	string s = FullPath(file);
-	auto ptr = std::make_shared<FolderFileReader>(const_cast<FolderContainer*>(this));
-
-	try {
-		if (!ptr->Open(s))
-			throw false;
-		return ptr;
-	}
-	catch (...) {
-		AddLogf(Error, "Unable to open file '%s'", s.c_str());
-	}
-	return nullptr;
 }
 
 FileReader FolderContainer::GetFileReader(const RawFilePointer *file) const

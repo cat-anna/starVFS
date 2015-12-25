@@ -23,7 +23,6 @@ FileTable::FileTable(unsigned Flags) {
 	root->m_Hash = FilePathHashAlgorithm::Hash("/", 1);
 	m_HashFileTable.Add(root);
 
-	m_Containers.push_back(nullptr);
 }
 
 FileTable::~FileTable() {
@@ -220,35 +219,6 @@ File* FileTable::AllocFile(FileID Parent, FilePathHash PathHash, const CString F
 	return AllocNewFile(p, PathHash, FileName);
 }
 
-
-//-------------------------------------------------------------------------------------------------
-
-bool FileTable::AddLayer(Container cin) {
-	if (!cin)
-		return false;
-
-	cin->SetContainerID((ContainerID)m_Containers.size());
-	m_Containers.emplace_back(std::move(cin));
-	auto &c = m_Containers.back();
-
-	FileID FileCount = c->GetFileCount();
-	STARVFSDebugInfoLog("Container %s has %d files", c->GetFileName().c_str(), FileCount);
-
-	if (!EnsureCapacity(FileCount)) {
-		//TODO: log
-		return false;
-	}
-
-	if (!c->RegisterFiles(this)) {
-		STARVFSErrorLog("Faield to register files for container %d", m_Containers.size());
-		return false;
-	}
-	
-//	m_FileTable.SortHashTable();
-	
-	return true;
-}
-
 //-------------------------------------------------------------------------------------------------
 
 String FileTable::GetFileFullPath(FileID fid) const {
@@ -275,17 +245,18 @@ const CString FileTable::GetFileName(FileID fid) const {
 }
 
 bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
-	auto f = GetFile(fid);
-	if (!fid)
-		//TODO: log
-		return false;
-	auto c = GetContainer(f->m_ContainerID);
-	if (!c)
-		//TODO: log
-		return false;
-	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
-		return false;
-	return true;
+//	auto f = GetFile(fid);
+//	if (!fid)
+//		//TODO: log
+//		return false;
+//	auto c = GetContainer(f->m_ContainerID);
+//	if (!c)
+//		//TODO: log
+//		return false;
+//	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
+//		return false;
+//	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -315,6 +286,14 @@ bool FileTable::Realloc(FileID NewCapacity) {
 	m_Capacity = NewCapacity;
 	 
 	return m_HashFileTable.Resize(NewCapacity);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+Containers::FileTableInterface *FileTable::AllocateInterface() {
+	ContainerID cid = m_Interfaces.size();
+	m_Interfaces.emplace_back(std::make_unique<Containers::FileTableInterface>(this, cid));
+	return m_Interfaces.back().get();
 }
 
 } //namespace StarVFS 

@@ -20,7 +20,7 @@ public:
 	virtual bool ReloadContainer() override;
 
 	virtual FileID GetFileCount() const override;
-	virtual bool RegisterFiles(FileTable *table) const override;
+	virtual bool RegisterContent() const override;
 
 	virtual const String& GetFileName() const override;
 

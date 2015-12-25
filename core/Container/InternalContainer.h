@@ -46,7 +46,7 @@ public:
 
 	virtual FileID GetFileCount() const override{ return 0; }
 
-	virtual bool RegisterFiles(FileTable *table) const override { return false; }
+	virtual bool RegisterContent() const override { return false; }
 
 	virtual const String& GetFileName() const override { return ""; }
 	virtual RWMode GetRWMode() const override { return RWMode::None; };

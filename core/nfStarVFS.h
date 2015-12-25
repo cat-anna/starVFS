@@ -12,8 +12,6 @@ namespace StarVFS {
 
 class iFileReader;
 class iFileWritter;
-class iContainer;
-using Container = std::unique_ptr<iContainer>;
 
 class FileTable;
 struct File;
@@ -49,4 +47,13 @@ enum class RWMode {
 namespace Modules {
 	class iModule;
 }
+
+namespace Containers {
+	class iContainer;
+	class FileTableInterface;
+}
+
+using UniqueFileTableInterface = std::unique_ptr<Containers::FileTableInterface>;
+using Container = std::unique_ptr<Containers::iContainer>;
+
 } //namespace StarVFS 

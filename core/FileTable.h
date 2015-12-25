@@ -56,14 +56,12 @@ public:
 	void DumpFileTable(std::ostream &out) const;
 	void DumpHashTable(std::ostream &out) const;
 
-	bool AddLayer(Container cin);
 	//bool AddMultipleLayers(...);
 
 	File* AllocFile(const String& InternalFullPath);
 	File* AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName);
 	
 	template<class ...ARGS> FileID Lookup(ARGS... args) { return m_HashFileTable.Lookup(std::forward<ARGS>(args)...); }
-	//delete
 
 	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 	
@@ -80,26 +78,17 @@ public:
 	File* GetFileFirstChild(const File *f) const { return GetFile(f->m_FirstChild); }
 	File* GetFileNextSibling(const File *f) const { return GetFile(f->m_NextSibling); }
 
-	iContainer* GetContainer(ContainerID cid) {
-		if (cid >= m_ContainerTable.size())
-			return nullptr;
-		return m_ContainerTable[cid].m_Container.get();
-	}
-
 	const CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const;
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
 	const File* GetTable() const { return m_FileTable.get(); }
 	FileID GetAllocatedFileCount() { return m_Allocated; }
-private:
-	struct ContainerInfo {
-		std::unique_ptr<iContainer> m_Container;
-		std::unique_ptr<FileTableInterface> m_Interface;
-	};
 
+	Containers::FileTableInterface *AllocateInterface();
+private:
 	std::unique_ptr<StringTable> m_StringTable;
-	std::vector<ContainerInfo> m_ContainerTable;
+	std::vector<UniqueFileTableInterface> m_Interfaces;
 	HashFileTable m_HashFileTable;
 	std::unique_ptr<File[]> m_FileTable;
 

@@ -197,7 +197,7 @@ static void InstallAttribMap(lua_State *lua) {
 
 static void InstalliContainer(lua_State *lua) {
 	using ::StarVFS::AttributeMap;
-	using ::StarVFS::iContainer;
+	using ::StarVFS::Containers::iContainer;
 	luabridge::getGlobalNamespace(lua)
 		.beginNamespace("api")
 			.deriveClass<iContainer, AttributeMap>("iContainer")

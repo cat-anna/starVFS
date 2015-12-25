@@ -191,33 +191,33 @@ FileID RemoteContainer::GetFileCount() const {
 	return m_Connection->GetFileCount();
 }
 
-bool RemoteContainer::RegisterFiles(FileTable *table) const {
-	if (!m_Connection) return false;
-
-	auto count = m_Connection->GetFileCount();
-
-	std::vector<FileID> idtable;
-	idtable.resize(count + 1, 1);
-
-	for (FileID i = 2; i < count; ++i) {
-		auto f = &m_Connection->m_FileTable[i];
-		auto pid = idtable[f->m_ParentFileID];
-		auto name = &m_Connection->m_CharTable[f->m_NameStringID];
-		auto fptr = table->AllocFile(pid, f->m_Hash, name);
-
-		if (!fptr) {
-			STARVFSErrorLog("ERROR %d", i);
-			return false;
-		}
-
-		idtable[i] = fptr->m_GlobalFileID;
-
-		fptr->m_Flags.Directory = f->m_Flags.Directory;
-		fptr->m_Flags.Valid = f->m_Flags.Valid;
-		fptr->m_ContainerFileID = i;
-		fptr->m_ContainerID = GetContainerID();
-		fptr->m_Size = f->m_Size;
-	}
+bool RemoteContainer::RegisterContent() const {
+//	if (!m_Connection) return false;
+//
+//	auto count = m_Connection->GetFileCount();
+//
+//	std::vector<FileID> idtable;
+//	idtable.resize(count + 1, 1);
+//
+//	for (FileID i = 2; i < count; ++i) {
+//		auto f = &m_Connection->m_FileTable[i];
+//		auto pid = idtable[f->m_ParentFileID];
+//		auto name = &m_Connection->m_CharTable[f->m_NameStringID];
+//		auto fptr = table->AllocFile(pid, f->m_Hash, name);
+//
+//		if (!fptr) {
+//			STARVFSErrorLog("ERROR %d", i);
+//			return false;
+//		}
+//
+//		idtable[i] = fptr->m_GlobalFileID;
+//
+//		fptr->m_Flags.Directory = f->m_Flags.Directory;
+//		fptr->m_Flags.Valid = f->m_Flags.Valid;
+//		fptr->m_ContainerFileID = i;
+//		fptr->m_ContainerID = GetContainerID();
+//		fptr->m_Size = f->m_Size;
+//	}
 
 	return true;
 }

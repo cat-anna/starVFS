@@ -8,6 +8,7 @@
 #include "iContainer.h"
 
 namespace StarVFS {
+namespace Containers {
 
 iContainer::iContainer(FileTableInterface  *fti): m_FTI(fti) {
 }
@@ -79,4 +80,5 @@ const string& iContainer::GetContainerName() const {
 
 #endif
 
+} //namespace Containers 
 } //namespace StarVFS 
