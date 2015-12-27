@@ -16,8 +16,18 @@ public:
  	StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
 
-	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/", unsigned ContainerFlags = 0);
-	VFSErrorCode MountContainer(Container c, const String &MountPoint);
+	template<class T, class ...ARGS>
+	CreateContainerResult CreateContainer(const String &MountPoint, ARGS ... args) {
+		static_assert(std::is_base_of<Containers::iContainer, T>::value , "Invalid container class!");
+		Container c = std::make_unique<T>(NewFileTableInterface(MountPoint), std::forward<ARGS>(args)...);
+		auto cptr = c.get();
+		auto r = MountContainer(std::move(c), MountPoint);
+		if (r != VFSErrorCode::Success)
+			cptr = nullptr;
+		return CreateContainerResult(r, cptr);
+	}
+
+	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/");
 
 	/** Debug function. Prints all files in human-readable format. */
 	void DumpStructure(std::ostream &out) const;
@@ -38,14 +48,10 @@ public:
 	template<class T, class ...ARGS>
 	Modules::iModule* AddModule(ARGS ...args) {
 		static_assert(std::is_base_of<Modules::iModule, T>::value , "Invalid module class!");
-		m_Modules.push_back(std::make_unique<T>(this, std::forward<ARGS>(args)...));
-		return m_Modules.back().get();
+		return InsertModule(std::make_unique<T>(this, std::forward<ARGS>(args)...));
 	}
-	size_t GetModuleCount() const { return m_Modules.size(); }
-	Modules::iModule* GetModule(size_t mid) {
-		if (mid >= GetModuleCount())  return nullptr;
-		return m_Modules[mid].get();
-	}
+	size_t GetModuleCount() const;
+	Modules::iModule* GetModule(size_t mid);
 
 	template<class T, class ...ARGS>
 	std::unique_ptr<T> CreateExporter(ARGS ...args) {
@@ -54,24 +60,22 @@ public:
 	}
 
 	FileTable* GetFileTable() { return m_FileTable.get(); }
-	HandleTable* GetHandleTable() { return m_HandleTable.get(); }
+	HandleTable* GetHandleTable();
 
-#ifndef STARVFS_DISABLE_REGISTER
 	Register* GetRegister();
-#endif
 protected:
 //	virtual bool CanLoadContainer(iContainer *container);
 //	virtual void OnContaierLoaded(iContainer *container);
 private:
 	unsigned m_Flags;
+	struct Internals;
+	std::unique_ptr<Internals> m_Internals;
 	std::unique_ptr<FileTable> m_FileTable;
-	std::unique_ptr<HandleTable> m_HandleTable;
-	std::vector<std::unique_ptr<Modules::iModule>> m_Modules;
-#ifndef STARVFS_DISABLE_REGISTER
-	std::unique_ptr<Register> m_Register;
-#endif
-	
-	VFSErrorCode CreateContainer(Container& out, const String& ContainerFile, unsigned ContainerFlags);
+
+	VFSErrorCode MountContainer(Container c, String MountPoint);
+	VFSErrorCode ReloadContainer(ContainerID cid);
+	Containers::FileTableInterface* NewFileTableInterface(const String &MountPoint, bool Force = false);
+	Modules::iModule* InsertModule(std::unique_ptr<Modules::iModule> module);
 };
 
 } //namespace StarVFS 

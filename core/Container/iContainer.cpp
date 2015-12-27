@@ -8,15 +8,15 @@
 #include "iContainer.h"
 
 namespace StarVFS {
+namespace Containers {
 
-iContainer::iContainer() {
+iContainer::iContainer(FileTableInterface  *fti): m_FTI(fti) {
 }
 
 iContainer::~iContainer() {
 }
 
 #if 0
-
 iContainer::iContainer():
 		BaseClass(),
 		m_Flags(0) {
@@ -80,4 +80,5 @@ const string& iContainer::GetContainerName() const {
 
 #endif
 
+} //namespace Containers 
 } //namespace StarVFS 

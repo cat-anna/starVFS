@@ -27,8 +27,8 @@ public:
 private:
 	SharedLua m_Lua;
 
-	int RawOpenContainer(const char *what, const char * where, unsigned Flags) {
-		return (int)OpenContainer(what, where ? where : "/", Flags);
+	int RawOpenContainer(const char *what, const char * where) {
+		return (int)OpenContainer(what, where ? where : "/");
 	}
 
 	bool RawForcePath(const char* path) {

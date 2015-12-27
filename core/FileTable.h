@@ -17,15 +17,16 @@ union FileFlags {
 		uint8_t Valid : 1;				//Entry is valid
 		uint8_t Directory : 1;
 		uint8_t SymLink : 1;
-		//char unused3 : 1;
-		//char unused4 : 1;
-		//char unused5 : 1;
-		//char unused6 : 1;
-		//char unused7 : 1;
-		//deleted ?
+		uint8_t Deleted : 1;			//valid but deleted
+		//uint8_t Used : 1;
+		//uint8_t unused7 : 1;
 		//used ?
 		//shadowed ?
 	};
+
+	bool ValidDirectory() const { return Valid && Directory; }
+	bool ValidFile() const { return Valid && !Directory; }
+	bool ValidSymlink() const { return Valid && SymLink; }
 };
 
 static_assert(sizeof(FileFlags) == 1, "File flags may have only 1 byte");
@@ -55,74 +56,60 @@ public:
 	void DumpFileTable(std::ostream &out) const;
 	void DumpHashTable(std::ostream &out) const;
 
-	bool AddLayer(Container cin);
-	//bool AddMultipleLayers(...);
-
-	FileID Lookup(const String &Path) { return Lookup((const CString)Path.c_str(), Path.length()); }
-	FileID Lookup(const CString Path) { return Lookup(Path, strlen(Path)); }
-	FileID Lookup(const CString Path, size_t PathLen);
-
 	File* AllocFile(const String& InternalFullPath);
 	File* AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName);
-
-	//delete
+	
+	template<class ...ARGS> FileID Lookup(ARGS... args) { return m_HashFileTable.Lookup(std::forward<ARGS>(args)...); }
 
 	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 	
-	bool IsValid(FileID fid) const {
-		if (!fid || fid >= m_Allocated || !m_FileTable[fid].m_Flags.Valid)
-			return false;
-		return true;
-	}
+	bool IsValid(FileID fid) const { return fid && fid < m_Allocated && m_FileTable[fid].m_Flags.Valid; }
 	File* GetFile(FileID fid) const {
-		if (!fid || fid >= m_Allocated || !m_FileTable[fid].m_Flags.Valid)
-			return nullptr;
-		return m_FileTable + fid;
+		if (!IsValid(fid)) return nullptr;
+		return &m_FileTable[fid];
+	}
+	File* GetRawFile(FileID fid) const {
+		if (!fid || fid >= m_Allocated) return nullptr;
+		return &m_FileTable[fid];
+	}
+	bool IsFile(FileID fid) const {
+		auto f = GetFile(fid);
+		return f && !f->m_Flags.Directory;
+	}
+	bool IsDirectory(FileID fid) const {
+		auto f = GetFile(fid);
+		return f && f->m_Flags.Directory;
 	}
 
 	File* GetFileParent(const File *f) const { return GetFile(f->m_ParentFileID); }
 	File* GetFileFirstChild(const File *f) const { return GetFile(f->m_FirstChild); }
 	File* GetFileNextSibling(const File *f) const { return GetFile(f->m_NextSibling); }
 
-	iContainer* GetContainer(ContainerID cid) {
-		if (cid >= m_Containers.size())
-			return nullptr;
-		return m_Containers[cid].get();
-	}
 	const CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const;
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
-	const File* GetTable() const { return m_FileTable; }
+	const File* GetTable() const { return m_FileTable.get(); }
 	FileID GetAllocatedFileCount() { return m_Allocated; }
+
+	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);
+	bool EnsureCapacity(FileID RequiredEmptySpace);
 private:
-	std::mutex m_Mutex;
-	using MutexGuard = std::lock_guard<std::mutex>;
-
 	std::unique_ptr<StringTable> m_StringTable;
-	std::vector<std::unique_ptr<iContainer>> m_Containers;
+	std::vector<UniqueFileTableInterface> m_Interfaces;
+	HashFileTable m_HashFileTable;
+	std::unique_ptr<File[]> m_FileTable;
 
-	FileID m_Capacity;
-	FileID m_Allocated;
-	std::unique_ptr<char[]> m_Memory;
-	FilePathHash *m_HashTable;   //these tables must be synchronized
-	FileID *m_FileIDTable;	   //these tables must be synchronized
-	File *m_FileTable;
+	FileID m_Capacity, m_Allocated;
 
 //Internal functions, mutex shall be locked before calling them
-	bool EnsureCapacity(FileID RequiredEmptySpace);
 	bool Realloc(FileID NewCapacity);
-	FileID Lookup(FilePathHash Hash);
 
 	File* AllocNewFile();
 	File* AllocNewFile(File *Parent, FilePathHash PathHash, const CString FName);
 	File* AllocNewFile(const CString fullpath);
 
-	void AddToHashTable(File* f);
-	void RebuildHashTable();
-	void SortHashTable();
-
-	File* GetRoot() const { return m_FileTable + 1; }
+	File* GetRoot() const { return m_FileTable.get() + 1; }
 };
 
 } //namespace StarVFS 

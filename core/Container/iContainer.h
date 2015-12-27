@@ -9,36 +9,40 @@
 #ifndef iContainer_H
 #define iContainer_H
 
+#include "../StarVFSInternal.h"
+#include "FileTableInterface.h"
+
 namespace StarVFS {
+namespace Containers {
 
 class iContainer {
 public:
- 	iContainer();
+ 	iContainer(FileTableInterface  *fti);
  	virtual ~iContainer();
 
 	/** Reload container internal file table */
 	virtual bool ReloadContainer() = 0;
+	/** TBD */
+	virtual bool RegisterContent() const = 0;
 
 	/** Get total number of files in container. Folders shall be counted. All children shall have bigger id than parent. */
 	virtual FileID GetFileCount() const = 0;
 	/** Retrive info about all file in container. */
 
-	virtual bool RegisterFiles(FileTable *table) const = 0;
-
 	virtual const String& GetFileName() const = 0;
 	virtual RWMode GetRWMode() const = 0;
 
-	void SetContainerID(ContainerID id) { m_ContainerID = id; }
-	ContainerID GetContainerID() const { return m_ContainerID; }
+	FileTableInterface* GetFileTableInterface() { return m_FTI; }
+	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
 
 	/** Container shall not do any buffering. */
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const = 0;
 //	virtual bool SetFileData(FileID ContainerFID, const CharTable &in, FileSize DataSize) const = 0;
 
-	//alloc file
+	static bool CanOpen(const String&) { return false; }
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) { return CreateContainerResult(VFSErrorCode::InternalError, nullptr); }
 
 	//virtual bool GetFileSize(FileID ContainerFileID, FileSize &Size) const = 0;
-
 //	/** Get file reader. Returns nullptr if file cannot be read */
 //	virtual FileReader GetFileReader(const string& file) const;
 //	/** Get file reader. Returns nullptr if file cannot be read */
@@ -78,9 +82,10 @@ public:
 //	virtual bool EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const;
 protected:
 private: 
-	ContainerID m_ContainerID;
+	FileTableInterface *m_FTI;
 };
 
+} //namespace Containers 
 } //namespace StarVFS 
 
 #endif

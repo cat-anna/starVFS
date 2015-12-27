@@ -29,6 +29,7 @@ function helpers.CreateInstanceProxy(Inst)
 		__newindex = function()
 			return nil
 		end
+		
 	}
 	
 	local inst = { }

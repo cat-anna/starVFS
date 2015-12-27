@@ -11,6 +11,7 @@
 
 struct InitEnv {
 	bool m_RunCLI = true;
+	bool m_BashMode = true;
 
 	bool m_InitVerbose = true;
 };

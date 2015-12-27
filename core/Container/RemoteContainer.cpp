@@ -160,9 +160,12 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-RemoteContainer::RemoteContainer(const String &Host, int Port) {
-	m_Host = Host;
-	m_Port = Port;
+RemoteContainer::RemoteContainer(FileTableInterface *fti):
+		iContainer(fti), m_Host(), m_Port() {
+}
+
+RemoteContainer::RemoteContainer(FileTableInterface *fti, int port, const String& host):
+		iContainer(fti), m_Host(host), m_Port(port) {
 }
 
 RemoteContainer::~RemoteContainer() {
@@ -192,33 +195,33 @@ FileID RemoteContainer::GetFileCount() const {
 	return m_Connection->GetFileCount();
 }
 
-bool RemoteContainer::RegisterFiles(FileTable *table) const {
-	if (!m_Connection) return false;
-
-	auto count = m_Connection->GetFileCount();
-
-	std::vector<FileID> idtable;
-	idtable.resize(count + 1, 1);
-
-	for (FileID i = 2; i < count; ++i) {
-		auto f = &m_Connection->m_FileTable[i];
-		auto pid = idtable[f->m_ParentFileID];
-		auto name = &m_Connection->m_CharTable[f->m_NameStringID];
-		auto fptr = table->AllocFile(pid, f->m_Hash, name);
-
-		if (!fptr) {
-			STARVFSErrorLog("ERROR %d", i);
-			return false;
-		}
-
-		idtable[i] = fptr->m_GlobalFileID;
-
-		fptr->m_Flags.Directory = f->m_Flags.Directory;
-		fptr->m_Flags.Valid = f->m_Flags.Valid;
-		fptr->m_ContainerFileID = i;
-		fptr->m_ContainerID = GetContainerID();
-		fptr->m_Size = f->m_Size;
-	}
+bool RemoteContainer::RegisterContent() const {
+//	if (!m_Connection) return false;
+//
+//	auto count = m_Connection->GetFileCount();
+//
+//	std::vector<FileID> idtable;
+//	idtable.resize(count + 1, 1);
+//
+//	for (FileID i = 2; i < count; ++i) {
+//		auto f = &m_Connection->m_FileTable[i];
+//		auto pid = idtable[f->m_ParentFileID];
+//		auto name = &m_Connection->m_CharTable[f->m_NameStringID];
+//		auto fptr = table->AllocFile(pid, f->m_Hash, name);
+//
+//		if (!fptr) {
+//			STARVFSErrorLog("ERROR %d", i);
+//			return false;
+//		}
+//
+//		idtable[i] = fptr->m_GlobalFileID;
+//
+//		fptr->m_Flags.Directory = f->m_Flags.Directory;
+//		fptr->m_Flags.Valid = f->m_Flags.Valid;
+//		fptr->m_ContainerFileID = i;
+//		fptr->m_ContainerID = GetContainerID();
+//		fptr->m_Size = f->m_Size;
+//	}
 
 	return true;
 }
@@ -234,6 +237,29 @@ bool RemoteContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 }
 
 //-------------------------------------------------------------------------------------------------
+
+bool RemoteContainer::CanOpen(const String& Location) {
+	return strncmp(Location.c_str(), "tcp://", 6) == 0;
+}
+
+CreateContainerResult RemoteContainer::CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) {
+	String uri = Location;
+	auto port = (char*)strrchr(uri.c_str(), ':');
+	auto host = (char*)strrchr(uri.c_str(), '/');
+
+	if (port < host)
+		port = 0;
+
+	if (port)
+		*port++ = 0;
+
+	if (host) {
+		*host++ = 0;
+		int intport = port ? strtol(port, nullptr, 10) : 0;
+		return svfs->CreateContainer<RemoteContainer>(MountPoint, intport, host);
+	}
+	return CreateContainerResult(VFSErrorCode::InternalError, nullptr);
+}
 
 } //namespace Containers 
 } //namespace StarVFS 

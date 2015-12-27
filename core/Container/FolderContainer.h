@@ -14,19 +14,22 @@ namespace Containers {
 
 class FolderContainer : public iContainer {
 public:
-	FolderContainer(const String &Path = "");
+	FolderContainer(FileTableInterface *fti, String Path = ".");
 	virtual ~FolderContainer();
 
 	virtual bool ReloadContainer() override;
+	virtual bool RegisterContent() const override;
 
 	virtual FileID GetFileCount() const override;
-	virtual bool RegisterFiles(FileTable *table) const override;
 
 	virtual const String& GetFileName() const override;
 
 	virtual RWMode GetRWMode() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+
+	static bool CanOpen(const String& Location);
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
 
 //	virtual FileReader GetFileReader(const string& file) const override;
 //	virtual FileReader GetFileReader(const RawFilePointer *file) const override;
@@ -44,13 +47,16 @@ private:
 		FileType m_Type;
 		String m_FullPath;
 		String m_SubPath;
+		uint64_t m_FileSize;
 	};
 
-	template <class T> static bool EnumerateFolder(const String &Path, const String& BaseSubPath, T func);
+	template <class T> static bool EnumerateFolder(const String &Path, T func);
 
 	String m_Path;
 
 	std::vector<Entry> m_FileEntry;
+
+	bool ScanPath();
 
 //	string FullPath(const string &sub) const
 //	{

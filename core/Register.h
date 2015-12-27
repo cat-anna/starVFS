@@ -20,14 +20,14 @@ public:
 
 	template<class T> 
 	void RegisterContainer(const char *Name) {
-		static_assert(std::is_base_of <iContainer, T>::value, "Invalid container class");
+		static_assert(std::is_base_of <Containers::iContainer, T>::value, "Invalid container class");
 		m_ContainerMap[Name].CreateFunc = &DoCreateContainer<T>;
 	}
-	Container CreateContainer(const char *Name) const {
+	CreateContainerResult CreateContainer(const char *Name, const String &MountPoint = "/") const {
 		auto it = m_ContainerMap.find(Name);
 		if (it == m_ContainerMap.end())
-			return nullptr;
-		return it->second.CreateFunc(m_Owner);
+			return CreateContainerResult(VFSErrorCode::InternalError, nullptr);
+		return it->second.CreateFunc(m_Owner, MountPoint);
 	}
 	std::vector<String> GetRegisteredContainers() const {
 		std::vector<String> v;
@@ -82,7 +82,7 @@ private:
 	template<class T>
 	static std::unique_ptr<Exporters::iExporter> DoCreateExporter(StarVFS *svfs) { return svfs->CreateExporter<T>(); }
 	template<class T>
-	static Container DoCreateContainer(StarVFS *svfs) { return std::make_unique<T>(); }
+	static CreateContainerResult DoCreateContainer(StarVFS *svfs, const String &MountPoint) { return svfs->CreateContainer<T>(MountPoint); }
 
 	struct ModuleInfo {
 		Modules::iModule*(*CreateFunc)(StarVFS *svfs);
@@ -93,7 +93,7 @@ private:
 		ExporterInfo(): CreateFunc(nullptr) {}
 	};
 	struct ContainerInfo {
-		Container(*CreateFunc)(StarVFS *svfs);
+		CreateContainerResult(*CreateFunc)(StarVFS *svfs, const String &MountPoint);
 		ContainerInfo(): CreateFunc(nullptr) {}
 	};
 

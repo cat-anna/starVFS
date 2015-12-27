@@ -25,10 +25,7 @@ int main(int argc, char **argv) {
 //	}
 
 	auto lua = Lua::New();
-	if (!lua->Initialize()) {
-		printf("Unable to initialize lua vm!\n");
-		return 1;
-	}
+
 
 	auto svfs = std::make_unique<SVFS>(lua);
 	if (!svfs->Initialize()) {
@@ -36,8 +33,15 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
+	CLI cli(lua);
+
+	if (!lua->Initialize()) {
+		printf("Unable to initialize lua vm!\n");
+		return 1;
+	}
+
 	InitEnv initenv;
-	if (argc > 1){
+	{
 		Parser p;
 		if (!p.Run(initenv, argc, argv)) {
 			std::cout << "Unable to parse arguments!\n";
@@ -48,8 +52,7 @@ int main(int argc, char **argv) {
 	}
 
 	if (initenv.m_RunCLI) {
-		CLI cli(lua);
-		if (!cli.Enter(*svfs)) {
+		if (!cli.Enter(*svfs, initenv)) {
 			std::cout << "Unable to run CLI!\n";
 			return 1;
 		}

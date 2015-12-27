@@ -15,16 +15,42 @@ class HashFileTable {
 public:
  	HashFileTable();
  	~HashFileTable();
-	//bool Resize(FileID NewCapacity);
-	//FileID Lookup(FilePathHash Hash);
+	
+	FileID Lookup(FilePathHash Hash);
+
+	FileID Lookup(const CString Path, size_t PathLen) { return Lookup(FilePathHashAlgorithm::Hash(Path, PathLen)); }
+	FileID Lookup(const String &Path) { return Lookup((const CString)Path.c_str(), Path.length()); }
+	FileID Lookup(const CString Path) { return Lookup(Path, strlen(Path)); }
+
+	void Add(File* f, bool Rebuild = true);
+
 	//void SortHashTable();
-	//void AddToHashTable(File* f);
+
+	bool Resize(FileID NewCapacity);
 private:
-	//FilePathHash *m_HashTable;   //these tables must be synchronized
-	//FileID *m_FileIDTable;	   //these tables must be synchronized
-	//FileID m_Allocated;
-	//FileID m_Capacity;
-	//std::unique_ptr<char[]> m_Memory;
+	union Flags_t {
+		uint8_t intval;
+		struct {
+			uint8_t Locked : 1;
+			uint8_t Broken : 1;
+		};
+	};
+
+	FilePathHash *m_HashTable;   //these tables must be synchronized
+	FileID *m_FileIDTable;	   //these tables must be synchronized
+	FileID m_Allocated;
+	FileID m_MaxIndex;
+	FileID m_Capacity;
+	Flags_t m_Flags;
+	std::unique_ptr<char[]> m_Memory;
+
+	void HashSwap(size_t a, size_t b) {
+		std::swap(m_HashTable[a], m_HashTable[b]);
+		std::swap(m_FileIDTable[a], m_FileIDTable[b]);
+	}
+
+	void HeapPush(FileID fid, FilePathHash Hash);
+	void RebuildHeap(FileID begin);
 };
 
 } //namespace StarVFS 

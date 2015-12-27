@@ -10,12 +10,9 @@
 namespace StarVFS {
 
 FileTable::FileTable(unsigned Flags) {
-	m_Capacity = 0;
-	m_Allocated = 0;
-	m_Memory = nullptr;
-	m_HashTable = nullptr;
-	m_FileIDTable = nullptr;
+	m_Capacity = m_Allocated = 0;
 	m_FileTable = nullptr;
+	m_Interfaces.push_back(nullptr);
 
 	m_StringTable = std::make_unique<StringTable>();
 	Realloc(Settings::Initial::FileTableSize);
@@ -25,18 +22,14 @@ FileTable::FileTable(unsigned Flags) {
 	root->m_Flags.Valid = 1;
 	root->m_Flags.Directory = 1;
 	root->m_Hash = FilePathHashAlgorithm::Hash("/", 1);
-	AddToHashTable(root);
+	m_HashFileTable.Add(root);
 
-	m_Containers.push_back(nullptr);
 }
 
 FileTable::~FileTable() {
-	MutexGuard lock(m_Mutex);
 	m_Capacity = m_Allocated = 0;
-	m_HashTable = nullptr;
-	m_FileIDTable = nullptr;
+
 	m_FileTable = nullptr;
-	m_Memory.reset();
 	m_StringTable.reset();
 }
 
@@ -156,7 +149,7 @@ File* FileTable::AllocNewFile() {
 
 	auto id = m_Allocated++;
 
-	auto *f = m_FileTable + id;
+	auto *f = m_FileTable.get() + id;
 	memset(f, 0, sizeof(*f)); //is this necessary?
 	f->m_GlobalFileID = id;
 
@@ -174,9 +167,9 @@ File* FileTable::AllocNewFile(const CString fullpath) {
 
 	File *parent = nullptr;
 	if (len > 0) {
-		auto pid = Lookup(fullpath, len);
+		auto pid = m_HashFileTable.Lookup(fullpath, len);
 		if (pid)
-			parent = m_FileTable + pid;
+			parent = m_FileTable.get() + pid;
 	} else
 		parent = GetRoot();
 
@@ -200,27 +193,17 @@ File* FileTable::AllocNewFile(File *Parent, FilePathHash PathHash, const CString
 	Parent->m_FirstChild = f->m_GlobalFileID;
 	f->m_Hash = PathHash;
 
-	AddToHashTable(f);
+	m_HashFileTable.Add(f);
 	return f;
 }
 
 //-------------------------------------------------------------------------------------------------
 
-FileID FileTable::Lookup(FilePathHash Hash) {
-	for (FileID i = 1; i < m_Allocated; ++i)
-		if (m_HashTable[i] == Hash)
-			return m_FileIDTable[i];
-	return 0;
-}
-
-FileID FileTable::Lookup(const CString Path, size_t PathLen) {
-	return Lookup(FilePathHashAlgorithm::Hash(Path, PathLen));
-}
-
 File* FileTable::AllocFile(const String& InternalFullPath) {
-	auto fid = Lookup(InternalFullPath);
-	if (fid) 
-		return m_FileTable + fid;
+	auto fid = m_HashFileTable.Lookup(InternalFullPath);
+	if (fid) {
+		return m_FileTable.get() + fid;
+	}
 	return AllocNewFile((const CString)InternalFullPath.c_str());
 }
 
@@ -229,59 +212,12 @@ File* FileTable::AllocFile(FileID Parent, FilePathHash PathHash, const CString F
 		return nullptr;
 	auto fid = Lookup(PathHash);
 	if (fid)
-		return m_FileTable + fid;
+		return m_FileTable.get() + fid;
 	auto p = GetFile(Parent);
 	if (!p)
 		return nullptr;
 
 	return AllocNewFile(p, PathHash, FileName);
-}
-
-//-------------------------------------------------------------------------------------------------
-
-void FileTable::AddToHashTable(File* f) {
-	if (!f)
-		return;
-	m_HashTable[f->m_GlobalFileID] = f->m_Hash;
-	m_FileIDTable[f->m_GlobalFileID] = f->m_GlobalFileID;
-}
-
-void FileTable::RebuildHashTable() {
-
-}
-
-void FileTable::SortHashTable() {
-
-}
-
-//-------------------------------------------------------------------------------------------------
-
-bool FileTable::AddLayer(Container cin) {
-	if (!cin)
-		return false;
-
-	MutexGuard lock(m_Mutex);
-
-	cin->SetContainerID((ContainerID)m_Containers.size());
-	m_Containers.emplace_back(std::move(cin));
-	auto &c = m_Containers.back();
-
-	FileID FileCount = c->GetFileCount();
-	STARVFSDebugInfoLog("Container %s has %d files", c->GetFileName().c_str(), FileCount);
-
-	if (!EnsureCapacity(FileCount)) {
-		//TODO: log
-		return false;
-	}
-
-	if (!c->RegisterFiles(this)) {
-		//TODO: log
-		return false;
-	}
-	
-	SortHashTable();
-	
-	return true;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -310,17 +246,18 @@ const CString FileTable::GetFileName(FileID fid) const {
 }
 
 bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
-	auto f = GetFile(fid);
-	if (!fid)
-		//TODO: log
-		return false;
-	auto c = GetContainer(f->m_ContainerID);
-	if (!c)
-		//TODO: log
-		return false;
-	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
-		return false;
-	return true;
+//	auto f = GetFile(fid);
+//	if (!fid)
+//		//TODO: log
+//		return false;
+//	auto c = GetContainer(f->m_ContainerID);
+//	if (!c)
+//		//TODO: log
+//		return false;
+//	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
+//		return false;
+//	return true;
+	return false;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -335,30 +272,29 @@ bool FileTable::Realloc(FileID NewCapacity) {
 	if (NewCapacity <= m_Capacity)
 		return true;
 
-	size_t element = sizeof(FilePathHash) + sizeof(FileID) + sizeof(File);
-	auto NewMemory = std::unique_ptr<char[]>(new char[element * NewCapacity]);
+	auto NewMemory = std::unique_ptr<File[]>(new File[NewCapacity]);
 	if (!NewMemory)
 		return false;
 
-	memset(NewMemory.get(), 0, element * NewCapacity);
-	FilePathHash *NewHashTable = (FilePathHash*)NewMemory.get();
-	FileID *NewFileIDTable = (FileID*)((char*)NewHashTable + sizeof(FilePathHash) * NewCapacity);
-	File *NewFileTable = (File*)((char*)NewFileIDTable + sizeof(FileID) * NewCapacity);
+	memset(NewMemory.get(), 0, sizeof(File) * NewCapacity);
 
 	if (m_Allocated > 0) {
-		memcpy(NewHashTable, m_HashTable, sizeof(FilePathHash) * m_Allocated);
-		memcpy(NewFileIDTable, m_FileIDTable, sizeof(FileID) * m_Allocated);
-		memcpy(NewFileTable, m_FileTable, sizeof(File) * m_Allocated);
+		memcpy(NewMemory.get(), m_FileTable.get(), sizeof(File) * m_Allocated);
 	}
 
 	STARVFSDebugLog("Reallocated FileTable to %d entries", NewCapacity);
-	m_Memory.swap(NewMemory);
+	m_FileTable.swap(NewMemory);
 	m_Capacity = NewCapacity;
-	m_HashTable = NewHashTable;
-	m_FileIDTable = NewFileIDTable;
-	m_FileTable = NewFileTable;
 	 
-	return true;
+	return m_HashFileTable.Resize(NewCapacity);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+Containers::FileTableInterface *FileTable::AllocateInterface(const String& MountPoint) {
+	ContainerID cid = m_Interfaces.size();
+	m_Interfaces.emplace_back(std::make_unique<Containers::FileTableInterface>(this, cid));
+	return m_Interfaces.back().get();
 }
 
 } //namespace StarVFS 

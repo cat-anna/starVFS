@@ -3,7 +3,8 @@ dir = {
 	base = os.getcwd() .. "/",
 }
 
-bindir = dir.base .. "bin_" .. (_ACTION or "") .. "/"
+dir.bin = dir.base .. "bin_" .. (_ACTION or "") .. "/"
+bindir = dir.bin 
 
 workspace "StarVFS"
 	configurations { "Debug", "Release", }
@@ -87,26 +88,6 @@ workspace "StarVFS"
 			"RELEASE",	
 		}	
 		
-	project "svfs"
-		location(bindir .. "svfs")
-		kind "ConsoleApp"
-		links {
-			"StarVFS",
-			"lua53",
-			"readline",
-		}
-		files {
-			"svfs/**",
-		}	
-		includedirs {
-			"%{cfg.objdir}",
-		}
-		
-		filter 'files:**.lua'
-			buildmessage 'Compiling %{file.relpath} with bin2c'
-			buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
-			buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
-		
 	filter { }
 		
 	local i,v
@@ -114,4 +95,3 @@ workspace "StarVFS"
 		print("Found project: " .. v)
 		include(v)
 	end
-

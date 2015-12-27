@@ -1,2 +1,2 @@
 
-cli = helpers.CreateInstanceProxy("cli")
+cli = inst.cli

@@ -9,12 +9,11 @@
 #include <mutex>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
-
 #include "nfStarVFS.h"
 
 #include "StringTable.h"
 #include "Hash.h"
+#include "HashFileTable.h"
 #include "FileTable.h"
 #include "HandleTable.h"
 
