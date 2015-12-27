@@ -34,6 +34,7 @@ enum class VFSErrorCode {
 	InternalError,
 };
 
+
 enum class OpenMode {
 	CreateNew,
 //	OpenOrCreate,
@@ -52,6 +53,8 @@ namespace Containers {
 	class iContainer;
 	class FileTableInterface;
 }
+
+using CreateContainerResult = std::pair < VFSErrorCode, Containers::iContainer* > ;
 
 using UniqueFileTableInterface = std::unique_ptr<Containers::FileTableInterface>;
 using Container = std::unique_ptr<Containers::iContainer>;

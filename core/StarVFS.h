@@ -17,14 +17,14 @@ public:
  	virtual ~StarVFS();
 
 	template<class T, class ...ARGS>
-	std::pair<VFSErrorCode, Containers::iContainer*> CreateContainer(const String &MountPoint, ARGS ... args) {
+	CreateContainerResult CreateContainer(const String &MountPoint, ARGS ... args) {
 		static_assert(std::is_base_of<Containers::iContainer, T>::value , "Invalid container class!");
 		Container c = std::make_unique<T>(NewFileTableInterface(MountPoint), std::forward<ARGS>(args)...);
 		auto cptr = c.get();
 		auto r = MountContainer(std::move(c), MountPoint);
 		if (r != VFSErrorCode::Success)
 			cptr = nullptr;
-		return std::make_pair(r, cptr);
+		return CreateContainerResult(r, cptr);
 	}
 
 	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/");

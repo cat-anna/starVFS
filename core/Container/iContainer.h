@@ -39,7 +39,8 @@ public:
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const = 0;
 //	virtual bool SetFileData(FileID ContainerFID, const CharTable &in, FileSize DataSize) const = 0;
 
-	//alloc file
+	static bool CanOpen(const String&) { return false; }
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) { return CreateContainerResult(VFSErrorCode::InternalError, nullptr); }
 
 	//virtual bool GetFileSize(FileID ContainerFileID, FileSize &Size) const = 0;
 //	/** Get file reader. Returns nullptr if file cannot be read */

@@ -58,7 +58,13 @@ FileID FileTableInterface::AllocFileID(FileID Parent, FilePathHash PathHash, con
 bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) {
 	auto f = m_Owner->GetRawFile(fid);
 	if (!f)
-		return  false;
+		return false;
+
+	if (f->m_Flags.ValidDirectory()) {
+		//release subtree
+		assert(false);
+	}
+
 	f->m_ContainerFileID = cfid;
 	f->m_Size = Size;
 	f->m_Flags.intval = 0;
@@ -69,7 +75,13 @@ bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) {
 bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) {
 	auto f = m_Owner->GetRawFile(fid);
 	if (!f)
-		return  false;
+		return false;
+
+	if (f->m_Flags.ValidDirectory()) {
+		//release subtree
+		assert(false);
+	}
+
 	f->m_ContainerFileID = cfid;
 	f->m_Size = 0;
 	f->m_Flags.intval = 0;

@@ -6,8 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "StarVFSInternal.h"
-
-#include "SVFSRegister.h"
+#include <SVFSRegister.h>
 
 namespace StarVFS {
 
@@ -127,6 +126,11 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 	//	return VFSErrorCode::ContainerDoesNotExits;
 	//}
 
+	auto r = Containers::CreateContainer(ContainerFile, MountPoint, this);
+	return r.first;
+
+# if 0
+
 	std::pair<VFSErrorCode, Containers::iContainer*>  result = std::make_pair(VFSErrorCode::InternalError, nullptr);
 	do {
 		if (boost::filesystem::is_directory(ContainerFile)) {
@@ -138,23 +142,6 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 #endif
 			break;
 		}
-//		if (!strncmp("tcp://", ContainerFile.c_str(), 6)) {
-//			String uri = ContainerFile;
-//			auto port = (char*)strrchr(uri.c_str(), ':');
-//			auto host = (char*)strrchr(uri.c_str(), '/');
-//
-//			if (port < host)
-//				port = 0;
-//
-//			if (port)
-//				*port++ = 0;
-//
-//			if (host) {
-//				*host++ = 0;
-//				int intport = port ? strtol(port, nullptr, 10) : 0;
-//				c = std::make_unique<Containers::RemoteContainer>(host, intport);
-//			}
-//		}
 
 //		if (1) {
 //			AddLog(TODO, "Consider: test RDC container extension");
@@ -173,6 +160,7 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 		STARVFSDebugLog("Created container %s for %s", typeid(*result.second).name(), ContainerFile.c_str());
 
 	return result.first;
+#endif
 }
 
 VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {

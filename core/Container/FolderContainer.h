@@ -28,6 +28,9 @@ public:
 
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
 
+	static bool CanOpen(const String& Location);
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
+
 //	virtual FileReader GetFileReader(const string& file) const override;
 //	virtual FileReader GetFileReader(const RawFilePointer *file) const override;
 //	virtual FileWritter GetFileWritter(const string& file) override;

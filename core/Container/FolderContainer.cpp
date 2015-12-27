@@ -178,6 +178,15 @@ bool FolderContainer::EnumerateFolder(const String &Path, T func) {
 
 //-------------------------------------------------------------------------------------------------
 
+bool FolderContainer::CanOpen(const String& Location) {
+	return boost::filesystem::is_directory(Location);
+}
+
+CreateContainerResult FolderContainer::CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) {
+	StarVFSAssert(svfs);
+	return svfs->CreateContainer<FolderContainer>(MountPoint, Location);
+}
+
 #if 0
 
 FileWritter FolderContainer::GetFileWritter(const string& file)

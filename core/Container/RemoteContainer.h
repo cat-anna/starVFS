@@ -15,6 +15,7 @@ namespace Containers {
 class RemoteContainer : public iContainer {
 public:
 	RemoteContainer(FileTableInterface  *fti);
+	RemoteContainer(FileTableInterface  *fti, int port, const String& host);
 	virtual ~RemoteContainer();
 
 	virtual bool ReloadContainer() override;
@@ -27,6 +28,9 @@ public:
 	virtual RWMode GetRWMode() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+
+	static bool CanOpen(const String& Location);
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
 private:
 	String m_Host;
 	int m_Port;

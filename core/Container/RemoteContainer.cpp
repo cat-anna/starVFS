@@ -160,8 +160,12 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-RemoteContainer::RemoteContainer(FileTableInterface  *fti):
+RemoteContainer::RemoteContainer(FileTableInterface *fti):
 		iContainer(fti), m_Host(), m_Port() {
+}
+
+RemoteContainer::RemoteContainer(FileTableInterface *fti, int port, const String& host):
+		iContainer(fti), m_Host(host), m_Port(port) {
 }
 
 RemoteContainer::~RemoteContainer() {
@@ -233,6 +237,29 @@ bool RemoteContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 }
 
 //-------------------------------------------------------------------------------------------------
+
+bool RemoteContainer::CanOpen(const String& Location) {
+	return strncmp(Location.c_str(), "tcp://", 6) == 0;
+}
+
+CreateContainerResult RemoteContainer::CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) {
+	String uri = Location;
+	auto port = (char*)strrchr(uri.c_str(), ':');
+	auto host = (char*)strrchr(uri.c_str(), '/');
+
+	if (port < host)
+		port = 0;
+
+	if (port)
+		*port++ = 0;
+
+	if (host) {
+		*host++ = 0;
+		int intport = port ? strtol(port, nullptr, 10) : 0;
+		return svfs->CreateContainer<RemoteContainer>(MountPoint, intport, host);
+	}
+	return CreateContainerResult(VFSErrorCode::InternalError, nullptr);
+}
 
 } //namespace Containers 
 } //namespace StarVFS 

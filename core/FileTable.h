@@ -17,16 +17,16 @@ union FileFlags {
 		uint8_t Valid : 1;				//Entry is valid
 		uint8_t Directory : 1;
 		uint8_t SymLink : 1;
-		//uint8_t Shadowed : 1;
+		uint8_t Deleted : 1;			//valid but deleted
 		//uint8_t Used : 1;
-		//uint8_t unused4 : 1;
-		//uint8_t unused5 : 1;
-		//uint8_t unused6 : 1;
 		//uint8_t unused7 : 1;
-		//deleted ?
 		//used ?
 		//shadowed ?
 	};
+
+	bool ValidDirectory() const { return Valid && Directory; }
+	bool ValidFile() const { return Valid && !Directory; }
+	bool ValidSymlink() const { return Valid && SymLink; }
 };
 
 static_assert(sizeof(FileFlags) == 1, "File flags may have only 1 byte");
