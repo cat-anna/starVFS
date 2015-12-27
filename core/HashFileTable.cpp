@@ -5,6 +5,7 @@
 */
 /*--END OF HEADER BLOCK--*/
 #include "StarVFSInternal.h"
+#include <algorithm>
 
 namespace StarVFS {
 

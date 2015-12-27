@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include "iContainer.h"
 #include "FolderContainer.h"
+#include <boost/filesystem.hpp>
 
 #ifndef STARVFS_DISABLE_FOLDERCONTAINER
 namespace StarVFS {

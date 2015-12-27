@@ -7,6 +7,7 @@
 #include "../StarVFSInternal.h"
 #include "../Container/InternalContainerHeaders.h"
 #include "InternalExporter.h"
+#include <fstream>
 
 namespace StarVFS {
 namespace Exporters {

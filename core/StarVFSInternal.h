@@ -9,8 +9,6 @@
 #include <mutex>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
-
 #include "nfStarVFS.h"
 
 #include "StringTable.h"
