@@ -1,6 +1,6 @@
 [plugininstall]
-description=Reverse data container reader for Total Commander
+description=RDC container reader for Total Commander
 type=wcx
-file=rdctcplug.wcx
-defaultdir=rdctcplug
-defaultextension=rdc
+file=RDCReader.wcx
+defaultdir=RDCReader
+defaultextension=rdc,fdc

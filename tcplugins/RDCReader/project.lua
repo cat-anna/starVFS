@@ -1,12 +1,11 @@
 
 group "tcplugins"
-	project "SVFSRemote"
-		location(dir.bin .. "tc/SVFSRemote")
+	project "RDCReader"
+		location(dir.bin .. "tc/RDCReader")
 		kind "SharedLib"
-		targetdir(dir.bin .. "tc/SVFSRemote")
+		targetdir(dir.bin .. "tc/RDCReader")
 		
 		links  {
-			"StarVFS",
 		}
 		files {
 			"**",
@@ -16,21 +15,17 @@ group "tcplugins"
 			"STARVFS_LOG_TO_SINK",
 		}
 		
-		excludes {
-			"project.lua",
-		}
-		
 local outfile = dir.bin .. "/SVFSRemote"
 		postbuildcommands {
-			"echo Building SVFSRemote plugin installer...",
-			"del /Q \"" .. dir.bin .. "/SVFSRemote.zip\"",
-			"zip SVFSRemote.zip pluginst.inf *.wfx*",
+			"echo Building RDCReader plugin installer...",
+			"del /Q \"" .. dir.bin  .. "/RDCReader.zip\"",
+			"zip RDCReader.zip pluginst.inf *.wcx*",
 		}		
 		
 		filter "platforms:x32" 
-			targetextension ".wfx"
+			targetextension ".wcx"
 		filter "platforms:x64" 
-			targetextension ".wfx64"
+			targetextension ".wcx64"
 			
 		filter 'files:pluginst.inf'
 			buildmessage 'Copying pluginst.inf'
