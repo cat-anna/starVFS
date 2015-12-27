@@ -151,33 +151,6 @@ static int docall(lua_State *L, int narg, int nres) {
 	return status;
 }
 
-static int dochunk(lua_State *L, int status) {
-	if (status == LUA_OK) status = docall(L, 0, 0);
-	return report(L, status);
-}
-
-static int dofile(lua_State *L, const char *name) {
-	return dochunk(L, luaL_loadfile(L, name));
-}
-
-static int dostring(lua_State *L, const char *s, const char *name) {
-	return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name));
-}
-
-/*
-** Calls 'require(name)' and stores the result in a global variable
-** with the given name.
-*/
-static int dolibrary(lua_State *L, const char *name) {
-	int status;
-	lua_getglobal(L, "require");
-	lua_pushstring(L, name);
-	status = docall(L, 1, 1);  /* call 'require(name)' */
-	if (status == LUA_OK)
-		lua_setglobal(L, name);  /* global[name] = require return */
-	return report(L, status);
-}
-
 static void get_prompt(lua_State *L, int firstline) {
 	if(firstline) {
 		lua_getglobal(L, "prompt");
