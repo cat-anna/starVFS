@@ -88,6 +88,7 @@ function GenerateModules(outfilename, basedir)
 			exporter = { },
 		}
 	}
+
 	local genout = { }
 
 	local function addout(line, ...)
