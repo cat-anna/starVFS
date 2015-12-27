@@ -1,14 +1,14 @@
 	
 group "Libraries"
 	project "StarVFS"
-		location(bindir .. "StarVFS")
+		location(dir.bin .. "StarVFS")
 		kind "StaticLib"
 		files {
 			"**",
 		}
 		
 include "generator.lua"
-		local outfile = bindir .. "SVFSRegister.h"
+		local outfile = dir.bin .. "SVFSRegister.h"
 		GenerateModules(outfile, path.getrelative(os.getcwd(), dir.base) .. "/")
 		files { outfile }
 		
