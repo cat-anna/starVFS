@@ -121,6 +121,22 @@ static void InstallFileHandle(lua_State *lua) {
 			}
 			return 1;
 		}
+	
+		int GetFileData(lua_State *Lua) {
+			//no args
+			auto *h = (FileHandle*)this;
+
+			StarVFS::CharTable ct;
+			StarVFS::FileSize fs;
+			if (!h->GetFileData(ct, &fs)) {
+				lua_pushnil(Lua);
+				return 1;
+			}
+
+			lua_pushlstring(Lua, ct.get(), fs);
+			lua_pushinteger(Lua, fs);
+			return 2;
+		}
 	};
 
 	luabridge::getGlobalNamespace(lua)
@@ -133,8 +149,9 @@ static void InstallFileHandle(lua_State *lua) {
 			.addFunction("IsDirectory", (int(FileHandle::*)())&FileHandleHelper::IsDirectory)
 			.addFunction("IsSymlink", (int(FileHandle::*)())&FileHandleHelper::IsSymlink)
 			.addFunction("IsValid", (int(FileHandle::*)())&FileHandleHelper::IsHandleValid)
-			//.addFunction("Close", &FileHandle::Close)
+			.addFunction("Close", &FileHandle::Close)
 			.addCFunction("GetChildren", (int(FileHandle::*)(lua_State *))&FileHandleHelper::EnumerateChildren)
+			.addCFunction("GetFileData", (int(FileHandle::*)(lua_State *))&FileHandleHelper::GetFileData)
 			//bool GetFileData(CharTable &data) const;
 			.endClass()
 		.endNamespace()

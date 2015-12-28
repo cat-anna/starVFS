@@ -178,6 +178,10 @@ struct Parser::PrivData  {
 			AddLine("RemoteServer:Enable()");
 			AddLine("");
 		}
+		if (m_vm["meta-module"].as<bool>()) {
+			AddPrint("Loading MetaModule");
+			AddLine("Register:CreateModule('MetaModule'):Enable()");
+		}
 		return true;
 	}
 
@@ -277,6 +281,7 @@ struct Parser::PrivData  {
 			("no-cli", po::bool_switch(), "Do not enter CLI")
 			("version,v", "Print version information and exit")
 
+			("meta-module", po::bool_switch(), "Load MetaModule at startup")
 			("remote", po::bool_switch(), "Start remote server")
 			("remote-port", po::value<int>()->default_value(0), "Set port for remote server")
 

@@ -47,7 +47,7 @@ struct StarVFS::Internals {
 //-----------------------------------------------------------------------------
 
 StarVFS::StarVFS(unsigned FSFlags) {
-	m_FileTable = std::make_unique<FileTable>();
+	m_FileTable = std::make_unique<FileTable>(this);
 	m_Internals = std::make_unique<Internals>();
 	m_Internals->m_HandleTable = std::make_unique<HandleTable>(m_FileTable.get());
 	m_Internals->m_Containers.emplace_back();//cid:0 is not valid
@@ -93,6 +93,16 @@ FileSize StarVFS::GetFileSize(FileID fid) const {
 	if (!f) 
 		return 0;
 	return f->m_Size;
+}
+
+bool StarVFS::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
+	return m_FileTable->GetFileData(fid, data, fsize);
+}
+
+Containers::iContainer* StarVFS::GetContainer(ContainerID cid) {
+	if (cid >= m_Internals->m_Containers.size())
+		return nullptr;
+	return m_Internals->m_Containers[cid].m_Container.get();
 }
 
 //-----------------------------------------------------------------------------
@@ -177,6 +187,10 @@ VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
 }
 
 //-----------------------------------------------------------------------------
+
+ContainerID StarVFS::GetContainerCount() const {
+	return m_Internals->m_Containers.size() - 1; //dont count first entry
+}
 
 VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {
 	StarVFSAssert(cid < m_Internals->m_Containers.size());

@@ -17,10 +17,11 @@ public:
 	VirtualFileInterface();
 	virtual ~VirtualFileInterface();
 
-	virtual FileSize GetSize() const { return 0; }
+	virtual FileSize GetSize() const;
 
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const = 0;
-	//write
+	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const;
+	
+	//write - tbd
 };
 
 using SharedVirtualFileInterface = std::shared_ptr<VirtualFileInterface>;
@@ -33,7 +34,7 @@ public:
 
 	/** Container does not own registered files. */
 	bool RegisterFile(SharedVirtualFileInterface SharedFile, const String& Path, bool ForcePath = false);
-	/** Container DO own added files. */
+	/** Container do own added files. */
 	bool AddFile(SharedVirtualFileInterface SharedFile, const String& Path, bool ForcePath = false);
 	/** Drop ownership of file. Has effect only on added files. */
 	bool DropFile(SharedVirtualFileInterface SharedFile);
@@ -45,7 +46,7 @@ public:
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
 
 	virtual const String& GetFileName() const override { return ""; }
-	virtual RWMode GetRWMode() const override { return RWMode::None; };
+	virtual RWMode GetRWMode() const override { return RWMode::RW; };
 private: 
 	struct FileInfo {
 		FileID m_InternalID;
@@ -53,9 +54,17 @@ private:
 		WeakVirtualFileInterface m_WeakPtr;
 		SharedVirtualFileInterface m_SharedPtr;
 		String m_FullPath;
+
+		SharedVirtualFileInterface GetPtr() const {
+			if (m_SharedPtr)
+				return m_SharedPtr;
+			return m_WeakPtr.lock();
+		}
 	};
 	std::vector<FileInfo> m_Files;
 	FileID m_InternalIDCounter;
+
+	bool ReloadFile(FileInfo &fi);
 };
 
 } //namespace Containers 
