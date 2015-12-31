@@ -49,7 +49,7 @@ static_assert(std::is_pod<File>::value, "File structure must be a POD type");
 
 class FileTable final {
 public:
- 	FileTable(unsigned Flags = 0);
+ 	FileTable(StarVFS *Owner);
  	~FileTable();
 
 	void DumpStructure(std::ostream &out) const;
@@ -61,8 +61,6 @@ public:
 	
 	template<class ...ARGS> FileID Lookup(ARGS... args) { return m_HashFileTable.Lookup(std::forward<ARGS>(args)...); }
 
-	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
-	
 	bool IsValid(FileID fid) const { return fid && fid < m_Allocated && m_FileTable[fid].m_Flags.Valid; }
 	File* GetFile(FileID fid) const {
 		if (!IsValid(fid)) return nullptr;
@@ -87,6 +85,7 @@ public:
 
 	const CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const;
+	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
 	const File* GetTable() const { return m_FileTable.get(); }
@@ -99,8 +98,8 @@ private:
 	std::vector<UniqueFileTableInterface> m_Interfaces;
 	HashFileTable m_HashFileTable;
 	std::unique_ptr<File[]> m_FileTable;
-
 	FileID m_Capacity, m_Allocated;
+	StarVFS *m_Owner;
 
 //Internal functions, mutex shall be locked before calling them
 	bool Realloc(FileID NewCapacity);

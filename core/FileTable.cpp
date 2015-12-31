@@ -9,7 +9,10 @@
 
 namespace StarVFS {
 
-FileTable::FileTable(unsigned Flags) {
+FileTable::FileTable(StarVFS *Owner):
+		m_Owner(Owner) {
+	StarVFSAssert(Owner);
+
 	m_Capacity = m_Allocated = 0;
 	m_FileTable = nullptr;
 	m_Interfaces.push_back(nullptr);
@@ -23,7 +26,6 @@ FileTable::FileTable(unsigned Flags) {
 	root->m_Flags.Directory = 1;
 	root->m_Hash = FilePathHashAlgorithm::Hash("/", 1);
 	m_HashFileTable.Add(root);
-
 }
 
 FileTable::~FileTable() {
@@ -246,18 +248,18 @@ const CString FileTable::GetFileName(FileID fid) const {
 }
 
 bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
-//	auto f = GetFile(fid);
-//	if (!fid)
-//		//TODO: log
-//		return false;
-//	auto c = GetContainer(f->m_ContainerID);
-//	if (!c)
-//		//TODO: log
-//		return false;
-//	if (!c->GetFileData(f->m_ContainerFileID, data, fsize))
-//		return false;
-//	return true;
-	return false;
+	auto f = GetFile(fid);
+	if (!fid)
+		//TODO: log
+		return false;
+	if (fsize)
+		*fsize = 0;
+	auto c = m_Owner->GetContainer(f->m_ContainerID);
+	if (!c) {
+		STARVFSErrorLog("Invalid cid for file %d", fid);
+		return false;
+	}
+	return c->GetFileData(f->m_ContainerFileID, data, fsize);
 }
 
 //-------------------------------------------------------------------------------------------------

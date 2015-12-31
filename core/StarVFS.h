@@ -26,6 +26,8 @@ public:
 			cptr = nullptr;
 		return CreateContainerResult(r, cptr);
 	}
+	Containers::iContainer* GetContainer(ContainerID cid);
+	ContainerID GetContainerCount() const;
 
 	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/");
 
@@ -41,6 +43,7 @@ public:
 	String GetFullFilePath(FileID fid) const;
 	const CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
+	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
 
 	FileHandle OpenFile(const String& FileName, RWMode ReadMode = RWMode::R, OpenMode FileMode = OpenMode::OpenExisting);
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);

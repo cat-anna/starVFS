@@ -178,3 +178,23 @@ function mkdir(p)
 	
 	return vfs:ForcePath(p)
 end
+
+Help.Register { Command="read", Brief="read file content, returns nil on failure, on succes string then length", Usage="read(filename)"}
+function read(filename)
+    if not filename then
+        return nil
+    end
+    filename = path(filename)
+	local h = vfs:OpenFile(filename, 1, 1)
+	if h:IsValid() == 0 then
+		return nil
+	end
+
+    local data
+    local len
+    data, len  = h:GetFileData()
+    if not data then
+        return data
+    end
+    return data, len
+end
