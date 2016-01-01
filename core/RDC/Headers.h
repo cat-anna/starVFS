@@ -1,51 +1,66 @@
 #pragma once
 #ifndef idEA0ADC8C_0290_45E0_A08F3CF53EFCAAAE
 #define idEA0ADC8C_0290_45E0_A08F3CF53EFCAAAE
-#pragma pack(push, mgc_headers, 1)
 
-#pragma warning ( disable: 4200 )
+#include <cstdint>
 
-namespace MoonGlare {
-namespace FileSystem {
-namespace MoonGlareContainer {
+namespace StarVFS {
+namespace RDC {
 namespace Headers {
 
-const char ContainerEXT[] = ".mgc";
+using u64 = uint64_t;
+using u32 = uint32_t;
+using u16 = uint16_t;
+using u8 = uint8_t;
 
-using u64 = unsigned __int64;
-using u32 = unsigned __int32;
-using u16 = unsigned __int16;
-using u8 = unsigned __int8;
-
+using VersionValue = u16;
 
 enum class Signature : u32 {
-	MGCF = 'M' | 'G' << 8 | 'C' << 16 | 'F' << 24,
 	RDC = 'R' | 'D' << 8 | 'C' << 16 | '!' << 24,
+	FDC = 'F' | 'D' << 8 | 'C' << 16 | '!' << 24,
 
-	FileHeader = RDC,
-	FileFooter = RDC,
+	Header = RDC,
+	Footer = RDC,
 };
-
-using Version = u16;
 
 struct FileHeader {
-	Signature FileSignature = Signature::FileHeader;
-	Signature UserSignature = Signature::MGCF;
-	Version Version = 0;
-	u16 Flags = 0;
+	Signature FileSignature = Signature::Header;
+	VersionValue Version = 0;
+	union {
+		struct {
+		};
+		u16 intval = 0;
+	} Flags;
 
 	u32 unused_32_0 = 0;
+	u32 unused_32_1 = 0;
 
-	void Reset() {
-		memset(this, 0, sizeof(*this));
-	}
+	void Zero() { memset(this, 0, sizeof(*this)); }
+};
+static_assert(sizeof(FileHeader) % 4 == 0, "FileHeader has invalid size!");
+
+// There allways must be an EmptyEntry section at the end of section table
+enum class SectionType : u8 {
+	EmptyEntry,/** Ignore all section of that type */
+
+	FileTable,
+	RawData,
+	StringTable,
 };
 
-struct FileHeaderFlags {
-	enum {
-		//nothing yet
-	};
+enum class CompressionMode : u8 {
+	None,
 };
+
+enum class EncryptionMode : u8 {
+	None,
+};
+
+enum class CheckSumMode : u8 {
+	None,
+};
+
+#if 0
 
 struct MD5CheckSum {
 	union {
@@ -64,75 +79,10 @@ struct MD5CheckSum {
 	}
 };
 
+#endif
 
-enum class SectionType : u8 {
-	EmptyEntry,/** Ignore all section of that type */
+} //namespace Headers 
+} //namespace RDC 
+} //namespace StarVFS 
 
-//version 0
-	FileTable,
-	RawData,
-	StringTable,
-};
-
-enum class CompressionMode : u8 {
-	None,
-};
-
-struct Compression {
-	CompressionMode Mode = CompressionMode::None;
-	u8 unused_8_0 = 0;
-	u8 unused_8_1 = 0;
-	u8 unused_8_2 = 0;
-};
-
-enum class EncryptionMode : u8 {
-	None,
-};
-
-struct Encryption {
-	EncryptionMode Mode = EncryptionMode::None;
-	u8 unused_8_0 = 0;
-	u8 unused_8_1 = 0;
-	u8 unused_8_2 = 0;
-};
-
-struct DataBlock32 {
-	using Size = u32;
-
-	Encryption Encryption;
-	Compression Compression;
-	Size RealSize = 0;
-	Size ContainerSize = 0;
-	Size FilePointer = 0;
-	u32 padding_32_0 = 0;
-//	MD5CheckSum CheckSum;
-
-	void Reset() {
-		memset(this, 0, sizeof(*this));
-	}
-};
-
-} // Headers namespace
-} // MoonGlareContainer namespace
-} // FileSystem namespace
-} // MoonGlare namespace
-
-#include "Headers_v0.h"
-
-namespace MoonGlare {
-namespace FileSystem {
-namespace MoonGlareContainer {
-namespace Headers {
-
-namespace CurrentVersion = Version_0;
-
-} // Headers namespace
-
-namespace CurrentVersion = Headers::CurrentVersion;
-
-} // MoonGlareContainer namespace
-} // FileSystem namespace
-} // MoonGlare namespace
-
-#pragma pack(pop, mgc_headers)
 #endif // header

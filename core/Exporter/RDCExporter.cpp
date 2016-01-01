@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include "../StarVFSInternal.h"
 #include "RDCExporter.h"
+#include "../RDC/nRDC.h"
 
 namespace StarVFS {
 namespace Exporters {
@@ -14,6 +15,26 @@ RDCExporter::RDCExporter(StarVFS *svfs) : iExporter(svfs) {
 }
 
 RDCExporter::~RDCExporter() {
+}
+
+//-----------------------------------------------------------------------------
+
+struct RDCExporter::Impl {
+
+	Impl() {
+		m_Builder = std::make_unique<RDC::Builder_v1>();
+	}
+
+	std::unique_ptr<RDC::Builder_v1> m_Builder;
+};
+
+//-----------------------------------------------------------------------------
+
+ExportResult RDCExporter::DoExport(const String &VFSBase, const String &LocalFileName) const {
+	Impl impl;
+
+
+	return ExportResult::Sucess;
 }
 
 } //namespace Exporters 

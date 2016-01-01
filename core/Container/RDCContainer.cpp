@@ -7,16 +7,35 @@
 
 #include "../StarVFSInternal.h"
 #include "RDCContainer.h"
+#include "../RDC/nRDC.h"
 
 namespace StarVFS {
 namespace Containers {
 
-RDCContainer::RDCContainer() {
+RDCContainer::RDCContainer(FileTableInterface *fti) :
+	iContainer(fti) {
 }
 
 RDCContainer::~RDCContainer() {
 }
 
+//-----------------------------------------------------------------------------
+
+FileID RDCContainer::GetFileCount() const {
+	return 0;
+}
+
+bool RDCContainer::ReloadContainer() {
+	return false;
+}
+
+bool RDCContainer::RegisterContent() const {
+	return false;
+}
+
+bool RDCContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+	return false;
+}
+
 } //namespace Containers 
 } //namespace StarVFS 
-

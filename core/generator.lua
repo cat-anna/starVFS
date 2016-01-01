@@ -10,10 +10,6 @@ local function generateDetectType(basedir, searchpattern, namespace, regfunc, ou
 				name = n,
 				define = "STARVFS_DISABLE_" .. n,
 			}
-			outdata.headers[#outdata.headers + 1] =  {
-				file = f,
-				define = "STARVFS_DISABLE_" .. n,
-			}
 		end		
 	end
 	

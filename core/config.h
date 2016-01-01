@@ -45,6 +45,8 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #define STARVFS_DEFINE_DEFAULT_LOG_API
 
+#include <iostream>
+
 #define STARVFSLOG(What, fmt, ...)\
 	do { \
 		char buf[1024]; \

@@ -129,7 +129,12 @@ void HashFileTable::Add(File* f, bool Rebuild) {
 	if (Rebuild && m_Allocated > 0) {
 
 		auto where = std::lower_bound(m_HashTable, m_HashTable + m_Allocated, f->m_Hash);
-		FileID nid = where - m_HashTable;
+		int rawnid = where - m_HashTable;
+		if (rawnid < 0) {
+			//todo: do sth?
+		}
+		FileID nid = static_cast<FileID>(rawnid);
+
 		auto collision = m_FileIDTable[nid];
 		if (collision == f->m_GlobalFileID) {
 			STARVFSDebugLog("Adding existing file (%d)", f->m_GlobalFileID);

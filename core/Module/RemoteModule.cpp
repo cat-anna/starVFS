@@ -50,6 +50,8 @@ bool RemoteModule::Enable() {
 		}
 		m_ThreadRunning = false;
 	}).detach();
+
+	return true;
 }
 
 bool RemoteModule::Disable() {
@@ -187,7 +189,7 @@ void RemoteModule::ThreadMain() {
 	int id = 0;
 	short port = (short)strtol(m_Port.c_str(), nullptr, 10);
 	if (port == 0) {
-		port = (short)RemoteHeaders::Settings::BasePort;
+		port = static_cast<short>(RemoteHeaders::Settings::BasePort);
 		m_Port = std::to_string(port);
 	}
 	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));

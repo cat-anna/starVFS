@@ -294,7 +294,7 @@ bool FileTable::Realloc(FileID NewCapacity) {
 //-------------------------------------------------------------------------------------------------
 
 Containers::FileTableInterface *FileTable::AllocateInterface(const String& MountPoint) {
-	ContainerID cid = m_Interfaces.size();
+	ContainerID cid = static_cast<ContainerID>(m_Interfaces.size());
 	m_Interfaces.emplace_back(std::make_unique<Containers::FileTableInterface>(this, cid));
 	return m_Interfaces.back().get();
 }

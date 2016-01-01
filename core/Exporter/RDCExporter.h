@@ -17,12 +17,17 @@ public:
  	RDCExporter(StarVFS *svfs);
  	virtual ~RDCExporter();
 
-	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const override {
-		return ExportResult::FatalError;
+	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const override;
+
+	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const {
+		auto atm = CreateAttributeMapInstance<RDCExporter>();
+		//atm->AddAttrib("Namespace", &InternalExporter::GetNamespace, &InternalExporter::SetNamespace);
+		//atm->AddAttrib("Name", &InternalExporter::GetName, &InternalExporter::SetName);
+		return std::unique_ptr<AttributeMapInstance>(atm.release());
 	}
 
-protected:
 private: 
+	struct Impl;
 };
 
 } //namespace Exporters 

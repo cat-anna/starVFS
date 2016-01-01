@@ -189,7 +189,7 @@ VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
 //-----------------------------------------------------------------------------
 
 ContainerID StarVFS::GetContainerCount() const {
-	return m_Internals->m_Containers.size() - 1; //dont count first entry
+	return static_cast<ContainerID>(m_Internals->m_Containers.size() - 1); //dont count first entry
 }
 
 VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {

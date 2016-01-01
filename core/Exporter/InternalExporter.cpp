@@ -120,7 +120,6 @@ struct InternalExporter::ExporterImpl {
 		return true;
 	}
 
-
 	void WriteCcode(std::ostream &outfile) {
 		char buf[1024];
 		auto svfs = m_Owner->GetSVFS();

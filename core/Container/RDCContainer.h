@@ -14,8 +14,17 @@ namespace Containers {
 
 class RDCContainer : public iContainer {
 public:
- 	RDCContainer();
+ 	RDCContainer(FileTableInterface *fti);
  	virtual ~RDCContainer();
+
+	virtual FileID GetFileCount() const override;
+	virtual bool ReloadContainer() override;
+	virtual bool RegisterContent() const override;
+
+	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+
+	virtual const String& GetFileName() const override { return ""; }
+	virtual RWMode GetRWMode() const override { return RWMode::RW; };
 protected:
 private: 
 };

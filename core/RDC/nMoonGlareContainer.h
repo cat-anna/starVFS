@@ -12,9 +12,7 @@
 namespace MoonGlare {
 namespace FileSystem {
 namespace MoonGlareContainer {
-
-using UniqueCharTable = std::unique_ptr < char[] > ;
-
+#if 0
 struct ContainerException : public std::exception {
 	virtual const char * what() const { return m_msg.c_str(); }
 
@@ -30,7 +28,7 @@ struct ContainerException : public std::exception {
 private:
 	std::string m_msg;
 };
-
+#endif
 } //namespace MoonGlareContainer 
 } //namespace FileSystem 
 } //namespace MoonGlare 
