@@ -176,6 +176,11 @@ VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &M
 VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
 	StarVFSAssert(c);
 
+	if (!c->Initialize()) {
+		STARVFSErrorLog("container initialization failed!");
+		return VFSErrorCode::InternalError;
+	}
+
 	m_Internals->m_Containers.emplace_back();
 	Internals::ContainerInfo &ci = m_Internals->m_Containers.back();
 	ci.m_Container.swap(c);

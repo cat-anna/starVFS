@@ -4,16 +4,30 @@
 
 #include <cstdint>
 
+#ifdef DEBUG
+#define UNUSED32 ('3' | '2' << 8 | '3' << 16 | '2' << 24)
+#define UNUSED16 ('1' | '6' << 8)
+#define UNUSED8 ('8')
+#else
+#define UNUSED32 0
+#define UNUSED16 0
+#define UNUSED8 0
+#endif
+
 namespace StarVFS {
 namespace RDC {
-namespace Headers {
 
 using u64 = uint64_t;
 using u32 = uint32_t;
 using u16 = uint16_t;
 using u8 = uint8_t;
 
-using VersionValue = u16;
+struct VersionValue {
+	u8 Major = 0;
+	u8 Minor = 0;
+
+	static VersionValue Make(u8 major, u8 minor) { VersionValue v; v.Major = major; v.Minor = minor; return v; }
+};
 
 enum class Signature : u32 {
 	RDC = 'R' | 'D' << 8 | 'C' << 16 | '!' << 24,
@@ -25,27 +39,31 @@ enum class Signature : u32 {
 
 struct FileHeader {
 	Signature FileSignature = Signature::Header;
-	VersionValue Version = 0;
+	VersionValue Version;
 	union {
-		struct {
-		};
+//		struct {
+//		};
 		u16 intval = 0;
 	} Flags;
 
-	u32 unused_32_0 = 0;
-	u32 unused_32_1 = 0;
+	u32 unused_32_0 = UNUSED32;
+	u32 unused_32_1 = UNUSED32;
 
 	void Zero() { memset(this, 0, sizeof(*this)); }
 };
 static_assert(sizeof(FileHeader) % 4 == 0, "FileHeader has invalid size!");
 
-// There allways must be an EmptyEntry section at the end of section table
+// There always must be an EmptyEntry section at the end of section table
 enum class SectionType : u8 {
 	EmptyEntry,/** Ignore all section of that type */
 
-	FileTable,
+	MountEntry,
+
 	RawData,
+	OffsetDataBlockTable,
 	StringTable,
+	FileStructureTable,
+	HashTable,
 };
 
 enum class CompressionMode : u8 {
@@ -81,7 +99,6 @@ struct MD5CheckSum {
 
 #endif
 
-} //namespace Headers 
 } //namespace RDC 
 } //namespace StarVFS 
 

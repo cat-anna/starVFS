@@ -17,8 +17,6 @@ public:
  	RDCExporter(StarVFS *svfs);
  	virtual ~RDCExporter();
 
-	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const override;
-
 	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const {
 		auto atm = CreateAttributeMapInstance<RDCExporter>();
 		//atm->AddAttrib("Namespace", &InternalExporter::GetNamespace, &InternalExporter::SetNamespace);
@@ -27,6 +25,7 @@ public:
 	}
 
 private: 
+	virtual ExportResult WriteLocalFile(const String &LocalFileName) override;
 	struct Impl;
 };
 

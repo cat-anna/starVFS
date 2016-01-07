@@ -17,6 +17,15 @@ public:
  	FileTableInterface(FileTable *Owner, ContainerID cid);
  	~FileTableInterface();
 
+	struct FileSubStructureInfo {
+		FileID m_Count;
+		BaseFileInfo* m_FileTable;
+		FilePathHash* m_LocalPathHashTable;
+	};
+
+	/// all pointers in SubStructure shall be valid at leas until function returns
+	bool RegisterFileStructure(FileID Parent, const FileSubStructureInfo& SubStructure);
+
 	bool EnsureReserve(FileID count);
 
 	FileID FindFile(const String& InternalFullPath);
@@ -24,6 +33,9 @@ public:
 
 	FileID AllocFileID(const String& InternalFullPath);
 	FileID AllocFileID(FileID Parent, FilePathHash PathHash, const CString FileName);
+
+	FileID GetRootID() const { return m_MountPoint; }
+	bool IsMoutedToRoot() const { return m_MountPoint == 1; }
 
 	bool CreateFile(FileID fid, FileID cfid, FileSize Size);
 	bool CreateDirectory(FileID fid, FileID cfid);

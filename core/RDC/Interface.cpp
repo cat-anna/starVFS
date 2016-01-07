@@ -4,7 +4,6 @@
 
 namespace Container {
 
-
 //-------------------------------------------------------------------------------------------------
 GABI_IMPLEMENT_CLASS_NOCREATOR(cContainerFile);
 GABI_IMPLEMENT_CLASS_NOCREATOR(cFileWritter);

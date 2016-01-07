@@ -9,13 +9,17 @@
 #ifndef RDCContainer_H
 #define RDCContainer_H
 
+#include "../RDC/nRDC.h"
+
 namespace StarVFS {
 namespace Containers {
 
-class RDCContainer : public iContainer {
+class RDCContainer final : public iContainer {
 public:
- 	RDCContainer(FileTableInterface *fti);
+ 	RDCContainer(FileTableInterface *fti, const String& Location = "");
  	virtual ~RDCContainer();
+
+	virtual bool Initialize();
 
 	virtual FileID GetFileCount() const override;
 	virtual bool ReloadContainer() override;
@@ -23,10 +27,24 @@ public:
 
 	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
 
-	virtual const String& GetFileName() const override { return ""; }
+	virtual const String& GetFileName() const override { return m_FileName; }
 	virtual RWMode GetRWMode() const override { return RWMode::RW; };
+
+	static bool CanOpen(const String&);
+	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
 protected:
 private: 
+	union {
+		struct {
+			uint8_t HasMountEntry : 1;
+			uint8_t HasOffsetTable : 1;
+		};
+		uint32_t uintval;
+	} m_Flags;
+	String m_FileName;
+	std::unique_ptr<RDC::Version_1::Reader_v1> m_Reader;
+	RDC::Version_1::MountEntryInfo m_MountEntryInfo;
+	RDC::Version_1::OffsetDataBlockTable m_OffsetTable;
 };
 
 } //namespace Containers 

@@ -6,7 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 #include "nRDC.h"
 
-#include "Builder_v1.h"
+#include "Version_1/Builder_v1.h"
 
 namespace StarVFS {
 namespace RDC {
@@ -26,7 +26,7 @@ bool Builder::BeginFile(const String &FileName) {
 		return false;
 	Reset();
 	auto dev = std::make_unique<BlockFileDevice>();
-	if (!m_FileDevice->CreateFile(FileName)) {
+	if (!dev->CreateFile(FileName)) {
 		//todo: log
 		return false;
 	}
@@ -39,6 +39,7 @@ bool Builder::BeginFile(const String &FileName) {
 		return false;
 	}
 
+	m_Flags.Opened = 1;
 	return true;
 }
 
@@ -46,7 +47,7 @@ bool Builder::CloseFile() {
 	if (!m_Flags.Opened)
 		return false;
 
-	if (!WriteSectionTable()) {
+	if (!WriteSections()) {
 		//todo: log
 		return false;
 	}
@@ -64,22 +65,13 @@ bool Builder::CloseFile() {
 //-----------------------------------------------------------------------------
 
 bool Builder::WriteFileHeader() {
-	Headers::FileHeader header;
+	FileHeader header;
 	header.Version = GetVersion();
 
 	return m_FileDevice->WriteAt(0, (char*)&header, sizeof(header));
 }
 
 //-----------------------------------------------------------------------------
-
-std::unique_ptr<Builder> Builder::CreateBuilder(Headers::VersionValue version) {
-	switch (version) {
-	case 1:
-		return std::make_unique<Builder_v1>();
-	default:
-		return nullptr;
-	}
-}
 
 } //namespace RDC 
 } //namespace StarVFS 

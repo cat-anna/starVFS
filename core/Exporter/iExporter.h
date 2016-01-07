@@ -23,11 +23,33 @@ public:
  	iExporter(StarVFS *svfs);
  	virtual ~iExporter();
 
-	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const = 0;
+	struct ExporterFile {
+		FileFlags m_Flags;
+
+		CString m_FileName;
+		FileSize m_Size;
+		FilePathHash m_Hash;
+
+		FileID m_FileID;
+		FileID m_ParentID;
+		FileID m_NextSiblingID;
+		FileID m_FirstChildID;
+
+		FileID m_VFSFileID;
+	};
+
+	ExportResult DoExport(const String &VFSBase, const String &LocalFileName);
 protected:
 	StarVFS* GetSVFS() const { return m_SVFS; }
+
+	const std::vector<ExporterFile>& GetFileList() const { return m_FileList; }
+
+	virtual ExportResult WriteLocalFile(const String &LocalFileName) = 0;
 private: 
 	StarVFS *m_SVFS;
+	std::vector<ExporterFile> m_FileList;
+
+	bool GenerateFileList(const String &VFSBase);
 };
 
 } //namespace Exporters 

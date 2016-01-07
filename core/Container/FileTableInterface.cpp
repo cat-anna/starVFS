@@ -12,6 +12,8 @@ namespace Containers {
 
 FileTableInterface::FileTableInterface(FileTable *Owner, ContainerID cid):
 		m_Owner(Owner), m_CID(cid) {
+	StarVFSAssert(Owner);
+	m_MountPoint = Owner->GetRootID();
 }
 
 FileTableInterface::~FileTableInterface() {
@@ -102,6 +104,35 @@ bool FileTableInterface::IsDirectory(FileID fid) const {
 
 bool FileTableInterface::IsFile(FileID fid) const { 
 	return m_Owner->IsFile(fid); 
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool FileTableInterface::RegisterFileStructure(FileID Parent, const FileSubStructureInfo& SubStructure) {
+	auto parent = m_Owner->GetFile(Parent);
+	if (!parent) {
+		STARVFSErrorLog("Invalid parent id!");
+		return false;
+	}
+
+	auto root = m_Owner->GetRoot();
+	bool UseLocalHash;
+	if (root == parent) {
+		UseLocalHash = true;
+	} else {
+		UseLocalHash = false;
+		StarVFSAssert(false);
+	}
+
+	FileTable::FileStructureInfo info;
+
+	info.m_Parent = parent;
+	info.m_Count = SubStructure.m_Count;
+	info.m_FileTable = SubStructure.m_FileTable;
+	info.m_PathHashTable = SubStructure.m_LocalPathHashTable;
+	info.m_OwnerContainer = GetContainerID();
+
+	return m_Owner->RegisterStructureTable(info);
 }
 
 } //namespace Containers 

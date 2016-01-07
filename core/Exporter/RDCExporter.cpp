@@ -11,6 +11,84 @@
 namespace StarVFS {
 namespace Exporters {
 
+using namespace RDC;
+
+struct RDCExporter::Impl {
+	Impl(RDCExporter *Owner) {
+		m_Owner = Owner;
+		m_FileList = &Owner->GetFileList();
+		m_Builder = std::make_unique<RDC::Version_1::Builder_v1>();
+	}
+
+	ExportResult Export(const String &LocalFileName) {
+		if (!m_Builder)
+			return ExportResult::FatalError;
+
+		if (!m_Builder->BeginFile(LocalFileName)) {
+			//todo: log
+			return ExportResult::LocalFileWriteError;
+		}
+
+		auto mountentry = m_Builder->CreateMountEntrySection();
+		auto StringTable = m_Builder->CreateStringTableSection();
+		auto rawdata = m_Builder->CreateRawDataSection();
+		auto datablock = m_Builder->CreateOffsetDataBlockTable();
+		auto structure = m_Builder->CreateFileStructureTable();
+		auto hashtable = m_Builder->CreateHashTable();
+		//todo: check if null
+
+		mountentry->SetStringTable(StringTable);
+		mountentry->SetRawDataSection(rawdata);
+		mountentry->SetOffsetDataBlockTable(datablock);
+		mountentry->SetFileStructureTable(structure);
+		mountentry->SetHashTableSection(hashtable);
+
+		auto &inputfiles = m_Owner->GetFileList();
+		
+		auto &outputfiles = structure->GetTable();
+		auto &blocktable = datablock->GetTable();
+		auto &hasht = hashtable->GetTable();
+
+		outputfiles.resize(inputfiles.size());
+		blocktable.resize(inputfiles.size());
+		hasht.resize(inputfiles.size());
+
+		for (size_t i = 0, j = inputfiles.size(); i < j; ++i) {
+			auto &inf = inputfiles[i];
+			auto &outf = outputfiles[i];
+
+			outf.NamePointer = StringTable->AllocString(inf.m_FileName);
+
+			//outf.FistChild = inf.m_FirstChildID;
+			//outf.NextSibling = inf.m_NextSiblingID;
+			outf.ParentIndex = inf.m_ParentID;
+
+			if (inf.m_Flags.Directory)
+				outf.Flags |= Version_1::BaseFileInfo::FlagBits::Directory;
+
+			hasht[i] = inf.m_Hash;
+			//outf.SymLinkIndex = 
+		}
+		
+		//todo: work
+		
+		if (!m_Builder->CloseFile()) {
+			//todo: log
+			return ExportResult::FatalError;
+		}
+
+		return ExportResult::Sucess;
+	}
+
+	RDCExporter *m_Owner;
+	std::unique_ptr<RDC::Version_1::Builder_v1> m_Builder;
+	const std::vector<iExporter::ExporterFile> *m_FileList;
+};
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 RDCExporter::RDCExporter(StarVFS *svfs) : iExporter(svfs) {
 }
 
@@ -19,22 +97,8 @@ RDCExporter::~RDCExporter() {
 
 //-----------------------------------------------------------------------------
 
-struct RDCExporter::Impl {
-
-	Impl() {
-		m_Builder = std::make_unique<RDC::Builder_v1>();
-	}
-
-	std::unique_ptr<RDC::Builder_v1> m_Builder;
-};
-
-//-----------------------------------------------------------------------------
-
-ExportResult RDCExporter::DoExport(const String &VFSBase, const String &LocalFileName) const {
-	Impl impl;
-
-
-	return ExportResult::Sucess;
+ExportResult RDCExporter::WriteLocalFile(const String &LocalFileName) {
+	return Impl(this).Export(LocalFileName);
 }
 
 } //namespace Exporters 

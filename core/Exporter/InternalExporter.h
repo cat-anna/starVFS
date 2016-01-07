@@ -12,12 +12,16 @@
 namespace StarVFS {
 namespace Exporters {
 
+/*
+
+REHASHING OF PATH HAS TO BE DONE
+
+*/
+
 class InternalExporter : public iExporter {
 public:
  	InternalExporter(StarVFS *svfs);
  	virtual ~InternalExporter();
-
-	virtual ExportResult DoExport(const String &VFSBase, const String &LocalFileName) const;
 
 	void SetNamespace(const CString n) { m_Namespace = n; }
 	void SetNamespace(const String &n) { m_Namespace = n; }
@@ -34,7 +38,8 @@ public:
 		return std::unique_ptr<AttributeMapInstance>(atm.release());
 	}
 protected:
-private: 
+	virtual ExportResult WriteLocalFile(const String &LocalFileName) override;
+private:
 	struct ExporterImpl;
 	String m_Namespace;
 	String m_Name;

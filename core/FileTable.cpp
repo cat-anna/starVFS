@@ -262,6 +262,16 @@ bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
 	return c->GetFileData(f->m_ContainerFileID, data, fsize);
 }
 
+FileFlags FileTable::GetFileFlags(FileID fid) const {
+	auto f = GetFile(fid);
+	if (!fid) {
+		FileFlags flags;
+		flags.intval = 0;
+		return flags;
+	}
+	return f->m_Flags;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool FileTable::EnsureCapacity(FileID RequiredEmptySpace) {
@@ -297,6 +307,68 @@ Containers::FileTableInterface *FileTable::AllocateInterface(const String& Mount
 	ContainerID cid = static_cast<ContainerID>(m_Interfaces.size());
 	m_Interfaces.emplace_back(std::make_unique<Containers::FileTableInterface>(this, cid));
 	return m_Interfaces.back().get();
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool FileTable::RegisterStructureTable(FileStructureInfo &info) {
+	if (!info.IsValid()) {
+		STARVFSDebugLog("invalid info!");
+		return false;
+	}
+
+	if (!EnsureCapacity(info.m_Count))
+		return false;
+
+	for (FileID i = 1; i < info.m_Count; ++i) {
+		auto &basefile = info.m_FileTable[i];
+
+		if (!basefile.m_Flags.Valid)
+			continue;
+
+		FilePathHash hash = info.m_PathHashTable[i];
+
+		basefile.m_GlobalIndex = 0;
+		
+		File *fparent = nullptr;
+		if (basefile.m_ParentIndex) {
+			if (basefile.m_ParentIndex < info.m_Count && basefile.m_ParentIndex < i) {
+				fparent = GetFile(info.m_FileTable[basefile.m_ParentIndex].m_GlobalIndex);
+			}
+		} else {
+			fparent = info.m_Parent;
+		}
+
+		auto *f = AllocFile(fparent->m_GlobalFileID, hash, basefile.m_NamePointer);
+		if (!f) {
+			STARVFSErrorLog("Failed to allocate file!");
+			return false;
+		}
+
+		bool changeownership = true;
+		if (f->m_Flags.Valid) {
+			if (f->m_Flags.Directory) {
+				changeownership = false;
+			} else {
+			}
+			if (basefile.m_Flags.Directory != f->m_Flags.Directory) {
+				//todo: sth?
+			}
+		} else {
+			f->m_Flags.Valid = 1;
+			if (basefile.m_Flags.Directory) {
+				f->m_Flags.Directory = 1;
+			}
+		}
+
+		basefile.m_GlobalIndex = f->m_GlobalFileID;
+		if (changeownership) {
+			f->m_ContainerID = info.m_OwnerContainer;
+			f->m_ContainerFileID = i;
+		}
+	}
+
+	return true;
 }
 
 } //namespace StarVFS 

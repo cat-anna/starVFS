@@ -8,6 +8,9 @@
 namespace StarVFS {
 namespace RDC {
 
+class BlockFileDevice;
+using UniqueBlockFileDevice = std::unique_ptr<BlockFileDevice>;
+
 } //namespace RDC 
 } //namespace StarVFS 
 
@@ -18,7 +21,7 @@ namespace RDC {
 #endif
 
 #include "Headers.h"
-#include "Headers_v1.h"
+#include "Version_1/Headers_v1.h"
 
 #ifdef _MSC_VER
 #pragma pack(pop, RDC_headers)
@@ -26,7 +29,11 @@ namespace RDC {
 
 #include "BlockFileDevice.h"
 #include "Builder.h"
-#include "Builder_v1.h"
+#include "Reader.h"
+
+#include "Version_1/Sections_v1.h"
+#include "Version_1/Reader_v1.h"
+#include "Version_1/Builder_v1.h"
 
 namespace StarVFS {
 namespace RDC {

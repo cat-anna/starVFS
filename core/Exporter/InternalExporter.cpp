@@ -224,17 +224,17 @@ InternalExporter::~InternalExporter() {
 
 //-------------------------------------------------------------------------------------------------
 
-ExportResult InternalExporter::DoExport(const String &VFSBase, const String &LocalFileName) const {
-	ExporterImpl exporter(this);
+ExportResult InternalExporter::WriteLocalFile(const String &LocalFileName) {
+//	ExporterImpl exporter(this);
 
-	if (!exporter.Prepare(VFSBase)) {
-		STARVFSErrorLog("Failed to prepare InternalContainer exporter!");
-		return ExportResult::FatalError;
-	}
+//	if (!exporter.Prepare(VFSBase)) {
+//		STARVFSErrorLog("Failed to prepare InternalContainer exporter!");
+//		return ExportResult::FatalError;
+//	}
 
-	std::ofstream outfile(LocalFileName, std::ios::out);
-	exporter.WriteCcode(outfile);
-	outfile.close();
+//	std::ofstream outfile(LocalFileName, std::ios::out);
+//	exporter.WriteCcode(outfile);
+//	outfile.close();
 	return ExportResult::Sucess;
 }
 

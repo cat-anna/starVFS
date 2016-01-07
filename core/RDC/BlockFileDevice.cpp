@@ -96,7 +96,8 @@ bool BlockFileDevice::SeekBeg(size_t Offset) const {
 }
 
 bool BlockFileDevice::SeekEnd(size_t Offset) const {
-	if (fseek(m_File.get(), Offset, SEEK_END)) {
+	int value = -static_cast<int>(Offset);
+	if (fseek(m_File.get(), value, SEEK_END)) {
 		STARVFSErrorLog("File seek failed!");
 		return false;
 	}
@@ -119,23 +120,23 @@ bool BlockFileDevice::CanRead() const {
 	return false;
 }
 
-bool BlockFileDevice::RawRead(char *data, size_t ToRead, size_t *read = nullptr) const {
+bool BlockFileDevice::RawRead(char *data, size_t ToRead, size_t *read) const {
 	size_t r = fread(data, 1, ToRead, m_File.get());
 	if (read)
 		*read = r;
 	return r == ToRead;
 }
 
-bool BlockFileDevice::RawWrite(const char *data, size_t ToWrite, size_t *written = nullptr) const {
+bool BlockFileDevice::RawWrite(const char *data, size_t ToWrite, size_t *written) const {
 	size_t w = fwrite(data, 1, ToWrite, m_File.get());
-	if (w)
+	if (written)
 		*written = w;
 	return w == ToWrite;
 }
 
 //-----------------------------------------------------------------------------
 
-bool BlockFileDevice::ReadFromBegining(size_t Offset, char *data, size_t ToRead, size_t *read = nullptr) const {
+bool BlockFileDevice::ReadFromBegining(size_t Offset, char *data, size_t ToRead, size_t *read) const {
 	if (read)
 		*read = 0;
 	if (ToRead == 0) {
@@ -146,7 +147,7 @@ bool BlockFileDevice::ReadFromBegining(size_t Offset, char *data, size_t ToRead,
 	return CanRead() && SeekBeg(Offset) && RawRead(data, ToRead, read);
 }
 
-bool BlockFileDevice::ReadFromEnd(size_t Offset, char *data, size_t ToRead, size_t *read = nullptr) const {
+bool BlockFileDevice::ReadFromEnd(size_t Offset, char *data, size_t ToRead, size_t *read) const {
 	if (read)
 		*read = 0;
 	if (ToRead == 0) {

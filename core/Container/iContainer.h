@@ -20,6 +20,9 @@ public:
  	iContainer(FileTableInterface  *fti);
  	virtual ~iContainer();
 
+	virtual bool Initialize() { return true; }
+	virtual bool Finalize() { return true; }
+
 	/** Reload container internal file table */
 	virtual bool ReloadContainer() = 0;
 	/** TBD */

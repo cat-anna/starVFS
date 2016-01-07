@@ -21,13 +21,12 @@ public:
 
 	bool CloseFile();
 
-	virtual Headers::VersionValue GetVersion() const = 0;
+	virtual VersionValue GetVersion() const = 0;
 
-	static std::unique_ptr<Builder> CreateBuilder(Headers::VersionValue version);
 protected:
 	virtual bool WriteFileHeader();
-	virtual bool WriteSectionTable() = 0;
-	virtual bool WriteFileFooter() = 0;
+	virtual bool WriteSections() = 0;
+	virtual bool WriteFileFooter() = 0; //and section table
 	virtual void Reset() = 0;
 
 	BlockFileDevice* GetDevice() { return m_FileDevice.get(); }

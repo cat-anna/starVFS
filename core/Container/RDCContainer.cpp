@@ -7,13 +7,16 @@
 
 #include "../StarVFSInternal.h"
 #include "RDCContainer.h"
-#include "../RDC/nRDC.h"
+
+#include <boost/filesystem.hpp>
 
 namespace StarVFS {
 namespace Containers {
 
-RDCContainer::RDCContainer(FileTableInterface *fti) :
-	iContainer(fti) {
+RDCContainer::RDCContainer(FileTableInterface *fti, const String& Location) :
+		iContainer(fti) {
+	m_FileName = Location;
+	m_Flags.uintval = 0;
 }
 
 RDCContainer::~RDCContainer() {
@@ -21,20 +24,143 @@ RDCContainer::~RDCContainer() {
 
 //-----------------------------------------------------------------------------
 
+bool RDCContainer::CanOpen(const String &Location) {
+	return boost::filesystem::is_regular_file(Location) && RDC::Reader::CanOpenFile(Location);
+}
+
+CreateContainerResult RDCContainer::CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) {
+	StarVFSAssert(svfs);
+	if(!CanOpen(Location))
+		return CreateContainerResult(VFSErrorCode::InternalError, nullptr);
+	return svfs->CreateContainer<RDCContainer>(MountPoint, Location);
+}
+
+//-----------------------------------------------------------------------------
+
+bool RDCContainer::Initialize() {
+	if (m_Reader)
+		return true;
+
+	auto reader = std::make_unique<RDC::Version_1::Reader_v1>();
+	if (!reader->Open(m_FileName))
+		return false;
+	m_Reader.swap(reader);
+	return true;
+}
+
+//-----------------------------------------------------------------------------
+
 FileID RDCContainer::GetFileCount() const {
-	return 0;
+	return static_cast<FileID>(m_OffsetTable.size());
 }
 
 bool RDCContainer::ReloadContainer() {
-	return false;
+	if (!m_Reader)
+		return false;
+
+	std::vector<RDC::Version_1::MountEntryInfo> MountEntries;
+	if (!m_Reader->FindMountEntries(MountEntries)) {
+		STARVFSErrorLog("Unable to find mount entries!");
+		return false;
+	}
+
+	if (MountEntries.size() != 1) {
+		STARVFSErrorLog("Invalid count of mount entries in container");
+		return false;
+	}
+
+	m_MountEntryInfo = MountEntries[0];
+
+	if (!m_Reader->LoadOffsetDataBlockTable(m_MountEntryInfo.m_MountEntry.DataBlockTable, m_OffsetTable)) {
+		STARVFSErrorLog("Failed to load offset datablock table!");
+		return false;
+	}
+
+	m_Flags.HasMountEntry = 1;
+	m_Flags.HasOffsetTable = 1;
+
+	return true;
 }
 
 bool RDCContainer::RegisterContent() const {
-	return false;
+	if (!m_Reader)
+		return false;
+
+	if (!m_Flags.HasMountEntry) {
+		//todo: log
+		return false;
+	}
+
+	RDC::Version_1::StringTable strtable;
+	RDC::Version_1::FileStructureTable filetable;
+	RDC::Version_1::HashTable hashtable;
+
+	if (!m_Reader->LoadStringTable(m_MountEntryInfo.m_MountEntry.StringTable, strtable)) {
+		//todo: log
+		return false;
+	}
+	if (!m_Reader->LoadFileStructureTable(m_MountEntryInfo.m_MountEntry.StructureSection, filetable)) {
+		//todo: log
+		return false;
+	}
+	if (!m_Reader->LoadHashTable(m_MountEntryInfo.m_MountEntry.HashTable, hashtable)) {
+		//todo: log
+		return false;
+	}
+
+	auto fti = GetFileTableInterface();
+
+	FileTableInterface::FileSubStructureInfo reginfo;
+	reginfo.m_Count = static_cast<FileID>(filetable.size());
+	std::unique_ptr<BaseFileInfo[]> basefiletable(new BaseFileInfo[reginfo.m_Count]);
+	reginfo.m_FileTable = basefiletable.get();
+	reginfo.m_LocalPathHashTable = hashtable.get();
+
+	for (FileID i = 0, j = reginfo.m_Count; i < j; ++i) {
+		auto &in = filetable[i];
+		auto &out = reginfo.m_FileTable[i];
+
+		out.m_ContainerFileID = i;
+		out.m_NamePointer = strtable.get() + in.NamePointer; //todo: check!!!
+		out.m_ParentIndex = in.ParentIndex;
+		out.m_SymLinkIndex = 0;
+		out.m_Flags.intval = 0;
+		using RDCFile = RDC::Version_1::BaseFileInfo;
+		if (in.Flags & RDCFile::FlagBits::Directory)
+			out.m_Flags.Directory = 1;
+
+		if (i > 0)
+			out.m_Flags.Valid = 1;
+	}
+
+	if (!fti->RegisterFileStructure(fti->GetRootID(), reginfo)) {
+		//todo: log
+		return false;
+	}
+
+	return true;
 }
 
 bool RDCContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
-	return false;
+	out.reset();
+	if (DataSize)
+		*DataSize = 0;
+	if (!m_Flags.HasOffsetTable) {
+		//todo: log
+		return false;
+	}
+
+	if (m_OffsetTable.size() >= ContainerFID) {
+		return false;
+	}
+
+	out.reset(new char[17]);
+	out[16] = 0;
+	strcpy(out.get(), "ABCD1234");
+	if (DataSize)
+		*DataSize = 9;
+
+	return true;
 }
 
 } //namespace Containers 

@@ -187,9 +187,9 @@ void RemoteModule::ThreadMain() {
 	Connection c(this);
 
 	int id = 0;
-	short port = (short)strtol(m_Port.c_str(), nullptr, 10);
+	uint16_t port = (uint16_t)strtol(m_Port.c_str(), nullptr, 10);
 	if (port == 0) {
-		port = static_cast<short>(RemoteHeaders::Settings::BasePort);
+		port = static_cast<uint16_t>(RemoteHeaders::Settings::BasePort);
 		m_Port = std::to_string(port);
 	}
 	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));

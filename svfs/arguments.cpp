@@ -223,13 +223,13 @@ struct Parser::PrivData  {
 		if (!m_vm["script"].empty()) {
 			AddPrint("Executing scripts...");
 			for (auto &it : m_vm["script"].as<std::vector<std::string>>()) {
-				bool isfile = false;// boost::filesystem::is_regular_file(it);
+				bool isfile = boost::filesystem::is_regular_file(it);
 				if (isfile)
 					AddPrint("Executing file: %s", it.c_str());
 				else
 					AddPrint("Executing chunk: %s", it.c_str());
 				if (isfile) {
-					AddLine("dofile([[s]])", it.c_str());
+					AddLine("dofile([[%s]])", it.c_str());
 				} else {
 					AddLine("%s", it.c_str());
 				}
