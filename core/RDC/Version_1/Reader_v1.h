@@ -40,6 +40,8 @@ public:
 	bool LoadHashTable(SectionIndex Index, HashTable &out) const;
 
 	static bool TestFooterIntegrity(UniqueBlockFileDevice &device, FileFooter *footer = nullptr);
+
+	const std::vector<SectionDescriptor>& GetSections() const { return m_Sections; }
 protected:
 private:
 	std::vector<SectionDescriptor> m_Sections;

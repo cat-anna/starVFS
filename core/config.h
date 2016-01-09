@@ -58,7 +58,7 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #define STARVFSErrorLog(fmt, ...) STARVFSLOG(ERROR, fmt, __VA_ARGS__)
 
-#ifdef DEBUG 
+#if defined(DEBUG) || defined(STARVFS_ENABLE_DEBUG_LOG)
 #define STARVFSDebugLog(fmt, ...) STARVFSLOG(DEBUG, fmt, __VA_ARGS__)
 #else
 #define STARVFSDebugLog(fmt, ...) do { } while(0)

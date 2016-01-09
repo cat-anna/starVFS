@@ -20,8 +20,20 @@ public:
 	virtual FileSize GetSize() const;
 
 	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const;
-	
 	//write - tbd
+};
+
+class BaseDynamicFileInterface : public VirtualFileInterface {
+public:
+	BaseDynamicFileInterface();
+	virtual ~BaseDynamicFileInterface();
+
+	virtual FileSize GetSize() const final;
+	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const final;
+
+	virtual void GenerateContent(std::ostream &out) = 0;
+private:
+	mutable FileSize m_LastSize;
 };
 
 using SharedVirtualFileInterface = std::shared_ptr<VirtualFileInterface>;

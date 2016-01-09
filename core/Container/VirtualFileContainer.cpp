@@ -17,6 +17,25 @@ bool VirtualFileInterface::ReadFile(CharTable &out, FileSize *DataSize) const { 
 
 //-------------------------------------------------------------------------------------------------
 
+BaseDynamicFileInterface::BaseDynamicFileInterface() : m_LastSize(0) {}
+BaseDynamicFileInterface::~BaseDynamicFileInterface() { }
+FileSize BaseDynamicFileInterface::GetSize() const { return m_LastSize; }
+bool BaseDynamicFileInterface::ReadFile(CharTable &out, FileSize *DataSize) const { 
+	std::stringstream ss;
+	const_cast<BaseDynamicFileInterface*>(this)->GenerateContent(ss);
+	std::string data = ss.str();
+	out.reset(new char[data.length() + 1]);
+	out[data.length()] = 0;
+	memcpy(out.get(), data.c_str(), data.length());
+	m_LastSize = static_cast<FileSize>(data.length() + 1);
+	if (DataSize)
+		*DataSize = m_LastSize;
+	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------
+
 VirtualFileContainer::VirtualFileContainer(FileTableInterface *fti):
 		iContainer(fti), m_InternalIDCounter(0) {
 	m_InternalIDCounter = 1;

@@ -18,30 +18,14 @@ SVFSRemote::~SVFSRemote() {
 
 //-----------------------------------------------------------------------------
 
-static std::ofstream _LogFile;
-static void StarVFSLogSink(const char *file, const char *function, unsigned line, const char *log, const char *type) {
-	char buf[8192];
-	sprintf(buf, "[%s][%s:%d] SVFS: %s\n", type, function, line, log);
-	_LogFile << buf << std::flush;
-}
-
 void SVFSRemote::Init(int PluginNr, tProgressProc pProgressProc, tLogProc pLogProc, tRequestProc pRequestProc) {
-	
-	_LogFile.open("d:\\svfs.log", std::ios::app);
-	_LogFile << "----------------------------------\n";
-	_LogFile << "----------------------------------\n";
-	_LogFile << "\n\n";
-	_LogFile << std::flush;
-
-	::StarVFS::StarVFSLogSink = StarVFSLogSink;
-
 	m_PluginNr = m_PluginNr;
 	m_ProgressProc = pProgressProc;
 	m_LogProc = pLogProc;
 	m_RequestProc = pRequestProc;
 
 	m_SVFS = std::make_unique<::StarVFS::StarVFS>();
-
+	m_SVFS->AddModule<LogVirtualSink>();
 	DoSVFSScan();
 }
 

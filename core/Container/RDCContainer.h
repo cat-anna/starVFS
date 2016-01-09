@@ -32,7 +32,8 @@ public:
 
 	static bool CanOpen(const String&);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
-protected:
+
+	RDC::Version_1::Reader_v1* GetRDCReader() { return m_Reader.get(); }
 private: 
 	union {
 		struct {

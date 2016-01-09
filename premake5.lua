@@ -65,9 +65,11 @@ workspace "StarVFS"
 	filter "platforms:x32" 
 		architecture "x32"
 		defines { "X32", "PLATFORM_NAME=\"X32\"", }
+		targetsuffix "32"
 	filter "platforms:x64" 
 		architecture "x64"		
 		defines { "X64", "PLATFORM_NAME=\"X64\"", }		
+		targetsuffix "64"
 		
 	filter "configurations:Debug"
 		flags { "Symbols", }

@@ -172,7 +172,7 @@ struct Parser::PrivData  {
 			}
 			
 			AddPrint("Starting remote server at port %s", sport.c_str());
-			AddLine("RemoteServer = vfs.GetRegister():CreateModule('RemoteModule')");
+			AddLine("RemoteServer = Register:CreateModule('RemoteModule')");
 			if(port)
 				AddLine("RemoteServer:SetAttribute('Port', '%d')", port);
 			AddLine("RemoteServer:Enable()");

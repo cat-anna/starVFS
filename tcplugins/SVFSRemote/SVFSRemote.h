@@ -12,6 +12,7 @@
 #include "fsplugin.h"
 
 #include <core/nStarVFS.h>
+#include "../common/LogVirtualSink.h"
 
 #define TCSearchDataMagic (uint32_t)0x159648ab
 

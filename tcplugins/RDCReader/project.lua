@@ -10,22 +10,26 @@ group "tcplugins"
 		files {
 			"**",
 			"../../core/**",
+            "../common/**",
 		}
 		defines {
 			"STARVFS_LOG_TO_SINK",
+            "STARVFS_ENABLE_DEBUG_LOG",
 		}
 		
 local outfile = dir.bin .. "/SVFSRemote"
 		postbuildcommands {
 			"echo Building RDCReader plugin installer...",
 			"del /Q \"" .. dir.bin  .. "/RDCReader.zip\"",
-			"zip RDCReader.zip pluginst.inf *.wcx*",
+			"zip " .. dir.bin .. "/RDCReader.zip pluginst.inf *.wcx*",
 		}		
-		
+
 		filter "platforms:x32" 
 			targetextension ".wcx"
+             targetsuffix ""
 		filter "platforms:x64" 
 			targetextension ".wcx64"
+             targetsuffix ""
 			
 		filter 'files:pluginst.inf'
 			buildmessage 'Copying pluginst.inf'

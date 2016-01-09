@@ -72,7 +72,7 @@ struct StringTable : public BaseSection {
 		auto str = m_data.str();
 		while ((str.length() % 8) != 0)
 			str += '\0';
-		return GetBuilderInterface()->WriteBlockAtEnd(str.c_str(), str.length(), m_SectionDataBlock);
+		return GetBuilderInterface()->WriteBlockAtEnd(str.c_str(), static_cast<Size>(str.length()), m_SectionDataBlock);
 	}
 private:
 	std::stringstream m_data;
@@ -107,7 +107,7 @@ struct OffsetDataBlockTable : public BaseSection {
 			m_SectionDataBlock.Zero();
 			return true;
 		}
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], m_Table.size() * sizeof(m_Table[0]), m_SectionDataBlock);
+		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
 	}
 private:
 	std::vector<OffsetDataBlock> m_Table;
@@ -125,7 +125,7 @@ struct FileStructureTable : public BaseSection {
 			m_SectionDataBlock.Zero();
 			return true;
 		}
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], m_Table.size() * sizeof(m_Table[0]), m_SectionDataBlock);
+		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
 	}
 private:
 	std::vector<BaseFileInfo> m_Table;
@@ -146,7 +146,7 @@ struct HashTableSection : public BaseSection {
 		bool odd = (m_Table.size() & 1) != 0;
 		if (odd)
 			m_Table.push_back(0);
-		bool ret = GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], m_Table.size() * sizeof(m_Table[0]), m_SectionDataBlock);
+		bool ret = GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
 		if (odd)
 			m_Table.pop_back();
 		return ret;
@@ -176,7 +176,7 @@ public:
 		data.StructureSection = GetFileStructureTableIndex();
 		data.HashTable = GetHashTableSectionIndex();
 		data.MountEntryId = m_MountEntryId;
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&data, sizeof(data), m_SectionDataBlock);
+		return GetBuilderInterface()->WriteBlockAtEnd((char*)&data, static_cast<Size>(sizeof(data)), m_SectionDataBlock);
 	}
 private:
 };

@@ -96,15 +96,15 @@ bool RDCContainer::RegisterContent() const {
 	RDC::Version_1::HashTable hashtable;
 
 	if (!m_Reader->LoadStringTable(m_MountEntryInfo.m_MountEntry.StringTable, strtable)) {
-		//todo: log
+		STARVFSErrorLog("Failed to load string table for mount entry %d", m_MountEntryInfo.m_SectionIndex);
 		return false;
 	}
 	if (!m_Reader->LoadFileStructureTable(m_MountEntryInfo.m_MountEntry.StructureSection, filetable)) {
-		//todo: log
+		STARVFSErrorLog("Failed to load file structure table for mount entry %d", m_MountEntryInfo.m_SectionIndex);
 		return false;
 	}
 	if (!m_Reader->LoadHashTable(m_MountEntryInfo.m_MountEntry.HashTable, hashtable)) {
-		//todo: log
+		STARVFSErrorLog("Failed to load hash table for mount entry %d", m_MountEntryInfo.m_SectionIndex);
 		return false;
 	}
 
@@ -129,12 +129,14 @@ bool RDCContainer::RegisterContent() const {
 		if (in.Flags & RDCFile::FlagBits::Directory)
 			out.m_Flags.Directory = 1;
 
-		if (i > 0)
+		if (i > 2)
 			out.m_Flags.Valid = 1;
 	}
 
+	reginfo.m_FileTable[1].m_GlobalIndex = fti->GetRootID();
+
 	if (!fti->RegisterFileStructure(fti->GetRootID(), reginfo)) {
-		//todo: log
+		STARVFSErrorLog("Failed to register file structure for mount entry %d", m_MountEntryInfo.m_SectionIndex);
 		return false;
 	}
 

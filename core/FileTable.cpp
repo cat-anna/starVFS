@@ -320,7 +320,7 @@ bool FileTable::RegisterStructureTable(FileStructureInfo &info) {
 	if (!EnsureCapacity(info.m_Count))
 		return false;
 
-	for (FileID i = 1; i < info.m_Count; ++i) {
+	for (FileID i = 0; i < info.m_Count; ++i) {
 		auto &basefile = info.m_FileTable[i];
 
 		if (!basefile.m_Flags.Valid)

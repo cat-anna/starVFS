@@ -12,66 +12,35 @@
 namespace StarVFS {
 namespace Modules {
 
-struct FileTableMetaFile : public Containers::VirtualFileInterface {
-	FileTableMetaFile(StarVFS *svfs):
-			m_LastSize(0), m_svfs(svfs) {
+struct FileTableMetaFile : public Containers::BaseDynamicFileInterface {
+	FileTableMetaFile(StarVFS *svfs): m_svfs(svfs) {
 		StarVFSAssert(svfs);
 	}
-	virtual FileSize GetSize() const override { return m_LastSize; }
-
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const override {
+	virtual void GenerateContent(std::ostream &out) override {
 		auto ft = m_svfs->GetFileTable();
-		std::stringstream ss;
-		ft->DumpFileTable(ss);
-		std::string data = ss.str();
-		out.reset(new char[data.length() + 1]);
-		out[data.length()] = 0;
-		memcpy(out.get(), data.c_str(), data.length());
-		m_LastSize = data.length() + 1;
-		if (DataSize)
-			*DataSize = m_LastSize;
-		return true;
+		ft->DumpFileTable(out);
 	}
-
 private:
-	mutable FileSize m_LastSize;
 	StarVFS *m_svfs;
 };
 
-struct FileTableStructureMetaFile : public Containers::VirtualFileInterface {
-	FileTableStructureMetaFile(StarVFS *svfs) :
-		m_LastSize(0), m_svfs(svfs) {
+struct FileTableStructureMetaFile : public Containers::BaseDynamicFileInterface {
+	FileTableStructureMetaFile(StarVFS *svfs) : m_svfs(svfs) {
 		StarVFSAssert(svfs);
 	}
-	virtual FileSize GetSize() const override { return m_LastSize; }
-
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const override {
+	virtual void GenerateContent(std::ostream &out) override {
 		auto ft = m_svfs->GetFileTable();
-		std::stringstream ss;
-		ft->DumpStructure(ss);
-		std::string data = ss.str();
-		out.reset(new char[data.length() + 1]);
-		out[data.length()] = 0;
-		memcpy(out.get(), data.c_str(), data.length());
-		m_LastSize = data.length() + 1;
-		if (DataSize)
-			*DataSize = m_LastSize;
-		return true;
+		ft->DumpStructure(out);
 	}
-
 private:
-	mutable FileSize m_LastSize;
 	StarVFS *m_svfs;
 };
 
-struct StatisticsMetaFile : public Containers::VirtualFileInterface {
-	StatisticsMetaFile(StarVFS *svfs) :
-		m_LastSize(0), m_svfs(svfs) {
+struct StatisticsMetaFile : public Containers::BaseDynamicFileInterface {
+	StatisticsMetaFile(StarVFS *svfs) : m_svfs(svfs) {
 		StarVFSAssert(svfs);
 	}
-	virtual FileSize GetSize() const override { return m_LastSize; }
-
-	void GetStatistics(std::ostream &o) const {
+	void GenerateContent(std::ostream &o) override {
 		auto ft = m_svfs->GetFileTable();
 		
 		o << "Allocated files: " << ft->GetAllocatedFileCount() << "\n";
@@ -82,22 +51,7 @@ struct StatisticsMetaFile : public Containers::VirtualFileInterface {
 		//	o << "Registered module types:\n";
 		//	o << "Registered exporter types:\n";
 	}
-
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const override {
-		std::stringstream ss;
-		GetStatistics(ss);
-		std::string data = ss.str();
-		out.reset(new char[data.length() + 1]);
-		out[data.length()] = 0;
-		memcpy(out.get(), data.c_str(), data.length());
-		m_LastSize = data.length() + 1;
-		if (DataSize)
-			*DataSize = m_LastSize;
-		return true;
-	}
-
 private:
-	mutable FileSize m_LastSize;
 	StarVFS *m_svfs;
 };
 

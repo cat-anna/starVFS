@@ -11,26 +11,26 @@ group "tcplugins"
 		files {
 			"**",
 			"../../core/**",
+			"../common/**",
 		}
 		defines {
 			"STARVFS_LOG_TO_SINK",
-		}
-		
-		excludes {
-			"project.lua",
+            "STARVFS_ENABLE_DEBUG_LOG",
 		}
 		
 local outfile = dir.bin .. "/SVFSRemote"
 		postbuildcommands {
 			"echo Building SVFSRemote plugin installer...",
 			"del /Q \"" .. dir.bin .. "/SVFSRemote.zip\"",
-			"zip SVFSRemote.zip pluginst.inf *.wfx*",
+			"zip " .. dir.bin .. "/SVFSRemote.zip pluginst.inf *.wfx*",
 		}		
-		
+
 		filter "platforms:x32" 
 			targetextension ".wfx"
+             targetsuffix ""
 		filter "platforms:x64" 
 			targetextension ".wfx64"
+             targetsuffix ""
 			
 		filter 'files:pluginst.inf'
 			buildmessage 'Copying pluginst.inf'
