@@ -78,6 +78,34 @@ bool Reader_v1::ReadBlock(CharTable &out, Size &out_size, const DataBlock &block
 	ct.reset(new char[out_size + 1]);
 	ct[out_size] = 0;
 
+	if (!ReadBlock(ct.get(), out_size, blockdesc)) {
+		return false;
+	}
+
+	out.swap(ct);
+	return true;
+}
+
+bool Reader_v1::OffsetReadBlock(CharTable &out, Size &out_size, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const {
+	out.reset();
+	out_size = 0;
+
+	auto dev = GetDevice();
+	if (!dev) {
+		//todo: log
+		return false;
+	}
+
+	CharTable ct;
+	out_size = offsetblockdesc.GetRawSize();
+	ct.reset(new char[out_size + 1]);
+	ct[out_size] = 0;
+
+	if (!dev->ReadFromBegining(blockdesc.FilePointer + offsetblockdesc.SectionOffset, ct.get(), out_size)) {
+		out_size = 0;
+		return false;
+	}
+
 	out.swap(ct);
 	return true;
 }

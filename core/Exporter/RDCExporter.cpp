@@ -56,6 +56,7 @@ struct RDCExporter::Impl {
 		for (size_t i = 0, j = inputfiles.size(); i < j; ++i) {
 			auto &inf = inputfiles[i];
 			auto &outf = outputfiles[i];
+			auto &outblock = blocktable[i];
 
 			outf.NamePointer = StringTable->AllocString(inf.m_FileName);
 
@@ -68,6 +69,19 @@ struct RDCExporter::Impl {
 
 			hasht[i] = inf.m_Hash;
 			//outf.SymLinkIndex = 
+			
+			if (inf.m_Flags.ValidFile()) {
+				CharTable ct;
+				FileSize size;
+				if (!m_Owner->GetSVFS()->GetFileData(inf.m_VFSFileID, ct, &size)) {
+					STARVFSErrorLog("Failed to read content of file %d", inf.m_VFSFileID);
+				} else {
+					if (!rawdata->PushOffsetDataBlock(ct, size, outblock)) {
+						STARVFSErrorLog("Failed to export content of file %d", inf.m_VFSFileID);
+					}
+				}
+			}
+
 		}
 		
 		//todo: work

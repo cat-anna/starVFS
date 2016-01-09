@@ -45,6 +45,8 @@ private:
 	String m_FileName;
 	std::unique_ptr<RDC::Version_1::Reader_v1> m_Reader;
 	RDC::Version_1::MountEntryInfo m_MountEntryInfo;
+
+	RDC::Version_1::DataBlock m_RawSectionBaseBlock;
 	RDC::Version_1::OffsetDataBlockTable m_OffsetTable;
 };
 

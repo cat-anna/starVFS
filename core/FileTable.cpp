@@ -365,6 +365,7 @@ bool FileTable::RegisterStructureTable(FileStructureInfo &info) {
 		if (changeownership) {
 			f->m_ContainerID = info.m_OwnerContainer;
 			f->m_ContainerFileID = i;
+			f->m_Size = basefile.m_Size;
 		}
 	}
 

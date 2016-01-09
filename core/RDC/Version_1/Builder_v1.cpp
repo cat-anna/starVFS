@@ -17,8 +17,8 @@ struct Builder_v1::PrivateData : public Sections::SectionFileBuilderInterface {
 		return m_Owner->WriteBlockAtEnd(data, size, blockdesc);
 	}
 
-	virtual bool SubBlockWriteAtEnd(const char *data, Size size, DataBlock &blockdesc, DataBlock &base) override {
-		return m_Owner->SubBlockWriteAtEnd(data, size, blockdesc, base);
+	virtual bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &offsetblockdesc, DataBlock &base) override {
+		return m_Owner->OffsetBlockWriteAtEnd(data, size, offsetblockdesc, base);
 	}
 
 	PrivateData(Builder_v1 *Owner) : m_Owner(Owner) { }
@@ -103,15 +103,16 @@ bool Builder_v1::WriteBlockAtEnd(const char *data, Size size, DataBlock &blockde
 	return true;
 }
 
-bool Builder_v1::SubBlockWriteAtEnd(const char *data, Size size, DataBlock &blockdesc, DataBlock &base) {
+bool Builder_v1::OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base) {
 	auto dev = GetDevice();
 	if (!dev) {
 		//todo: log
 		return false;
 	}
 
-	blockdesc.FilePointer = static_cast<Size>(dev->GetSize());
+	blockdesc.SectionOffset = base.ContainerSize;
 	blockdesc.ContainerSize = size;
+	base.ContainerSize += size;
 
 	if (!dev->WriteAtEnd(data, size))
 		return false;

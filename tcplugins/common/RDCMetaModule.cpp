@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <cassert>
+#include <iomanip>
 
 #include "RDCMetaModule.h"
 #include <core/Container/VirtualFileContainer.h>
@@ -25,6 +26,19 @@ struct RDCMetaModule::Impl {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+static char *SizeToString(char *buffer, float value) {
+	int mag = 0;
+	while (value > 1000.0f) {
+		value /= 1024.0f;
+		++mag;
+	}
+	static const char *MagTable[] = {
+		"b", "KiB", "MiB", "GiB", "TiB", "?", "?",
+	};
+	sprintf(buffer, "%5.2f %s", value, MagTable[mag]);
+	return buffer;
+}
+
 struct SectionsMetaFile : public BaseDynamicFileInterface {
 	SectionsMetaFile(RDCContainer *RDC) : m_RDC(RDC) {
 		assert(RDC);
@@ -38,7 +52,7 @@ struct SectionsMetaFile : public BaseDynamicFileInterface {
 		out << "Container has " << sections.size() << " sections\n\n";
 
 		for (auto &it : sections) {
-			char buf[4096], buf128[128];
+			char buf128[128];
 
 			using SectionType = StarVFS::RDC::SectionType;
 			const char *stype = "Unknown";
@@ -52,15 +66,15 @@ struct SectionsMetaFile : public BaseDynamicFileInterface {
 			case SectionType::HashTable: stype = "Hash section"; break;
 			}
 			sprintf(buf128, " (%d in container)", it.SectionBlock.ContainerSize);
-			sprintf(buf,
-					"Section %d\n"
-					"Type: %s\n"
-					"Location: 0x%x\n"
-					"Size %d bytes%s\n",
-					&it - &sections[0], stype,
-					it.SectionBlock.FilePointer, it.SectionBlock.GetRawSize(),
-					((it.SectionBlock.GetRawSize() == it.SectionBlock.ContainerSize) ? "" : buf128));
-			out << buf << "\n";
+			out << "Section " << &it - &sections[0] << "\n";
+			out << "Type: " << (int)it.Type  << " (0x" << std::hex  << std::setw(2) << std::setfill('0') << (int)it.Type << ") (" << stype << ")\n";
+			out << "Location: 0x" << std::hex << it.SectionBlock.FilePointer << std::dec << "\n";
+			auto RawSize = it.SectionBlock.GetRawSize();
+			out << "Size: " << RawSize << " bytes (" << SizeToString(buf128, (float)RawSize) << ")\n";
+			if (RawSize != it.SectionBlock.ContainerSize) {
+				out << "Container size: " << it.SectionBlock.ContainerSize << " bytes (" << SizeToString(buf128, (float)it.SectionBlock.ContainerSize) << ")\n";
+			}
+			out << "\n";
 		}
 	}
 private:

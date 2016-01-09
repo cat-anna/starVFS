@@ -86,6 +86,7 @@ struct BaseFileInfo {
 	FileID m_ParentIndex;	    ///in local domain, 0 shall be invalid 
 	FileID m_SymLinkIndex;	    ///in local domain, 0 shall be invalid 
 	FileFlags m_Flags;
+	FileSize m_Size;
 	//out:
 	FileID m_GlobalIndex;		///filled during registration
 };

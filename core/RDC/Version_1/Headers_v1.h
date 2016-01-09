@@ -41,29 +41,29 @@ struct CheckSumInfo {
 };
 static_assert(sizeof(CheckSumInfo) == 4, "DataBlock has invalid size!");
 
-struct DataBlock {
-	Size ContainerSize = 0;
-	FilePointer FilePointer = 0;
+struct BaseDataBlock {
 	CompressionInfo Compression;
 	EncryptionInfo Encryption;
 	CheckSumInfo CheckSum;
-
-	void Zero() { memset(this, 0, sizeof(*this)); }
+	Size ContainerSize = 0;
+	u32 unused_32_0 = UNUSED32;
 
 	Size GetRawSize()const { return Compression.Mode == CompressionMode::None ? ContainerSize : Compression.RawSize; }
 };
-static_assert(sizeof(DataBlock) % 8 == 0, "DataBlock has invalid size!");
 
-struct OffsetDataBlock {
-	Size ContainerSize = 0;
-	FilePointer FileOffset = 0;
-	CompressionInfo Compression;
-	EncryptionInfo Encryption;
-	CheckSumInfo CheckSum;
+struct DataBlock : public BaseDataBlock {
+	FilePointer FilePointer = 0;
+	u32 unused_32_0 = UNUSED32;
 
 	void Zero() { memset(this, 0, sizeof(*this)); }
+};
+static_assert(sizeof(DataBlock) % 8 == 0, "DataBlock has invalid size!");
 
-	Size GetRawSize()const { return Compression.Mode == CompressionMode::None ? ContainerSize : Compression.RawSize; }
+struct OffsetDataBlock : BaseDataBlock {
+	FilePointer SectionOffset = 0;
+	u32 unused_32_0 = UNUSED32;
+
+	void Zero() { memset(this, 0, sizeof(*this)); }
 };
 static_assert(sizeof(OffsetDataBlock) % 8 == 0, "OffsetDataBlock has invalid size!");
 

@@ -19,7 +19,7 @@ namespace Sections {
 struct SectionFileBuilderInterface {
 	virtual ~SectionFileBuilderInterface() {} ;
 	virtual bool WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc) = 0;
-	virtual bool SubBlockWriteAtEnd(const char *data, Size size, DataBlock &blockdesc, DataBlock &base) = 0;
+	virtual bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base) = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -85,12 +85,19 @@ struct RawDataSection : public BaseSection {
 		GetBuilderInterface()->WriteBlockAtEnd(nullptr, 0, m_SectionDataBlock);
 	}
 
+	bool PushOffsetDataBlock(const CharTable &ct, FileSize size, OffsetDataBlock &offsetdatablock) {
+		return GetBuilderInterface()->OffsetBlockWriteAtEnd(ct ? ct.get() : "", size, offsetdatablock, m_SectionDataBlock);
+	}
+
 	virtual bool WriteSection() override {
-		return true;
-		//auto str = m_data.str();
-		//while ((str.length() % 8) != 0)
-		//	str += '\0';
-		//return GetBuilderInterface()->WriteBlockAtEnd(str.c_str(), str.length(), m_SectionDataBlock);
+		if ((m_SectionDataBlock.ContainerSize % 8) == 0)
+			return true;
+
+		char buf[8] = {};
+		OffsetDataBlock paddingblock;
+		FileSize size = m_SectionDataBlock.ContainerSize % 8;
+
+		return GetBuilderInterface()->OffsetBlockWriteAtEnd(buf, size, paddingblock, m_SectionDataBlock);
 	}
 private:
 };

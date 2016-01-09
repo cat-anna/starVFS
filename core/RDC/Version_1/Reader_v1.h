@@ -32,6 +32,7 @@ public:
 
 	bool ReadBlock(void *data, Size size, const DataBlock &blockdesc) const;
 	bool ReadBlock(CharTable &out, Size &out_size, const DataBlock &blockdesc) const;
+	bool OffsetReadBlock(CharTable &out, Size &out_size, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const;
 
 	bool FindMountEntries(std::vector<MountEntryInfo> &out) const;
 	bool LoadStringTable(SectionIndex Index, StringTable &out) const;

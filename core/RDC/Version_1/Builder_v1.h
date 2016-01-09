@@ -29,7 +29,7 @@ public:
 
 protected:
 	bool WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc);
-	bool SubBlockWriteAtEnd(const char *data, Size size, DataBlock &blockdesc, DataBlock &base);
+	bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base);
 
 	virtual void Reset() override;
 	virtual bool WriteSections() override;

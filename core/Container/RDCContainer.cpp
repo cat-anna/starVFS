@@ -71,6 +71,7 @@ bool RDCContainer::ReloadContainer() {
 
 	m_MountEntryInfo = MountEntries[0];
 
+	m_RawSectionBaseBlock = m_Reader->GetSections()[m_MountEntryInfo.m_MountEntry.RawDataSection].SectionBlock;
 	if (!m_Reader->LoadOffsetDataBlockTable(m_MountEntryInfo.m_MountEntry.DataBlockTable, m_OffsetTable)) {
 		STARVFSErrorLog("Failed to load offset datablock table!");
 		return false;
@@ -118,6 +119,7 @@ bool RDCContainer::RegisterContent() const {
 
 	for (FileID i = 0, j = reginfo.m_Count; i < j; ++i) {
 		auto &in = filetable[i];
+		auto &inblock = m_OffsetTable[i];
 		auto &out = reginfo.m_FileTable[i];
 
 		out.m_ContainerFileID = i;
@@ -125,6 +127,8 @@ bool RDCContainer::RegisterContent() const {
 		out.m_ParentIndex = in.ParentIndex;
 		out.m_SymLinkIndex = 0;
 		out.m_Flags.intval = 0;
+		out.m_Size = inblock.GetRawSize();
+
 		using RDCFile = RDC::Version_1::BaseFileInfo;
 		if (in.Flags & RDCFile::FlagBits::Directory)
 			out.m_Flags.Directory = 1;
@@ -152,16 +156,15 @@ bool RDCContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *Da
 		return false;
 	}
 
-	if (m_OffsetTable.size() >= ContainerFID) {
+	if (m_OffsetTable.size() <= ContainerFID) {
 		return false;
 	}
-
-	out.reset(new char[17]);
-	out[16] = 0;
-	strcpy(out.get(), "ABCD1234");
-	if (DataSize)
-		*DataSize = 9;
-
+	
+	FileSize unusedsize;
+	if (!m_Reader->OffsetReadBlock(out, DataSize ? *DataSize : unusedsize, m_OffsetTable[ContainerFID], m_RawSectionBaseBlock)) {
+		out.reset();
+		return false;
+	}
 	return true;
 }
 
