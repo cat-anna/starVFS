@@ -140,7 +140,27 @@ void FileTable::DumpFileTable(std::ostream &out) const {
 }
 
 void FileTable::DumpHashTable(std::ostream &out) const {
-	out << "Allocated: " << m_Allocated << " files\n";
+	const char *fmt = "%4s %8s %s\n";
+
+	char buf[512];
+	char idbuf[32];
+	char gfidbuf[32];
+	char hashbuf[32];
+
+	sprintf(buf, fmt, "ID", "HASH", "GFID");
+	out << buf;
+
+	for (FileID i = 0, j = m_HashFileTable.GetAllocated(); i < j; ++i) {
+		auto fid = m_HashFileTable.GetFileIDAtIndex(i);
+		auto hash = m_HashFileTable.GetPathHashAtIndex(i);
+
+		sprintf(idbuf, "%d", i);
+		sprintf(gfidbuf, "%u", (unsigned)fid);
+		sprintf(hashbuf, "%08x", hash);
+
+		sprintf(buf, fmt, idbuf, hashbuf, gfidbuf);
+		out << buf;
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -175,20 +195,18 @@ File* FileTable::AllocNewFile(const CString fullpath) {
 	} else
 		parent = GetRoot();
 
-	if (!parent)
+	if (!parent || !parent->m_Flags.ValidDirectory())
 		return nullptr;
 
-	return AllocNewFile(parent, FilePathHashAlgorithm::Hash(fullpath, strlen(fullpath)), path + 1);
+	return AllocNewFile(parent->m_GlobalFileID, FilePathHashAlgorithm::Hash(fullpath, strlen(fullpath)), path + 1);
 }
 
-File* FileTable::AllocNewFile(File *Parent, FilePathHash PathHash, const CString FName) {
-	if (!Parent)
-		return nullptr;
-
-	if (!Parent->m_Flags.Directory)
+File* FileTable::AllocNewFile(FileID ParentID, FilePathHash PathHash, const CString FName) {
+	if (!ParentID)
 		return nullptr;
 
 	auto f = AllocNewFile();
+	auto Parent = GetFile(ParentID);
 	f->m_NameStringID = m_StringTable->Alloc(FName);
 	f->m_ParentFileID = Parent->m_GlobalFileID;
 	f->m_NextSibling = Parent->m_FirstChild;
@@ -201,25 +219,28 @@ File* FileTable::AllocNewFile(File *Parent, FilePathHash PathHash, const CString
 
 //-------------------------------------------------------------------------------------------------
 
-File* FileTable::AllocFile(const String& InternalFullPath) {
+File* FileTable::AllocFile(const CString InternalFullPath) {
 	auto fid = m_HashFileTable.Lookup(InternalFullPath);
 	if (fid) {
+		STARVFSErrorLog("Alloc file returns existing one! %d", fid);
 		return m_FileTable.get() + fid;
 	}
-	return AllocNewFile((const CString)InternalFullPath.c_str());
+	return AllocNewFile(InternalFullPath);
 }
 
 File* FileTable::AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName) {
 	if (!PathHash)
 		return nullptr;
 	auto fid = Lookup(PathHash);
-	if (fid)
+	if (fid) {
+		STARVFSErrorLog("Alloc file returns existing one! %d", fid);
 		return m_FileTable.get() + fid;
+	}
 	auto p = GetFile(Parent);
-	if (!p)
+	if (!p || !p->m_Flags.ValidDirectory())
 		return nullptr;
 
-	return AllocNewFile(p, PathHash, FileName);
+	return AllocNewFile(Parent, PathHash, FileName);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -247,19 +268,17 @@ const CString FileTable::GetFileName(FileID fid) const {
 	return (CString)m_StringTable->Get(m_FileTable[fid].m_NameStringID);
 }
 
-bool FileTable::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
+bool FileTable::GetFileData(FileID fid, ByteTable &data) {
 	auto f = GetFile(fid);
 	if (!fid)
 		//TODO: log
 		return false;
-	if (fsize)
-		*fsize = 0;
 	auto c = m_Owner->GetContainer(f->m_ContainerID);
 	if (!c) {
 		STARVFSErrorLog("Invalid cid for file %d", fid);
 		return false;
 	}
-	return c->GetFileData(f->m_ContainerFileID, data, fsize);
+	return c->GetFileData(f->m_ContainerFileID, data);
 }
 
 FileFlags FileTable::GetFileFlags(FileID fid) const {

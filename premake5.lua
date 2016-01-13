@@ -4,7 +4,7 @@ dir = {
 }
 
 dir.bin = dir.base .. "bin_" .. (_ACTION or "") .. "/"
-bindir = dir.bin 
+bindir = dir.bin
 
 workspace "StarVFS"
 	configurations { "Debug", "Release", }
@@ -17,6 +17,8 @@ workspace "StarVFS"
 	debugdir "."
 	targetdir(bindir)
   
+	links {
+	}
 	defines {
 	}
 	includedirs {

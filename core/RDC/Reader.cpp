@@ -10,7 +10,6 @@
 namespace StarVFS {
 namespace RDC {
 
-
 Reader::Reader() {
 }
 
@@ -21,6 +20,7 @@ Reader::~Reader() {
 
 bool Reader::CanOpenFile(const String& FileName) {
 	auto device = std::make_unique<BlockFileDevice>();
+	device->SetBlockAlignValue(Settings::BlockAlignmentValue);
 
 	if (!device->OpenForRead(FileName))
 		return false;

@@ -56,7 +56,7 @@ public:
 	FileSize GetSize() const;
 	String GetFullPath() const;
 
-	bool GetFileData(CharTable &data, FileSize *fsize = nullptr) const;
+	bool GetFileData(ByteTable &data) const;
 
 	RWMode GetRWMode() const;
 	FileID GetFID() const;

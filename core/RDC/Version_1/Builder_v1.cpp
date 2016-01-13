@@ -6,6 +6,8 @@
 /*--END OF HEADER BLOCK--*/
 #include "../nRDC.h"
 
+#include "../../Utils/ZlibCompression.h"
+
 namespace StarVFS {
 namespace RDC {
 namespace Version_1 {
@@ -13,12 +15,23 @@ namespace Version_1 {
 struct Builder_v1::PrivateData : public Sections::SectionFileBuilderInterface {
 //	std::vector<SectionDescriptor> m_Sections;
 
-	virtual bool WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc) override {
-		return m_Owner->WriteBlockAtEnd(data, size, blockdesc);
+	virtual BlockProcessingResult WriteBlockAtEnd(const ByteTable &in, DataBlock &blockdesc) override {
+		ByteTable cin;
+		cin.make_copy(in);
+		return m_BlockProcessor.WriteBlock(m_Owner->GetDevice(), std::move(cin), blockdesc);
 	}
 
-	virtual bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &offsetblockdesc, DataBlock &base) override {
-		return m_Owner->OffsetBlockWriteAtEnd(data, size, offsetblockdesc, base);
+	virtual BlockProcessingResult OffsetBlockWriteAtEnd(const ByteTable &in, OffsetDataBlock &blockdesc, DataBlock &base) override {
+		ByteTable cin;
+		cin.make_copy(in);
+		return m_BlockProcessor.WriteBlock(m_Owner->GetDevice(), std::move(cin), blockdesc, base);
+	}
+
+	virtual BlockProcessingResult WriteBlockAtEndOwning(ByteTable in, DataBlock &blockdesc) override {
+		return m_BlockProcessor.WriteBlock(m_Owner->GetDevice(), std::move(in), blockdesc);
+	}
+	virtual BlockProcessingResult OffsetBlockWriteAtEndOwning(ByteTable in, OffsetDataBlock &blockdesc, DataBlock &base) override {
+		return m_BlockProcessor.WriteBlock(m_Owner->GetDevice(), std::move(in), blockdesc, base);
 	}
 
 	PrivateData(Builder_v1 *Owner) : m_Owner(Owner) { }
@@ -34,8 +47,31 @@ struct Builder_v1::PrivateData : public Sections::SectionFileBuilderInterface {
 		m_Sections.emplace_back(std::move(ptr));
 		return rawptr;
 	}
+
+	bool WriteSectionTable(DataBlock &SectionTableBlock) {
+		unique_table<SectionDescriptor> RawSections;
+		RawSections.make_new(m_Sections.size() + 1);
+		//RawSections.memset(0);
+
+		for (size_t i = 0, j = m_Sections.size(); i < j; ++i) {
+			auto &it = m_Sections[i];
+			auto &out = RawSections[i + 1];
+
+			out.SectionBlock = it->GetSectionDataBlock();
+			out.Type = it->GetType();
+		}
+
+		ByteTable bt;
+		bt.assign_from(RawSections);
+		if (!WriteBlockAtEndOwning(std::move(bt), SectionTableBlock)) {
+			STARVFSErrorLog("Unable to write section table!");
+			return false;
+		}
+		return true;
+	}
 private:
 	Builder_v1 *m_Owner;
+	BlockProcessor m_BlockProcessor;
 };
 
 Builder_v1::Builder_v1() {
@@ -55,68 +91,27 @@ void Builder_v1::Reset() {
 bool Builder_v1::WriteFileFooter() {
 	FileFooter footer;
 
-	std::vector<SectionDescriptor> RawSections;
-	RawSections.resize(m_Data->m_Sections.size() + 1);
-
-	for (size_t i = 0, j = m_Data->m_Sections.size(); i < j; ++i) {
-		auto &it = m_Data->m_Sections[i];
-		auto &out = RawSections[i + 1];
-
-		out.SectionBlock = it->GetSectionDataBlock();
-		out.Type = it->GetType();
-	}
-
-	if (!WriteBlockAtEnd((char*)&RawSections[0], sizeof(RawSections[0]) * RawSections.size(), footer.SectionTableBlock)) {
-		//todo: log
+	if (!m_Data->WriteSectionTable(footer.SectionTableBlock)) {
+		STARVFSErrorLog("An error has occur during writting of section table!");
 		return false;
 	}
 
-	footer.SectionCount = static_cast<SectionIndex>(RawSections.size());
+	footer.SectionCount = static_cast<SectionIndex>(m_Data->m_Sections.size());
 	return GetDevice()->WriteAtEnd((char*)&footer, sizeof(footer));
 }
 
 bool Builder_v1::WriteSections() {
 	for (auto &it : m_Data->m_Sections) {
-		if (!it->WriteSection()) {
+		auto ret = it->WriteSection();
+		if (!ret) {
 			STARVFSErrorLog("WriteSection failed!");
 			return false;
 		}
+
+		if (ret.m_Compression == Compression::CompressionResult::UnableToReduceSize) {
+			STARVFSDebugLog("Section %d (Type: %02x, class: %s) not compressed. Reason: Unable to reduce size", it->GetIndex(), it->GetType(), typeid(*it.get()).name());
+		}
 	}
-	return true;
-}
-
-//-----------------------------------------------------------------------------
-
-bool Builder_v1::WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc) {
-	auto dev = GetDevice();
-	if (!dev) {
-		//todo: log
-		return false;
-	}
-
-	blockdesc.FilePointer = static_cast<Size>(dev->GetSize());
-	blockdesc.ContainerSize = size;
-
-	if (!dev->WriteAtEnd(data, size))
-		return false;
-
-	return true;
-}
-
-bool Builder_v1::OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base) {
-	auto dev = GetDevice();
-	if (!dev) {
-		//todo: log
-		return false;
-	}
-
-	blockdesc.SectionOffset = base.ContainerSize;
-	blockdesc.ContainerSize = size;
-	base.ContainerSize += size;
-
-	if (!dev->WriteAtEnd(data, size))
-		return false;
-
 	return true;
 }
 
@@ -149,6 +144,15 @@ Sections::FileStructureTable* Builder_v1::CreateFileStructureTable() {
 
 Sections::HashTableSection* Builder_v1::CreateHashTable() {
 	return m_Data->CreateSection<Sections::HashTableSection>();
+}
+
+//-----------------------------------------------------------------------------
+
+void Builder_v1::ForEachSection(SectionEnumerateFunc func) {
+	for (auto &it : m_Data->m_Sections) {
+		if(it->ValidSection())
+			func(it.get());
+	}
 }
 
 } //namespace Version_1

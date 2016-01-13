@@ -6,6 +6,7 @@ group "tcplugins"
 		targetdir(dir.bin .. "tc/RDCReader")
 		
 		links  {
+			"StaticZLib",
 		}
 		files {
 			"**",

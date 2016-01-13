@@ -135,7 +135,7 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 		message.Clear();
 		auto response = message.AllocAndZero<RemoteHeaders::GetFileResponse>();
 
-		CharTable ct;
+		ByteTable ct;
 		if (!h || !h.GetFileData(ct)) {
 			response->Result = 1;
 		} else {

@@ -27,7 +27,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	mutable std::unique_ptr<MessageBuffer> m_MessageBuffer;
 
 	std::vector<File> m_FileTable;
-	std::vector<Char> m_CharTable;
+	std::vector<Char> m_ByteTable;
 	FileID m_FileCount;
 
 	virtual bool CanRun() const override { return true; }
@@ -53,7 +53,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		return m_FileCount;
 	}
 
-	bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+	bool GetFileData(FileID ContainerFID, ByteTable &out) const {
 		m_MessageBuffer->Clear();
 		auto hdr = m_MessageBuffer->GetHeader();
 		hdr->Command = RemoteHeaders::Command::GetFile;
@@ -70,11 +70,9 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		if (response->Result)
 			return false;
 
-		out.reset(new char[response->DataSize + 1]);
+		out.make_new(response->DataSize);
 		m_MessageBuffer->PullBytes(response->DataSize, out.get());
 		out[response->DataSize] = 0;
-		if (DataSize)
-			*DataSize = response->DataSize;
 		return true;
 	}
 
@@ -130,9 +128,9 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	}
 	bool ReadStringTable(MessageBuffer &message) {
 		auto hdr = message.GetHeader();
-		m_CharTable.resize(hdr->ElementCount);
+		m_ByteTable.resize(hdr->ElementCount);
 		size_t len = hdr->ElementCount * sizeof(Char);
-		memcpy(&m_CharTable[0], message.PullBytes(len), len);
+		memcpy(&m_ByteTable[0], message.PullBytes(len), len);
 		STARVFSErrorLog("string %d %d", hdr->ElementCount, len);
 		return true;
 	}
@@ -206,7 +204,7 @@ bool RemoteContainer::RegisterContent() const {
 //	for (FileID i = 2; i < count; ++i) {
 //		auto f = &m_Connection->m_FileTable[i];
 //		auto pid = idtable[f->m_ParentFileID];
-//		auto name = &m_Connection->m_CharTable[f->m_NameStringID];
+//		auto name = &m_Connection->m_ByteTable[f->m_NameStringID];
 //		auto fptr = table->AllocFile(pid, f->m_Hash, name);
 //
 //		if (!fptr) {
@@ -228,12 +226,12 @@ bool RemoteContainer::RegisterContent() const {
 
 //-------------------------------------------------------------------------------------------------
 
-bool RemoteContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+bool RemoteContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	out.reset();
 	if (!m_Connection)
 		return false;
 
-	return m_Connection->GetFileData(ContainerFID, out, DataSize);
+	return m_Connection->GetFileData(ContainerFID, out);
 }
 
 //-------------------------------------------------------------------------------------------------

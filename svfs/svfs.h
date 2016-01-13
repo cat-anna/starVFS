@@ -46,6 +46,7 @@ private:
 	
 	void CoutDumpStructure() { DumpStructure(std::cout); }
 	void CoutDumpFileTable() { DumpFileTable(std::cout); }
+	void CoutDumpHashTable() { DumpHashTable(std::cout); }
 
 };
 

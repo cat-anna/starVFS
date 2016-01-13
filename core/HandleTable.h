@@ -20,7 +20,7 @@ public:
 
 	FileSize HandleGetSize(const FileHandle& h) const;
 	String HandleGetFullPath(const FileHandle& h) const;
-	bool HandleGetFileData(const FileHandle& h, CharTable &data, FileSize *fsize) const;
+	bool HandleGetFileData(const FileHandle& h, ByteTable &data) const;
 	RWMode HandleGetRWMode(const FileHandle& h) const;
 	bool HandleIsDirectory(const FileHandle& h) const;
 	bool HandleIsSymlink(const FileHandle& h) const;

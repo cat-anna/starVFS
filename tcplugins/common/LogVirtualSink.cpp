@@ -36,17 +36,12 @@ struct LogVirtualSink::LogFile : public BaseDynamicFileInterface {
 
 //-----------------------------------------------------------------------------
 
-LogVirtualSink *LogVirtualSink::s_Instance = nullptr;
-
 LogVirtualSink::LogVirtualSink(StarVFS::StarVFS *svfs): StarVFS::Modules::iModule(svfs) {
 	::StarVFS::StarVFSLogSink = LogLineInsert;
-	assert(!s_Instance);
-	s_Instance = this;
 	m_Impl = std::make_unique<Impl>();
 }
 
 LogVirtualSink::~LogVirtualSink() {
-	s_Instance = nullptr;
 }
 
 //-------------------------------------------------------------------------------------------------

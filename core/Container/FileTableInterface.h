@@ -28,10 +28,12 @@ public:
 
 	bool EnsureReserve(FileID count);
 
-	FileID FindFile(const String& InternalFullPath);
+	FileID FindFile(const CString InternalFullPath);
 	FileID FindFile(FilePathHash PathHash);
 
-	FileID AllocFileID(const String& InternalFullPath);
+	FileID AllocFileID(const CString InternalFullPath);
+	/** Forces full path to be valid. Several directories may be created if necessary. Function is slow, should not be used */
+	FileID ForceAllocFileID(const CString InternalFullPath);
 	FileID AllocFileID(FileID Parent, FilePathHash PathHash, const CString FileName);
 
 	FileID GetRootID() const { return m_MountPoint; }
@@ -41,6 +43,9 @@ public:
 	bool CreateDirectory(FileID fid, FileID cfid);
 	//bool CreateLink()
 	//bool DeleteFile()
+
+	/** function fails if container is not owner of fid pr fid is not a regular file */
+	bool UpdateFileSize(FileID fid, FileSize NewSize);
 
 	bool IsFileValid(FileID fid) const;
 	bool IsDirectory(FileID fid) const;

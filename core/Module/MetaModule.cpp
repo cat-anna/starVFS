@@ -55,6 +55,18 @@ private:
 	StarVFS *m_svfs;
 };
 
+struct HashTableMetaFile : public Containers::BaseDynamicFileInterface {
+	HashTableMetaFile(StarVFS *svfs) : m_svfs(svfs) {
+		StarVFSAssert(svfs);
+	}
+	void GenerateContent(std::ostream &o) override {
+		auto ft = m_svfs->GetFileTable();
+		ft->DumpHashTable(o);
+	}
+private:
+	StarVFS *m_svfs;
+};
+
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
@@ -93,6 +105,11 @@ bool MetaModule::Enable() {
 		auto f = std::make_shared<StatisticsMetaFile>(GetVFS());
 		m_MetaFiles.emplace_back(f);
 		m_MetaContainer->AddFile(f, "/$Statistics");
+	}
+	{
+		auto f = std::make_shared<HashTableMetaFile>(GetVFS());
+		m_MetaFiles.emplace_back(f);
+		m_MetaContainer->AddFile(f, "/$HashTable");
 	}
 	return true;
 }

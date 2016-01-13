@@ -33,9 +33,11 @@ public:
 
 	size_t GetSize() const;
 
-//	bool ReadFromSection(size_t SectionOffset, size_t Offset, CharTable &data, size_t ToRead, size_t *read = nullptr) const;
+//	bool ReadFromSection(size_t SectionOffset, size_t Offset, ByteTable &data, size_t ToRead, size_t *read = nullptr) const;
 
 	operator bool() const { return IsOk(); }
+
+	void SetBlockAlignValue(unsigned value) { m_BlockWriteAllign = value; }
 private: 
 	union {
 		struct {
@@ -46,6 +48,7 @@ private:
 		};
 		uint32_t _uintvalue;
 	} Flags;
+	unsigned m_BlockWriteAllign;
 
 	struct FILEDeleter {
 		void operator()(FILE *f);
@@ -56,6 +59,7 @@ private:
 	bool SeekEnd(size_t Offset) const;
 	bool RawRead(char *data, size_t ToRead, size_t *read = nullptr) const;
 	bool RawWrite(const char *data, size_t ToWrite, size_t *written = nullptr) const;
+	bool CheckWriteAligment(bool DoFill) const;
 };
 
 } //namespace RDC 

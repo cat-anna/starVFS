@@ -30,8 +30,8 @@ struct ReaderLoadMetaStruct {
 	Headers::CurrentVersion::SectionHeader& GetStringTableSection() { return Sections[StringTableIndex]; }
 	Headers::CurrentVersion::SectionHeader& GetFileTableSection() { return Sections[FileTableIndex]; }
 
-	UniqueCharTable SectionsData;
-	UniqueCharTable FileTableData;
+	UniqueByteTable SectionsData;
+	UniqueByteTable FileTableData;
 };
 
 

@@ -126,15 +126,14 @@ static void InstallFileHandle(lua_State *lua) {
 			//no args
 			auto *h = (FileHandle*)this;
 
-			StarVFS::CharTable ct;
-			StarVFS::FileSize fs;
-			if (!h->GetFileData(ct, &fs)) {
+			StarVFS::ByteTable ct;
+			if (!h->GetFileData(ct)) {
 				lua_pushnil(Lua);
 				return 1;
 			}
 
-			lua_pushlstring(Lua, ct.get(), fs);
-			lua_pushinteger(Lua, fs);
+			lua_pushlstring(Lua, ct.get(), ct.byte_size());
+			lua_pushinteger(Lua, ct.byte_size());
 			return 2;
 		}
 	};
@@ -152,7 +151,7 @@ static void InstallFileHandle(lua_State *lua) {
 			.addFunction("Close", &FileHandle::Close)
 			.addCFunction("GetChildren", (int(FileHandle::*)(lua_State *))&FileHandleHelper::EnumerateChildren)
 			.addCFunction("GetFileData", (int(FileHandle::*)(lua_State *))&FileHandleHelper::GetFileData)
-			//bool GetFileData(CharTable &data) const;
+			//bool GetFileData(ByteTable &data) const;
 			.endClass()
 		.endNamespace()
 	;

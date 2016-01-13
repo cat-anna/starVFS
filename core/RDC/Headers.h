@@ -22,6 +22,11 @@ using u32 = uint32_t;
 using u16 = uint16_t;
 using u8 = uint8_t;
 
+#define RDC_HEADER_STRUCTURE(NAME)\
+	using ThisClass = NAME; \
+	void Zero() { memset(this, 0, sizeof(*this)); }\
+	void Reset() { *this = ThisClass(); }
+
 struct VersionValue {
 	u8 Major = 0;
 	u8 Minor = 0;
@@ -48,10 +53,8 @@ struct FileHeader {
 
 	u32 unused_32_0 = UNUSED32;
 	u32 unused_32_1 = UNUSED32;
-
-	void Zero() { memset(this, 0, sizeof(*this)); }
 };
-static_assert(sizeof(FileHeader) % 4 == 0, "FileHeader has invalid size!");
+static_assert(sizeof(FileHeader) % 16 == 0, "FileHeader has invalid size!");
 
 // There always must be an EmptyEntry section at the end of section table
 enum class SectionType : u8 {
@@ -68,6 +71,7 @@ enum class SectionType : u8 {
 
 enum class CompressionMode : u8 {
 	None,
+	ZLib,
 };
 
 enum class EncryptionMode : u8 {

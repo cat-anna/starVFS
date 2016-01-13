@@ -30,9 +30,8 @@ public:
 
 	bool Open(const String& FileName);
 
-	bool ReadBlock(void *data, Size size, const DataBlock &blockdesc) const;
-	bool ReadBlock(CharTable &out, Size &out_size, const DataBlock &blockdesc) const;
-	bool OffsetReadBlock(CharTable &out, Size &out_size, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const;
+	bool ReadBlock(ByteTable &out, const DataBlock &blockdesc) const;
+	bool OffsetReadBlock(ByteTable &out, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const;
 
 	bool FindMountEntries(std::vector<MountEntryInfo> &out) const;
 	bool LoadStringTable(SectionIndex Index, StringTable &out) const;
@@ -42,13 +41,17 @@ public:
 
 	static bool TestFooterIntegrity(UniqueBlockFileDevice &device, FileFooter *footer = nullptr);
 
-	const std::vector<SectionDescriptor>& GetSections() const { return m_Sections; }
+	const unique_table<SectionDescriptor>& GetSections() const { return m_Sections; }
 protected:
 private:
-	std::vector<SectionDescriptor> m_Sections;
+	unique_table<SectionDescriptor> m_Sections;
+	BlockProcessor m_BlockProcessor;
 
 	template<SectionType Type, class TableType>
-	bool BaseReadTableBlock(SectionIndex Index, TableType &out) const;
+	bool ReadSectionBlock(SectionIndex Index, TableType &out) const;
+
+	template<class TableType>
+	bool ReadBlock(TableType &out, const DataBlock &blockdesc) const;
 };
 
 } //namespace Version_1 

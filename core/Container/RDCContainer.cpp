@@ -133,7 +133,7 @@ bool RDCContainer::RegisterContent() const {
 		if (in.Flags & RDCFile::FlagBits::Directory)
 			out.m_Flags.Directory = 1;
 
-		if (i > 2)
+		if (i > 1)
 			out.m_Flags.Valid = 1;
 	}
 
@@ -147,10 +147,8 @@ bool RDCContainer::RegisterContent() const {
 	return true;
 }
 
-bool RDCContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+bool RDCContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	out.reset();
-	if (DataSize)
-		*DataSize = 0;
 	if (!m_Flags.HasOffsetTable) {
 		//todo: log
 		return false;
@@ -160,8 +158,7 @@ bool RDCContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *Da
 		return false;
 	}
 	
-	FileSize unusedsize;
-	if (!m_Reader->OffsetReadBlock(out, DataSize ? *DataSize : unusedsize, m_OffsetTable[ContainerFID], m_RawSectionBaseBlock)) {
+	if (!m_Reader->OffsetReadBlock(out, m_OffsetTable[ContainerFID], m_RawSectionBaseBlock)) {
 		out.reset();
 		return false;
 	}

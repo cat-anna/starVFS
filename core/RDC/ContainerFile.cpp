@@ -36,7 +36,7 @@ void CFile::seek_read_back(size_t offset) {
 	m_file->seekg(-((long)offset), std::ios::end); 
 }
 
-bool CFile::WriteBlock(UniqueCharTable &data, Headers::u32 dataSize, CurrentVersion::DataBlock &block) {
+bool CFile::WriteBlock(UniqueByteTable &data, Headers::u32 dataSize, CurrentVersion::DataBlock &block) {
 	block.ContainerSize = block.RealSize = dataSize;
 	block.FilePointer = WriteLocation();
 	return write(data.get(), dataSize);
@@ -48,7 +48,7 @@ bool CFile::WriteBlock(const void *data, Headers::u32 dataSize, CurrentVersion::
 	return write((char*)data, dataSize);
 }
 
-bool CFile::ReadBlock(UniqueCharTable &data, const CurrentVersion::DataBlock &block) {
+bool CFile::ReadBlock(UniqueByteTable &data, const CurrentVersion::DataBlock &block) {
 	data.reset(new char[block.RealSize + 1]);
 	data[block.RealSize] = 0;
 	seek_read(block.FilePointer);

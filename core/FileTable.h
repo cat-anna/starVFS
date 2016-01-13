@@ -20,7 +20,7 @@ public:
 	void DumpFileTable(std::ostream &out) const;
 	void DumpHashTable(std::ostream &out) const;
 
-	File* AllocFile(const String& InternalFullPath);
+	File* AllocFile(const CString InternalFullPath);
 	File* AllocFile(FileID Parent, FilePathHash PathHash, const CString FileName);
 
 	struct FileStructureInfo {
@@ -62,7 +62,7 @@ public:
 
 	const CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const;
-	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
+	bool GetFileData(FileID fid, ByteTable &data);
 	FileFlags GetFileFlags(FileID fid) const;
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
@@ -84,7 +84,7 @@ private:
 	bool Realloc(FileID NewCapacity);
 
 	File* AllocNewFile();
-	File* AllocNewFile(File *Parent, FilePathHash PathHash, const CString FName);
+	File* AllocNewFile(FileID ParentID, FilePathHash PathHash, const CString FName);
 	File* AllocNewFile(const CString fullpath);
 
 };

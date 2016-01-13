@@ -37,6 +37,7 @@ bool SVFS::Initialize() {
 			.deriveClass<SVFS, ::StarVFS::StarVFS >("SVFS")
 				.addFunction("DumpStructure", &SVFS::CoutDumpStructure)
 				.addFunction("DumpFileTable", &SVFS::CoutDumpFileTable)
+				.addFunction("DumpHashTable", &SVFS::CoutDumpHashTable)
 
 				.addFunction("ForcePath", &SVFS::RawForcePath)
 

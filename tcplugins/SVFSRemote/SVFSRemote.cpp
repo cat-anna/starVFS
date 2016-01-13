@@ -48,13 +48,12 @@ bool SVFSRemote::GetFile(const char *src, const char *dst) {
 	if (!h)
 		return false;
 
-	StarVFS::CharTable ct;
-	StarVFS::FileSize fs;
-	if (!h.GetFileData(ct, &fs))
+	StarVFS::ByteTable ct;
+	if (!h.GetFileData(ct))
 		return false;
 
 	std::ofstream f(dst, std::ios::out | std::ios::binary);
-	f.write(ct.get(), fs);
+	f.write(ct.get(), ct.byte_size());
 	f.close();
 
 	ProgressProc(src, dst, 100);

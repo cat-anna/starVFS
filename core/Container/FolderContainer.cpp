@@ -79,7 +79,7 @@ bool FolderContainer::RegisterContent() const {
 	for (FileID cfid = 0, j = fcount; cfid < j; ++cfid) {
 		auto &f = m_FileEntry[cfid];
 
-		FileID fid = fti->AllocFileID(f.m_SubPath);
+		FileID fid = fti->AllocFileID((CString)f.m_SubPath.c_str());
 		if (!fid){
 			STARVFSErrorLog("Failed to alloc fileid for %s", f.m_SubPath.c_str());
 			continue;
@@ -109,10 +109,8 @@ FileID FolderContainer::GetFileCount() const {
 	return static_cast<FileID>(m_FileEntry.size());
 }
 
-bool FolderContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+bool FolderContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	out.reset();
-	if (DataSize)
-		*DataSize = 0;
 	if (ContainerFID >= m_FileEntry.size())
 		return false;
 
@@ -124,12 +122,9 @@ bool FolderContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize 
 
 	auto size = (size_t)boost::filesystem::file_size(f.m_FullPath);
 
-	out.reset(new char[size + 1]);
-	out[size] = '\0';
-	inp.read(&out[0], size);
+	out.make_new(size);
+	inp.read(out.get(), size);
 	inp.close();
-	if (DataSize)
-		*DataSize = size;
 	return true;
 }
 

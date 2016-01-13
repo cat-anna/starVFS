@@ -6,7 +6,7 @@ group "tcplugins"
 		targetdir(dir.bin .. "tc/SVFSRemote")
 		
 		links  {
-			"StarVFS",
+			"StaticZLib",
 		}
 		files {
 			"**",

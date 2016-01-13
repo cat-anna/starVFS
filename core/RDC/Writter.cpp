@@ -50,7 +50,7 @@ struct WritterContainerMeta {
 
 struct WritterFileNode : public FileNode {
 	FilePointer StringTablePointer;
-	UniqueCharTable Bytes;
+	UniqueByteTable Bytes;
 
 	std::list<WritterFileNode*> Children;
 

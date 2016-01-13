@@ -176,12 +176,12 @@ bool HashFileTable::Resize(FileID NewCapacity) {
 	FilePathHash *NewHashTable = (FilePathHash*)NewMemory.get();
 	FileID *NewFileIDTable = (FileID*)((char*)NewHashTable + sizeof(FilePathHash) * NewCapacity);
 
-	if (m_MaxIndex > 0) {
-		memcpy(NewHashTable, m_HashTable, sizeof(FilePathHash) * m_MaxIndex);
-		memcpy(NewFileIDTable, m_FileIDTable, sizeof(FileID) * m_MaxIndex);
-	}
+//	if (m_MaxIndex > 0) {
+		memcpy(NewHashTable, m_HashTable, sizeof(FilePathHash) * m_Allocated);
+		memcpy(NewFileIDTable, m_FileIDTable, sizeof(FileID) * m_Allocated);
+//	}
 
-	STARVFSDebugLog("Reallocated FileTable to %d entries", NewCapacity);
+	STARVFSDebugLog("Reallocated FileHashTable to %d entries", NewCapacity);
 	m_Memory.swap(NewMemory);
 	m_Capacity = NewCapacity;
 	m_HashTable = NewHashTable;

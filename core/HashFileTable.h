@@ -27,6 +27,18 @@ public:
 	//void SortHashTable();
 
 	bool Resize(FileID NewCapacity);
+	FileID GetAllocated() const { return m_Allocated; }
+
+	FileID GetFileIDAtIndex(FileID index) const {
+		if (index >= m_Allocated)
+			return 0;
+		return m_FileIDTable[index];
+	}
+	FilePathHash GetPathHashAtIndex(FileID index) const {
+		if (index >= m_Allocated)
+			return 0;
+		return m_HashTable[index];
+	}
 private:
 	union Flags_t {
 		uint8_t intval;
