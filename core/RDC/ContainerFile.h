@@ -31,7 +31,7 @@ struct CFile {
 		return true;
 	}
 
-	bool WriteBlock(UniqueCharTable &data, Headers::u32 dataSize, CurrentVersion::DataBlock &block);
+	bool WriteBlock(UniqueByteTable &data, Headers::u32 dataSize, CurrentVersion::DataBlock &block);
 	bool WriteBlock(const void *data, Headers::u32 blockSize, CurrentVersion::DataBlock &block);
 
 	template <class T>
@@ -39,7 +39,7 @@ struct CFile {
 		return WriteBlock(data, sizeof(T) * Count, block);
 	}
 
-	bool ReadBlock(UniqueCharTable &data, const CurrentVersion::DataBlock &block);
+	bool ReadBlock(UniqueByteTable &data, const CurrentVersion::DataBlock &block);
 
 	Headers::CurrentVersion::FilePointer WriteLocation() const { return static_cast<Headers::CurrentVersion::FilePointer>(m_file->tellp()); }
 

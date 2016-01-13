@@ -14,7 +14,7 @@
 
 class LogVirtualSink : public StarVFS::Modules::iModule {
 public:
- 	LogVirtualSink(StarVFS::StarVFS *svfs);
+	LogVirtualSink(StarVFS::StarVFS *svfs);
  	virtual ~LogVirtualSink();
 
 	virtual bool Enable() override;
@@ -25,8 +25,6 @@ private:
 	struct Impl;
 	struct LogFile;
 	std::unique_ptr<Impl> m_Impl;
-
-	static LogVirtualSink *s_Instance;
 };
 
 #endif

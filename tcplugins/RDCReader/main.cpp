@@ -15,7 +15,7 @@ using namespace MoonGlare::FileSystem::MoonGlareContainer::Headers;
 using namespace MoonGlare::FileSystem::MoonGlareContainer::Headers::CurrentVersion;
 
 struct MetaFileBlock {
-	UniqueCharTable Data;
+	UniqueByteTable Data;
 	u32 DataLen;
 };
 

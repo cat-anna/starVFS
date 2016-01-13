@@ -43,6 +43,12 @@ struct RDCExporter::Impl {
 		mountentry->SetFileStructureTable(structure);
 		mountentry->SetHashTableSection(hashtable);
 
+		if (m_CompressionMode != RDC::CompressionMode::None) {
+			m_Builder->ForEachSection([this](RDC::Version_1::Sections::BaseSection * s) {
+				s->SetCompression(m_CompressionMode, m_CompressionLevel);
+			});
+		}
+
 		auto &inputfiles = m_Owner->GetFileList();
 		
 		auto &outputfiles = structure->GetTable();
@@ -53,7 +59,7 @@ struct RDCExporter::Impl {
 		blocktable.resize(inputfiles.size());
 		hasht.resize(inputfiles.size());
 
-		for (size_t i = 0, j = inputfiles.size(); i < j; ++i) {
+		for (size_t i = 1, j = inputfiles.size(); i < j; ++i) {
 			auto &inf = inputfiles[i];
 			auto &outf = outputfiles[i];
 			auto &outblock = blocktable[i];
@@ -69,19 +75,29 @@ struct RDCExporter::Impl {
 
 			hasht[i] = inf.m_Hash;
 			//outf.SymLinkIndex = 
+
+			if (m_CompressionMode != RDC::CompressionMode::None) {
+				outblock.Compression.Mode = m_CompressionMode;
+				outblock.Compression.Level = (RDC::u8)m_CompressionLevel;
+			}
 			
 			if (inf.m_Flags.ValidFile()) {
-				CharTable ct;
-				FileSize size;
-				if (!m_Owner->GetSVFS()->GetFileData(inf.m_VFSFileID, ct, &size)) {
-					STARVFSErrorLog("Failed to read content of file %d", inf.m_VFSFileID);
+				ByteTable ct;
+				if (!m_Owner->GetSVFS()->GetFileData(inf.m_VFSFileID, ct)) {
+					auto path = m_Owner->GetSVFS()->GetFullFilePath(inf.m_VFSFileID);
+					STARVFSErrorLog("Failed to read content of file %d (%s)", inf.m_VFSFileID, path.c_str());
 				} else {
-					if (!rawdata->PushOffsetDataBlock(ct, size, outblock)) {
-						STARVFSErrorLog("Failed to export content of file %d", inf.m_VFSFileID);
+					auto ret = rawdata->PushOffsetDataBlock(ct, outblock);
+					if(!ret) {
+						auto path = m_Owner->GetSVFS()->GetFullFilePath(inf.m_VFSFileID);
+						STARVFSErrorLog("Failed to export content of file %d (%s)", inf.m_VFSFileID, path.c_str());
+					}
+					if (ret.m_Compression == Compression::CompressionResult::UnableToReduceSize) {
+						auto path = m_Owner->GetSVFS()->GetFullFilePath(inf.m_VFSFileID);
+						STARVFSDebugLog("File %d (%s) was not compressed. Reason: Unable to reduce size", inf.m_VFSFileID, path.c_str());
 					}
 				}
 			}
-
 		}
 		
 		//todo: work
@@ -97,6 +113,11 @@ struct RDCExporter::Impl {
 	RDCExporter *m_Owner;
 	std::unique_ptr<RDC::Version_1::Builder_v1> m_Builder;
 	const std::vector<iExporter::ExporterFile> *m_FileList;
+
+	String m_StringCompressionLevel, m_StringCompressionMode;
+
+	RDC::CompressionMode m_CompressionMode = RDC::CompressionMode::None;
+	Compression::Compressionlevel m_CompressionLevel;
 };
 
 //-----------------------------------------------------------------------------
@@ -104,6 +125,7 @@ struct RDCExporter::Impl {
 //-----------------------------------------------------------------------------
 
 RDCExporter::RDCExporter(StarVFS *svfs) : iExporter(svfs) {
+	m_Impl = std::make_unique<Impl>(this);
 }
 
 RDCExporter::~RDCExporter() {
@@ -112,7 +134,51 @@ RDCExporter::~RDCExporter() {
 //-----------------------------------------------------------------------------
 
 ExportResult RDCExporter::WriteLocalFile(const String &LocalFileName) {
-	return Impl(this).Export(LocalFileName);
+	return m_Impl->Export(LocalFileName);
+}
+
+//-----------------------------------------------------------------------------
+
+void RDCExporter::SetCompressionMode(const String& value) {
+	m_Impl->m_StringCompressionMode = value;
+
+	if (!stricmp(value.c_str(), "zlib")) {
+		m_Impl->m_CompressionMode = RDC::CompressionMode::ZLib;
+	} else {
+		m_Impl->m_CompressionMode = RDC::CompressionMode::None;
+		STARVFSErrorLog("Unknown compression mode %s", value.c_str());
+	}
+}
+
+const String& RDCExporter::GetCompressionMode() const {
+	return m_Impl->m_StringCompressionMode;
+}
+
+void RDCExporter::SetCompressionLevel(const String& value) {
+	m_Impl->m_StringCompressionLevel = value;
+
+	if (!stricmp(value.c_str(), "low")) {
+		m_Impl->m_CompressionLevel = Compression::Compressionlevel::Low;
+	} else {
+		if (!stricmp(value.c_str(), "medium")) {
+			m_Impl->m_CompressionLevel = Compression::Compressionlevel::Medium;
+		} else {
+			if (!stricmp(value.c_str(), "high")) {
+				m_Impl->m_CompressionLevel = Compression::Compressionlevel::High;
+			} else {
+				if (!stricmp(value.c_str(), "none")) {
+					m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
+				} else {
+					m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
+					STARVFSErrorLog("Unknown compression level %s", value.c_str());
+				}
+			}
+		}
+	}
+}
+
+const String& RDCExporter::GetCompressionLevel() const {
+	return m_Impl->m_StringCompressionLevel;
 }
 
 } //namespace Exporters 

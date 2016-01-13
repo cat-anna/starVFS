@@ -34,6 +34,7 @@ public:
 	/** Debug function. Prints all files in human-readable format. */
 	void DumpStructure(std::ostream &out) const;
 	void DumpFileTable(std::ostream &out) const;
+	void DumpHashTable(std::ostream &out) const;
 
 	bool ForcePath(const String& path);
 
@@ -43,7 +44,7 @@ public:
 	String GetFullFilePath(FileID fid) const;
 	const CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
-	bool GetFileData(FileID fid, CharTable &data, FileSize *fsize = nullptr);
+	bool GetFileData(FileID fid, ByteTable &data);
 
 	FileHandle OpenFile(const String& FileName, RWMode ReadMode = RWMode::R, OpenMode FileMode = OpenMode::OpenExisting);
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);

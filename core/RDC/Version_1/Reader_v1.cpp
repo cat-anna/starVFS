@@ -6,11 +6,11 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "../nRDC.h"
+#include "../../Utils/ZlibCompression.h"
 
 namespace StarVFS {
 namespace RDC {
 namespace Version_1 {
-
 
 Reader_v1::Reader_v1() {
 }
@@ -21,10 +21,9 @@ Reader_v1::~Reader_v1() {
 //-----------------------------------------------------------------------------
 
 bool Reader_v1::Open(const String& FileName) {
-	if (m_FileDevice)
+	if (GetDevice())
 		return false;
 
-	FileHeader header;
 	FileFooter footer;
 
 	{
@@ -32,21 +31,20 @@ bool Reader_v1::Open(const String& FileName) {
 		if (!device->OpenForRead(FileName))
 			return false;
 
-		if (!TestHeaderIntegrity(device, &header))
+		if (!TestHeaderIntegrity(device, &m_Header))
 			return false;
 
-		if (header.Version.Major != 1)
+		if (m_Header.Version.Major != 1)
 			return false;
 
 		if (!TestFooterIntegrity(device, &footer))
 			return false;
-		m_FileDevice.swap(device);
+		SetDevice(std::move(device));
 	}
 
-	m_Sections.resize(footer.SectionCount);
-	if (!ReadBlock((char*)&m_Sections[0], footer.SectionCount * sizeof(m_Sections[0]), footer.SectionTableBlock)) {
-		m_Sections.clear();
-		m_FileDevice.reset();
+	if (!ReadBlock(m_Sections, footer.SectionTableBlock)) {
+		m_Sections.reset();
+		SetDevice(nullptr);
 		return false;
 	}
 
@@ -55,65 +53,41 @@ bool Reader_v1::Open(const String& FileName) {
 
 //-----------------------------------------------------------------------------
 
-bool Reader_v1::ReadBlock(void *data, Size size, const DataBlock &blockdesc) const {
+template<class TableType>
+bool Reader_v1::ReadBlock(TableType &out, const DataBlock &blockdesc) const {
+	out.reset();
+	ByteTable bt;
 
-	auto dev = GetDevice();
-	if (!dev) {
-		//todo: log
+	if (!m_BlockProcessor.ReadBlock(GetDevice(), bt, blockdesc)) {
+		STARVFSErrorLog("Failed to read block from container!");
 		return false;
 	}
 
-	if (!dev->ReadFromBegining(blockdesc.FilePointer, (char*)data, size))
-		return false;
-
+	out.assign_from(bt);
 	return true;
 }
 
-bool Reader_v1::ReadBlock(CharTable &out, Size &out_size, const DataBlock &blockdesc) const {
-	out.reset();
-	out_size = 0;
-
-	CharTable ct;
-	out_size = blockdesc.GetRawSize();
-	ct.reset(new char[out_size + 1]);
-	ct[out_size] = 0;
-
-	if (!ReadBlock(ct.get(), out_size, blockdesc)) {
-		return false;
-	}
-
-	out.swap(ct);
-	return true;
+bool Reader_v1::ReadBlock(ByteTable &out, const DataBlock &blockdesc) const {
+	return ReadBlock<ByteTable>(out, blockdesc);
 }
 
-bool Reader_v1::OffsetReadBlock(CharTable &out, Size &out_size, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const {
+bool Reader_v1::OffsetReadBlock(ByteTable &out, const OffsetDataBlock &offsetblockdesc, const DataBlock &blockdesc) const {
 	out.reset();
-	out_size = 0;
+	ByteTable bt;
 
-	auto dev = GetDevice();
-	if (!dev) {
-		//todo: log
+	if (!m_BlockProcessor.ReadBlock(GetDevice(), bt, offsetblockdesc, blockdesc)) {
+		STARVFSErrorLog("Failed to read block from container!");
 		return false;
 	}
 
-	CharTable ct;
-	out_size = offsetblockdesc.GetRawSize();
-	ct.reset(new char[out_size + 1]);
-	ct[out_size] = 0;
-
-	if (!dev->ReadFromBegining(blockdesc.FilePointer + offsetblockdesc.SectionOffset, ct.get(), out_size)) {
-		out_size = 0;
-		return false;
-	}
-
-	out.swap(ct);
+	out.swap(bt);
 	return true;
 }
 
 //-----------------------------------------------------------------------------
 
 template<SectionType Type, class TableType>
-bool Reader_v1::BaseReadTableBlock(SectionIndex Index, TableType &out) const {
+bool Reader_v1::ReadSectionBlock(SectionIndex Index, TableType &out) const {
 	out.reset();
 
 	if (m_Sections.size() <= (size_t)Index) {
@@ -126,8 +100,7 @@ bool Reader_v1::BaseReadTableBlock(SectionIndex Index, TableType &out) const {
 		return false;
 	}
 
-	out.New(section.SectionBlock.GetRawSize() / sizeof(TableType::item_t));
-	if (!ReadBlock(out.get(), out.byte_size(), section.SectionBlock)) {
+	if (!ReadBlock(out, section.SectionBlock)) {
 		STARVFSErrorLog("Failed to read block (index: %d, tabletype: %s)", Index, typeid(out).name());
 		return false;
 	}
@@ -136,19 +109,19 @@ bool Reader_v1::BaseReadTableBlock(SectionIndex Index, TableType &out) const {
 }
 
 bool Reader_v1::LoadHashTable(SectionIndex Index, HashTable &out) const {
-	return BaseReadTableBlock<SectionType::HashTable>(Index, out);
+	return ReadSectionBlock<SectionType::HashTable>(Index, out);
 }
 
 bool Reader_v1::LoadOffsetDataBlockTable(SectionIndex Index, OffsetDataBlockTable &out) const {
-	return BaseReadTableBlock<SectionType::OffsetDataBlockTable>(Index, out);
+	return ReadSectionBlock<SectionType::OffsetDataBlockTable>(Index, out);
 }
 
 bool Reader_v1::LoadFileStructureTable(SectionIndex Index, FileStructureTable &out) const {
-	return BaseReadTableBlock<SectionType::FileStructureTable>(Index, out);
+	return ReadSectionBlock<SectionType::FileStructureTable>(Index, out);
 }
 
 bool Reader_v1::LoadStringTable(SectionIndex Index, StringTable &out) const {
-	return BaseReadTableBlock<SectionType::StringTable>(Index, out);
+	return ReadSectionBlock<SectionType::StringTable>(Index, out);
 }
 
 bool Reader_v1::FindMountEntries(std::vector<MountEntryInfo> &out) const {
@@ -160,11 +133,14 @@ bool Reader_v1::FindMountEntries(std::vector<MountEntryInfo> &out) const {
 
 		out.emplace_back();
 		auto &item = out.back();
-		if (!ReadBlock(&item.m_MountEntry, sizeof(item.m_MountEntry), it.SectionBlock)) {
+		ByteTable bt;
+		if (!ReadBlock(bt, it.SectionBlock)) {
 			out.pop_back();
 			//todo: not ignore error?
 			continue;
 		}
+
+		item.m_MountEntry = *((MountEntrySection*)(bt.get()));
 
 		item.m_SectionIndex = static_cast<SectionIndex>(i);
 	}

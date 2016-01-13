@@ -16,11 +16,19 @@
 //-----------------------------------------------------------------------------
 
 using namespace StarVFS::Containers;
+using namespace StarVFS::RDC;
 
 struct RDCMetaModule::Impl {
 	VirtualFileContainer *m_Container;
 	std::vector<SharedVirtualFileInterface> m_MetaFiles;
 	RDCContainer *m_RDC;
+
+	template<class T>
+	void AddFile(const char * location) {
+		auto f = std::make_shared<T>(m_RDC);
+		m_MetaFiles.emplace_back(f);
+		m_Container->AddFile(f, location);
+	}
 };
 
 //-----------------------------------------------------------------------------
@@ -35,24 +43,65 @@ static char *SizeToString(char *buffer, float value) {
 	static const char *MagTable[] = {
 		"b", "KiB", "MiB", "GiB", "TiB", "?", "?",
 	};
-	sprintf(buffer, "%5.2f %s", value, MagTable[mag]);
+	sprintf(buffer, "%.2f %s", value, MagTable[mag]);
 	return buffer;
 }
 
+template<class ... ARGS>
+static char *dofmt(char *buffer, char *fmt, ARGS ... args) {
+	sprintf(buffer, fmt, args...);
+	return buffer;
+}
+
+struct FileHeaderMetaFile : public BaseDynamicFileInterface {
+	FileHeaderMetaFile(RDCContainer *RDC) : m_RDC(RDC) {}
+	virtual void GenerateContent(std::ostream &out) override {
+		if (!m_RDC) {
+			out << "Container is not opened!\n";
+			return;
+		}
+		auto rdc = m_RDC->GetRDCReader();
+		char buf128[128];
+
+		auto h = rdc->GetHeader();
+
+		out << "Reverse Data Container file header metafile";
+
+		union {
+			Signature sign;
+			char t[4];
+		} sign;
+		sign.sign = h.FileSignature;
+
+		out << dofmt(buf128, "Signature: %c%c%c%c\n", sign.t[0], sign.t[1], sign.t[2], sign.t[3]);
+		out << dofmt(buf128, "Version %d.%02d\n", h.Version.Major, h.Version.Minor);
+		out << dofmt(buf128, "Flags:\n");
+
+		out << "\n";
+	}
+private:
+	RDCContainer *m_RDC;
+};
+
 struct SectionsMetaFile : public BaseDynamicFileInterface {
 	SectionsMetaFile(RDCContainer *RDC) : m_RDC(RDC) {
-		assert(RDC);
 	}
 	virtual void GenerateContent(std::ostream &out) override {
+		if (!m_RDC) {
+			out << "Container is not opened!\n";
+			return;
+		}
 		auto rdc = m_RDC->GetRDCReader();
 
 		auto &sections = rdc->GetSections();
 
-		out << "Section table meta file\n";
+		out << "Reverse Data Container section table meta file\n";
 		out << "Container has " << sections.size() << " sections\n\n";
 
-		for (auto &it : sections) {
+		for (size_t i = 0, j = sections.size(); i < j;++i) {
+			auto &it = sections[i];
 			char buf128[128];
+			char buf128_2[128];
 
 			using SectionType = StarVFS::RDC::SectionType;
 			const char *stype = "Unknown";
@@ -65,14 +114,28 @@ struct SectionsMetaFile : public BaseDynamicFileInterface {
 			case SectionType::FileStructureTable: stype = "File structure section"; break;
 			case SectionType::HashTable: stype = "Hash section"; break;
 			}
-			sprintf(buf128, " (%d in container)", it.SectionBlock.ContainerSize);
-			out << "Section " << &it - &sections[0] << "\n";
-			out << "Type: " << (int)it.Type  << " (0x" << std::hex  << std::setw(2) << std::setfill('0') << (int)it.Type << ") (" << stype << ")\n";
-			out << "Location: 0x" << std::hex << it.SectionBlock.FilePointer << std::dec << "\n";
 			auto RawSize = it.SectionBlock.GetRawSize();
-			out << "Size: " << RawSize << " bytes (" << SizeToString(buf128, (float)RawSize) << ")\n";
+
+			out << "Section " << i << "\n";
+			out << dofmt(buf128, "Type:  %d (0x%02x) (%s)\n", (int)it.Type, (int)it.Type, stype);
+			out << dofmt(buf128, "Location: %x\n", (int)it.SectionBlock.FilePointer);
+			out << dofmt(buf128, "Size: %u bytes (%s)\n", (unsigned)RawSize, SizeToString(buf128_2, (float)RawSize));
 			if (RawSize != it.SectionBlock.ContainerSize) {
-				out << "Container size: " << it.SectionBlock.ContainerSize << " bytes (" << SizeToString(buf128, (float)it.SectionBlock.ContainerSize) << ")\n";
+				auto csize = it.SectionBlock.ContainerSize;
+				out << dofmt(buf128, "Container size: %u bytes (%s)\n", (unsigned)csize, SizeToString(buf128_2, (float)csize));
+			}
+			if (it.SectionBlock.Compression.Mode != CompressionMode::None) {
+				const char *cmode = "Unknown";
+				switch (it.SectionBlock.Compression.Mode) {
+				case CompressionMode::ZLib: cmode = "Zlib"; break;
+				default:
+					break;
+				}
+
+				out << dofmt(buf128, "Compression mode: 0x%02x (%s)\n", (int)it.SectionBlock.Compression.Mode, cmode);
+				out << dofmt(buf128, "Compression level: %d\n", (int)it.SectionBlock.Compression.Level);
+				float ratio = (float)it.SectionBlock.ContainerSize / (float)RawSize;
+				out << dofmt(buf128, "Compression ratio: %.1f%%\n", ratio * 100.0f);
 			}
 			out << "\n";
 		}
@@ -105,11 +168,9 @@ bool RDCMetaModule::Enable() {
 	if (!m_Impl->m_Container)
 		return false;
 
-	{
-		auto f = std::make_shared<SectionsMetaFile>(m_Impl->m_RDC);
-		m_Impl->m_MetaFiles.emplace_back(f);
-		m_Impl->m_Container->AddFile(f, "/$Sections");
-	}
+	m_Impl->AddFile<FileHeaderMetaFile>("/$Meta/$FileHeader");
+	m_Impl->AddFile<SectionsMetaFile>("/$Meta/$SectionTable");
+
 	return true;
 }
 

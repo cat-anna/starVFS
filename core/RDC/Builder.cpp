@@ -30,7 +30,7 @@ bool Builder::BeginFile(const String &FileName) {
 		//todo: log
 		return false;
 	}
-
+	dev->SetBlockAlignValue(Settings::BlockAlignmentValue);
 	m_FileDevice.swap(dev);
 
 	if (!WriteFileHeader()) {

@@ -19,14 +19,21 @@ public:
 
 	virtual std::unique_ptr<AttributeMapInstance> GetAttributeMapInstance() const {
 		auto atm = CreateAttributeMapInstance<RDCExporter>();
-		//atm->AddAttrib("Namespace", &InternalExporter::GetNamespace, &InternalExporter::SetNamespace);
-		//atm->AddAttrib("Name", &InternalExporter::GetName, &InternalExporter::SetName);
+		atm->AddAttrib("CompressionMode", &RDCExporter::GetCompressionMode, &RDCExporter::SetCompressionMode);
+		atm->AddAttrib("CompressionLevel", &RDCExporter::GetCompressionLevel, &RDCExporter::SetCompressionLevel);
+
 		return std::unique_ptr<AttributeMapInstance>(atm.release());
 	}
 
+	void SetCompressionMode(const String& value);
+	const String& GetCompressionMode() const;
+
+	void SetCompressionLevel(const String& value);
+	const String& GetCompressionLevel() const;
 private: 
 	virtual ExportResult WriteLocalFile(const String &LocalFileName) override;
 	struct Impl;
+	std::unique_ptr<Impl> m_Impl;
 };
 
 } //namespace Exporters 

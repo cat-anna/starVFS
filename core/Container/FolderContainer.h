@@ -26,7 +26,7 @@ public:
 
 	virtual RWMode GetRWMode() const override;
 
-	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
 
 	static bool CanOpen(const String& Location);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);

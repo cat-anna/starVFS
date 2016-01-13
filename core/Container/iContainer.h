@@ -39,8 +39,8 @@ public:
 	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
 
 	/** Container shall not do any buffering. */
-	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize = nullptr) const = 0;
-//	virtual bool SetFileData(FileID ContainerFID, const CharTable &in, FileSize DataSize) const = 0;
+	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const = 0;
+//	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in, FileSize DataSize) const = 0;
 
 	static bool CanOpen(const String&) { return false; }
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) { return CreateContainerResult(VFSErrorCode::InternalError, nullptr); }

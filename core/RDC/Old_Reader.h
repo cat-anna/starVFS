@@ -28,7 +28,7 @@ public:
 
 	virtual const string& GetFileName() const override;
 
-	bool ReadBlock(UniqueCharTable &data, const Headers::CurrentVersion::DataBlock &block) {
+	bool ReadBlock(UniqueByteTable &data, const Headers::CurrentVersion::DataBlock &block) {
 		return m_File.ReadBlock(data, block);
 	}
 

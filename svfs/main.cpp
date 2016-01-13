@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 	printf("size: %d\n", h.GetSize());
 	printf("rwmode: %d\n", h.GetRWMode());
 
-	StarVFS::CharTable ct;
+	StarVFS::ByteTable ct;
 	if (!h.GetFileData(ct)) {
 		printf("\nFailed to read data!\n");
 	} else {

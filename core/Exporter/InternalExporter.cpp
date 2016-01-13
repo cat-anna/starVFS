@@ -160,21 +160,20 @@ struct InternalExporter::ExporterImpl {
 				continue;
 			outfile << xsprintf(buf, "/* %s */\n", svfs->GetFullFilePath(f.m_VFSFID).c_str());
 			f.m_InternalFile.m_DataOffset = CurrentOffset;
-			CharTable ct;
-			FileSize fs;
+			ByteTable ct;
 			auto h = svfs->OpenFile(f.m_VFSFID);
-			if (!h || !h.GetFileData(ct, &fs)) {
+			if (!h || !h.GetFileData(ct)) {
 				outfile << "\t0, /* Error reading file! */\n";
 				++CurrentOffset;
 				f.m_InternalFile.m_Size = 1;
 				continue;
 			}
-			f.m_InternalFile.m_Size = fs;
+			f.m_InternalFile.m_Size = ct.byte_size();
 			outfile << "\t";
-			for (FileSize i = 0; i < fs; ++i) {
+			for (FileSize i = 0; i < ct.byte_size(); ++i) {
 				outfile << xsprintf(buf, "0x%02x,", ct[i] & 0xFF);
 			}
-			CurrentOffset += fs;
+			CurrentOffset += ct.byte_size();
 			outfile << "\n";
 		}
 		outfile << "};\n";		

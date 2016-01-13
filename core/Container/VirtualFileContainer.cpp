@@ -13,23 +13,20 @@ namespace Containers {
 VirtualFileInterface::VirtualFileInterface() {}
 VirtualFileInterface::~VirtualFileInterface() { }
 FileSize VirtualFileInterface::GetSize() const { return 0; }
-bool VirtualFileInterface::ReadFile(CharTable &out, FileSize *DataSize) const { out.reset();  return false; }
+bool VirtualFileInterface::ReadFile(ByteTable &out) const { out.reset(); return false; }
 
 //-------------------------------------------------------------------------------------------------
 
 BaseDynamicFileInterface::BaseDynamicFileInterface() : m_LastSize(0) {}
 BaseDynamicFileInterface::~BaseDynamicFileInterface() { }
 FileSize BaseDynamicFileInterface::GetSize() const { return m_LastSize; }
-bool BaseDynamicFileInterface::ReadFile(CharTable &out, FileSize *DataSize) const { 
+bool BaseDynamicFileInterface::ReadFile(ByteTable &out) const { 
 	std::stringstream ss;
 	const_cast<BaseDynamicFileInterface*>(this)->GenerateContent(ss);
 	std::string data = ss.str();
-	out.reset(new char[data.length() + 1]);
-	out[data.length()] = 0;
+	out.make_new(data.length());
 	memcpy(out.get(), data.c_str(), data.length());
 	m_LastSize = static_cast<FileSize>(data.length() + 1);
-	if (DataSize)
-		*DataSize = m_LastSize;
 	return true;
 }
 
@@ -39,8 +36,7 @@ bool BaseDynamicFileInterface::ReadFile(CharTable &out, FileSize *DataSize) cons
 VirtualFileContainer::VirtualFileContainer(FileTableInterface *fti):
 		iContainer(fti), m_InternalIDCounter(0) {
 	m_InternalIDCounter = 1;
-	m_Files.emplace_back(); //0 is not valid id allways
-
+	m_Files.emplace_back(); //0 is not valid id always
 }
 
 VirtualFileContainer::~VirtualFileContainer() {
@@ -48,7 +44,7 @@ VirtualFileContainer::~VirtualFileContainer() {
 
 //-------------------------------------------------------------------------------------------------
 
-bool VirtualFileContainer::GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const {
+bool VirtualFileContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	if(!ContainerFID || ContainerFID >= m_Files.size())
 		return false;
 
@@ -56,7 +52,12 @@ bool VirtualFileContainer::GetFileData(FileID ContainerFID, CharTable &out, File
 	auto ptr = f.GetPtr();
 	if (!ptr)
 		return false;
-	return ptr->ReadFile(out, DataSize);
+
+	auto ret = ptr->ReadFile(out);
+	if (ret) {
+		GetFileTableInterface()->UpdateFileSize(f.m_GlobalID, out.byte_size());
+	}
+	return ret;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -112,9 +113,11 @@ bool VirtualFileContainer::ReloadFile(FileInfo &fi) {
 
 	auto fti = GetFileTableInterface();
 
-	auto fid = fti->AllocFileID(fi.m_FullPath);
-	if (!fid)
+	auto fid = fti->ForceAllocFileID((CString)fi.m_FullPath.c_str());
+	if (!fid) {
+		STARVFSErrorLog("Failed to allocate file for '%s'", fi.m_FullPath.c_str());
 		return false;
+	}
 
 	fi.m_GlobalID = fid;
 	auto ptr = fi.GetPtr();

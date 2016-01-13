@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "config.h"
+#include "UniqueTable.h"
 
 namespace StarVFS {
 
@@ -24,7 +25,7 @@ using HandleEnumerateFunc = std::function<bool(FileID)>; //shall return false to
 template<class T, class INDEX> class DynamicStringTable;
 using StringTable = DynamicStringTable<Char, StringID>;
 
-using CharTable = std::unique_ptr<char[]>;
+using ByteTable = unique_table<char>;
 
 enum class VFSErrorCode {
 	Success,
@@ -66,7 +67,7 @@ union FileFlags {
 	struct {
 		uint8_t Valid : 1;				//Entry is valid
 		uint8_t Directory : 1;
-		uint8_t SymLink : 1;		//not yet used
+		uint8_t SymLink : 1;			//not yet used
 		uint8_t Deleted : 1;			//valid but deleted
 										//uint8_t Used : 1;
 										//uint8_t unused7 : 1;
@@ -108,45 +109,22 @@ static_assert(std::is_pod<File>::value, "File structure must be a POD type");
 
 //-------------------------------------------------------------------------------------------------
 
-template<class T>
-struct unique_table {
-	
-	using item_t = T;
+namespace Compression {
 
-	unique_table(const unique_table&) = delete;
-	unique_table& operator=(const unique_table&) = delete;
-	unique_table(): m_Table(), m_Size(0) { }
-
-	void New(size_t len) {
-		m_Table.reset(new T[len]);
-		m_Size = len;
-	}
-
-	T* get() { return m_Table.get(); }
-	const T* get() const { return m_Table.get(); }
-
-	size_t size() const { return m_Size; }
-	size_t byte_size() const { return m_Size * sizeof(T); }
-
-	T& operator[](size_t idx) { return m_Table[idx]; }
-	const T& operator[](size_t idx) const { return m_Table[idx]; }
-
-	void swap(unique_table &other) {
-		if (this == &other)
-			return;
-		other.m_Table.swap(m_Table);
-		std::swap(other.m_Size, m_Size);
-	}
-
-	void reset() {
-		m_Size = 0;
-		m_Table.reset();
-	}
-
-	operator bool() const { return static_cast<bool>(m_Table); }
-private:
-	std::unique_ptr<T[]> m_Table;
-	size_t m_Size = 0;
+enum class Compressionlevel : int {
+	NoCompression,
+	Low,
+	Medium,
+	High,
 };
+
+enum class CompressionResult {
+	Success,
+	NotEnabled,
+	UnableToReduceSize,
+	Failure,
+};
+
+} //namespace Compression 
 
 } //namespace StarVFS 

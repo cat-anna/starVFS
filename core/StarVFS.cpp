@@ -68,6 +68,10 @@ void StarVFS::DumpFileTable(std::ostream &out) const {
 	m_FileTable->DumpFileTable(out);
 }
 
+void StarVFS::DumpHashTable(std::ostream &out) const {
+	m_FileTable->DumpHashTable(out);
+}
+
 //-----------------------------------------------------------------------------
 
 bool StarVFS::IsFileValid(FileID fid) const {
@@ -95,8 +99,8 @@ FileSize StarVFS::GetFileSize(FileID fid) const {
 	return f->m_Size;
 }
 
-bool StarVFS::GetFileData(FileID fid, CharTable &data, FileSize *fsize) {
-	return m_FileTable->GetFileData(fid, data, fsize);
+bool StarVFS::GetFileData(FileID fid, ByteTable &data) {
+	return m_FileTable->GetFileData(fid, data);
 }
 
 Containers::iContainer* StarVFS::GetContainer(ContainerID cid) {

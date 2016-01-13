@@ -41,7 +41,7 @@ int PLUGINAPI FsGetFile(char* RemoteName, char* LocalName, int CopyFlags, Remote
 
 	auto ret = _Instance.GetFile(xPath, LocalName);
 
-	return FS_FILE_OK;
+	return ret ? FS_FILE_OK : FS_FILE_WRITEERROR;
 }
 
 PLUGINEXPORT

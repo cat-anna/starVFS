@@ -27,7 +27,7 @@ bool FileTableInterface::EnsureReserve(FileID count) {
 
 //-------------------------------------------------------------------------------------------------
 
-FileID FileTableInterface::FindFile(const String& InternalFullPath) {
+FileID FileTableInterface::FindFile(const CString InternalFullPath) {
 	return m_Owner->Lookup(InternalFullPath);
 }
 
@@ -37,7 +37,46 @@ FileID FileTableInterface::FindFile(FilePathHash PathHash) {
 
 //-------------------------------------------------------------------------------------------------
 
-FileID FileTableInterface::AllocFileID(const String& InternalFullPath) {
+FileID FileTableInterface::ForceAllocFileID(const CString InternalFullPath) {
+	CString it = InternalFullPath;
+	const CString base = it;
+	if (*it == '/')
+		++it;
+
+	while (true) {
+		size_t len;
+		auto pos = strchr(it, '/');
+		if (!pos) {
+			len = strlen(InternalFullPath);
+		} else {
+			len = pos - base;
+		}
+		auto fid = m_Owner->Lookup(base, len);
+		auto f = m_Owner->GetFile(fid);
+		if (!f) {
+			if (!pos) {
+				return AllocFileID(InternalFullPath);
+			} else {
+				String parentPath(base, len);
+				fid = AllocFileID((CString)parentPath.c_str());
+				if (!CreateDirectory(fid, 0)) {
+					STARVFSErrorLog("Failed to create directory");
+					return false;
+				}
+				f = m_Owner->GetFile(fid);
+			}
+		}
+		
+		if (!f->m_Flags.ValidDirectory()) {
+			STARVFSErrorLog("Cannot add child into file!");
+			return false;
+		}
+		
+		it = pos + 1;
+	}
+}
+
+FileID FileTableInterface::AllocFileID(const CString InternalFullPath) {
 	auto f = m_Owner->AllocFile(InternalFullPath);
 	if (!f)
 		return 0;
@@ -133,6 +172,18 @@ bool FileTableInterface::RegisterFileStructure(FileID Parent, const FileSubStruc
 	info.m_OwnerContainer = GetContainerID();
 
 	return m_Owner->RegisterStructureTable(info);
+}
+
+//-------------------------------------------------------------------------------------------------
+
+bool FileTableInterface::UpdateFileSize(FileID fid, FileSize NewSize) {
+	auto f = m_Owner->GetFile(fid);
+	if (!f || !f->m_Flags.ValidFile() || f->m_ContainerID != GetContainerID())
+		return false;
+
+	f->m_Size = NewSize;
+
+	return true;
 }
 
 } //namespace Containers 

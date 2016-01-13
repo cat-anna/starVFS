@@ -25,7 +25,7 @@ public:
 	virtual bool ReloadContainer() override;
 	virtual bool RegisterContent() const override;
 
-	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
 
 	virtual const String& GetFileName() const override { return m_FileName; }
 	virtual RWMode GetRWMode() const override { return RWMode::RW; };

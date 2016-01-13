@@ -58,8 +58,9 @@ TC_API HANDLE __stdcall OpenArchive(tOpenArchiveData *ArchiveData) {
 	auto ret = h->m_SVFS->CreateContainer<StarVFS::Containers::RDCContainer>("/", ArchiveData->ArcName);
 
 	if (ret.first != StarVFS::VFSErrorCode::Success) {
-		STARVFSErrorLog("Failed to open container. Error code: %d\n", ret);
-	}
+		STARVFSErrorLog("Failed to open container. Error code: %d\n", ret.first);
+	} 
+
 	h->m_Container = (StarVFS::Containers::RDCContainer*)ret.second;
 
 	auto metam = h->m_SVFS->AddModule<RDCMetaModule>(h->m_Container);
@@ -129,15 +130,14 @@ TC_API int __stdcall ProcessFile(HANDLE hArcData, int Operation, char *DestPath,
 			return E_EOPEN;
 		}
 
-		StarVFS::CharTable ct;
-		StarVFS::FileSize size;
+		StarVFS::ByteTable ct;
 
-		if (!fh.GetFileData(ct, &size)) {
+		if (!fh.GetFileData(ct)) {
 			return E_EREAD;
 		}
 
 		std::ofstream out(DestName, std::ios::out | std::ios::binary);
-		out.write(ct.get(), size);
+		out.write(ct.get(), ct.byte_size());
 		out.close();
 		return 0;
 	}

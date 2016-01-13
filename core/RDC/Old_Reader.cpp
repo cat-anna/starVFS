@@ -36,7 +36,7 @@ public:
 	virtual const string& FileName() const override { return m_File->Name; }
 private:
 	const ReaderFile* m_File;
-	mutable UniqueCharTable m_Data;
+	mutable UniqueByteTable m_Data;
 };
 
 GABI_IMPLEMENT_CLASS_NOCREATOR(RDCFileReader);
@@ -240,7 +240,7 @@ bool Reader::LoadSections(ReaderLoadMeta &meta) {
 
 bool Reader::LoadStringTable(ReaderLoadMeta &meta) {
 	auto &sts = meta->GetStringTableSection();
-	UniqueCharTable table;
+	UniqueByteTable table;
 	if (!m_File.ReadBlock(table, sts.SectionBlock))
 		return false;
 	meta->StringTable.reset((Headers::Version_0::StringTableSection*)table.release());

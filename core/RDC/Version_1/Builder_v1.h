@@ -26,11 +26,10 @@ public:
 	Sections::HashTableSection* CreateHashTable();
 
 	virtual VersionValue GetVersion() const override { return VersionValue::Make(1, 0); }
-
+	
+	using SectionEnumerateFunc = std::function<void(Sections::BaseSection*)>;
+	void ForEachSection(SectionEnumerateFunc func);
 protected:
-	bool WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc);
-	bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base);
-
 	virtual void Reset() override;
 	virtual bool WriteSections() override;
 	virtual bool WriteFileFooter() override;

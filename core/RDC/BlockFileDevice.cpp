@@ -18,6 +18,7 @@ void BlockFileDevice::FILEDeleter::operator()(FILE *f) {
 
 BlockFileDevice::BlockFileDevice() {
 	Flags._uintvalue = 0;
+	m_BlockWriteAllign = 1;
 }
 
 BlockFileDevice::~BlockFileDevice() {
@@ -134,6 +135,36 @@ bool BlockFileDevice::RawWrite(const char *data, size_t ToWrite, size_t *written
 	return w == ToWrite;
 }
 
+bool BlockFileDevice::CheckWriteAligment(bool DoFill) const {
+	if (m_BlockWriteAllign <= 1)
+		return true;
+
+	auto pos = ftell(m_File.get());
+	auto gap = pos % m_BlockWriteAllign;
+	if (gap == 0)
+		return true;
+	gap = m_BlockWriteAllign - gap - 1;
+	if (DoFill) {
+		char buf[32];
+		memset(buf, 0, gap > sizeof(buf) ? sizeof(buf) : gap);
+		while (gap > 0) {
+			auto w = fwrite(buf, 1, gap > sizeof(buf) ? sizeof(buf) : gap, m_File.get());
+			gap -= w;
+			if (w == 0) {
+				STARVFSErrorLog("gap fill failed!");
+				return false;
+			}
+		}
+	} else {
+		if (fseek(m_File.get(), gap, SEEK_CUR)) {
+			STARVFSErrorLog("File seek failed!");
+			return false;
+		}
+	}
+
+	return true;
+}
+
 //-----------------------------------------------------------------------------
 
 bool BlockFileDevice::ReadFromBegining(size_t Offset, char *data, size_t ToRead, size_t *read) const {
@@ -166,7 +197,7 @@ bool BlockFileDevice::WriteAt(size_t Offset, const char *data, size_t ToWrite, s
 		return true;
 	}
 	StarVFSAssert(data);
-	return CanWrite() && SeekBeg(Offset) && RawWrite(data, ToWrite, written);
+	return CanWrite() && SeekBeg(Offset) && RawWrite(data, ToWrite, written) && CheckWriteAligment(false);
 }
 
 bool BlockFileDevice::WriteAtEnd(const char *data, size_t ToWrite, size_t *written) const {
@@ -176,7 +207,7 @@ bool BlockFileDevice::WriteAtEnd(const char *data, size_t ToWrite, size_t *writt
 		return true;
 	}
 	StarVFSAssert(data);
-	return CanWrite() && SeekEnd(0) && RawWrite(data, ToWrite, written);
+	return CanWrite() && SeekEnd(0) && RawWrite(data, ToWrite, written) && CheckWriteAligment(true);
 }
 
 } //namespace RDC 

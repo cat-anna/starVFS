@@ -19,7 +19,7 @@ public:
 
 	virtual FileSize GetSize() const;
 
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const;
+	virtual bool ReadFile(ByteTable &out) const;
 	//write - tbd
 };
 
@@ -29,7 +29,7 @@ public:
 	virtual ~BaseDynamicFileInterface();
 
 	virtual FileSize GetSize() const final;
-	virtual bool ReadFile(CharTable &out, FileSize *DataSize) const final;
+	virtual bool ReadFile(ByteTable &out) const final;
 
 	virtual void GenerateContent(std::ostream &out) = 0;
 private:
@@ -55,7 +55,7 @@ public:
 	virtual bool ReloadContainer() override;
 	virtual bool RegisterContent() const override;
 
-	virtual bool GetFileData(FileID ContainerFID, CharTable &out, FileSize *DataSize) const override;
+	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
 
 	virtual const String& GetFileName() const override { return ""; }
 	virtual RWMode GetRWMode() const override { return RWMode::RW; };

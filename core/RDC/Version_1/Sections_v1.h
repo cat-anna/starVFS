@@ -18,8 +18,24 @@ namespace Sections {
 
 struct SectionFileBuilderInterface {
 	virtual ~SectionFileBuilderInterface() {} ;
-	virtual bool WriteBlockAtEnd(const char *data, Size size, DataBlock &blockdesc) = 0;
-	virtual bool OffsetBlockWriteAtEnd(const char *data, Size size, OffsetDataBlock &blockdesc, DataBlock &base) = 0;
+	virtual BlockProcessingResult WriteBlockAtEnd(const ByteTable &in, DataBlock &blockdesc) = 0;
+	virtual BlockProcessingResult WriteBlockAtEndOwning(ByteTable in, DataBlock &blockdesc) = 0;
+	virtual BlockProcessingResult OffsetBlockWriteAtEnd(const ByteTable &in, OffsetDataBlock &blockdesc, DataBlock &base) = 0;
+	virtual BlockProcessingResult OffsetBlockWriteAtEndOwning(ByteTable in, OffsetDataBlock &blockdesc, DataBlock &base) = 0;
+
+	template<class T>
+	BlockProcessingResult WriteBlockAtEnd(const T *data, size_t Size, DataBlock &blockdesc) {
+		ByteTable bt;
+		bt.make_copy(data, Size);
+		return WriteBlockAtEndOwning(std::move(bt), blockdesc);
+	}
+
+	template<class T>
+	BlockProcessingResult OffsetBlockWriteAtEnd(const T *data, size_t Size, OffsetDataBlock &blockdesc, DataBlock &base) {
+		ByteTable bt;
+		bt.make_copy(data, Size);
+		return OffsetBlockWriteAtEndOwning(std::move(bt), blockdesc, base);
+	}
 };
 
 //-----------------------------------------------------------------------------
@@ -42,9 +58,16 @@ struct BaseSection {
 
 	const DataBlock& GetSectionDataBlock() const { return m_SectionDataBlock; }
 
-	virtual bool WriteSection()  /* = 0 */ { return true; }
+	virtual BlockProcessingResult WriteSection()  /* = 0 */ { return BlockProcessingResult(); }
 
 	SectionFileBuilderInterface *GetBuilderInterface() { return m_SFBI; }
+
+	virtual void SetCompression(CompressionMode mode, Compression::Compressionlevel level) {
+		m_SectionDataBlock.Compression.Mode = mode;
+		m_SectionDataBlock.Compression.Level = static_cast<u8>(level);
+	}
+
+	bool ValidSection() const { return m_Type != SectionType::EmptyEntry; }
 private:
 	SectionIndex m_Index;
 	SectionType m_Type;
@@ -68,10 +91,8 @@ struct StringTable : public BaseSection {
 		return static_cast<u32>(pos);
 	}
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		auto str = m_data.str();
-		while ((str.length() % 8) != 0)
-			str += '\0';
 		return GetBuilderInterface()->WriteBlockAtEnd(str.c_str(), static_cast<Size>(str.length()), m_SectionDataBlock);
 	}
 private:
@@ -82,22 +103,26 @@ private:
 
 struct RawDataSection : public BaseSection {
 	RawDataSection(SectionFileBuilderInterface *sfbi, SectionIndex index) : BaseSection(sfbi, index, SectionType::RawData) {
-		GetBuilderInterface()->WriteBlockAtEnd(nullptr, 0, m_SectionDataBlock);
+		GetBuilderInterface()->WriteBlockAtEnd((char*)nullptr, 0, m_SectionDataBlock);
 	}
 
-	bool PushOffsetDataBlock(const CharTable &ct, FileSize size, OffsetDataBlock &offsetdatablock) {
-		return GetBuilderInterface()->OffsetBlockWriteAtEnd(ct ? ct.get() : "", size, offsetdatablock, m_SectionDataBlock);
+	BlockProcessingResult PushOffsetDataBlock(const ByteTable &ct, OffsetDataBlock &offsetdatablock) {
+		return GetBuilderInterface()->OffsetBlockWriteAtEnd(ct, offsetdatablock, m_SectionDataBlock);
 	}
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		if ((m_SectionDataBlock.ContainerSize % 8) == 0)
-			return true;
+			return BlockProcessingResult();
 
 		char buf[8] = {};
 		OffsetDataBlock paddingblock;
 		FileSize size = m_SectionDataBlock.ContainerSize % 8;
 
 		return GetBuilderInterface()->OffsetBlockWriteAtEnd(buf, size, paddingblock, m_SectionDataBlock);
+	}
+
+	virtual void SetCompression(CompressionMode mode, Compression::Compressionlevel level) {
+		STARVFSDebugLog("Compression settings ignored for RawDataSection");
 	}
 private:
 };
@@ -109,12 +134,12 @@ struct OffsetDataBlockTable : public BaseSection {
 
 	std::vector<OffsetDataBlock>& GetTable() { return m_Table; }
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		if (m_Table.empty()) {
 			m_SectionDataBlock.Zero();
-			return true;
+			return BlockProcessingResult();
 		}
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
+		return GetBuilderInterface()->WriteBlockAtEnd(&m_Table[0], m_Table.size(), m_SectionDataBlock);
 	}
 private:
 	std::vector<OffsetDataBlock> m_Table;
@@ -127,12 +152,14 @@ struct FileStructureTable : public BaseSection {
 
 	std::vector<BaseFileInfo>& GetTable() { return m_Table; }
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		if (m_Table.empty()) {
 			m_SectionDataBlock.Zero();
-			return true;
+			return BlockProcessingResult();
 		}
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
+		ByteTable bt;
+		bt.make_copy(&m_Table[0], m_Table.size());
+		return GetBuilderInterface()->WriteBlockAtEnd(bt, m_SectionDataBlock);
 	}
 private:
 	std::vector<BaseFileInfo> m_Table;
@@ -145,18 +172,12 @@ struct HashTableSection : public BaseSection {
 
 	std::vector<HashSectionItemType>& GetTable() { return m_Table; }
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		if (m_Table.empty()) {
 			m_SectionDataBlock.Zero();
-			return true;
+			return BlockProcessingResult();
 		}
-		bool odd = (m_Table.size() & 1) != 0;
-		if (odd)
-			m_Table.push_back(0);
-		bool ret = GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
-		if (odd)
-			m_Table.pop_back();
-		return ret;
+		return GetBuilderInterface()->WriteBlockAtEnd((char*)&m_Table[0], static_cast<Size>(m_Table.size() * sizeof(m_Table[0])), m_SectionDataBlock);
 	}
 private:
 	std::vector<HashSectionItemType> m_Table;
@@ -175,7 +196,7 @@ public:
 
 	u16 m_MountEntryId = 0;
 
-	virtual bool WriteSection() override {
+	virtual BlockProcessingResult WriteSection() override {
 		Headers::MountEntrySection data;
 		data.StringTable = GetStringTableIndex();
 		data.RawDataSection = GetRawDataSectionIndex();
@@ -183,7 +204,10 @@ public:
 		data.StructureSection = GetFileStructureTableIndex();
 		data.HashTable = GetHashTableSectionIndex();
 		data.MountEntryId = m_MountEntryId;
-		return GetBuilderInterface()->WriteBlockAtEnd((char*)&data, static_cast<Size>(sizeof(data)), m_SectionDataBlock);
+
+		ByteTable bt;
+		bt.make_copy(&data, 1);
+		return GetBuilderInterface()->WriteBlockAtEnd(bt, m_SectionDataBlock);
 	}
 private:
 };

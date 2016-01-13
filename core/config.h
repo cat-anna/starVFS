@@ -36,9 +36,9 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #define STARVFSLOG(What, fmt, ...)\
 	do { \
-		char buf[4096]; \
-		sprintf(buf, fmt, __VA_ARGS__); \
-		::StarVFS::StarVFSLogSink(__FILE__, __FUNCTION__, __LINE__, buf, #What);\
+		char __logbuf[4096]; \
+		sprintf(__logbuf, fmt, __VA_ARGS__); \
+		::StarVFS::StarVFSLogSink(__FILE__, __FUNCTION__, __LINE__, __logbuf, #What);\
 	} while(0)
 
 #else
@@ -49,9 +49,9 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #define STARVFSLOG(What, fmt, ...)\
 	do { \
-		char buf[1024]; \
-		sprintf(buf, "[%s][%s:%d] StarVFS: " fmt "\n", #What, strrchr(__FILE__, '\\')+1, __LINE__, __VA_ARGS__); \
-		std::cout << buf << std::flush;\
+		char __logbuf[1024]; \
+		sprintf(__logbuf, "[%s][%s:%d] StarVFS: " fmt "\n", #What, strrchr(__FILE__, '\\')+1, __LINE__, __VA_ARGS__); \
+		std::cout << __logbuf << std::flush;\
 	} while(0)
 
 #endif

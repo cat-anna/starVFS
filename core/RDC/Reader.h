@@ -20,11 +20,18 @@ public:
 	static bool CanOpenFile(const String& FileName);
 
 	static bool TestHeaderIntegrity(UniqueBlockFileDevice &device, FileHeader *header = nullptr);
+
+	const FileHeader& GetHeader() const { return m_Header; }
 protected:
 	BlockFileDevice* GetDevice() { return m_FileDevice.get(); }
 	const BlockFileDevice* GetDevice() const { return m_FileDevice.get(); }
-	/* todo: private: */ std::unique_ptr<BlockFileDevice> m_FileDevice;
+	FileHeader m_Header;
+
+	void SetDevice(std::unique_ptr<BlockFileDevice> dev) {
+		m_FileDevice.swap(dev);
+	}
 private:
+	std::unique_ptr<BlockFileDevice> m_FileDevice;
 };
 
 } //namespace RDC 
