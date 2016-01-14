@@ -6,7 +6,6 @@ group "Utils"
 		links {
 			"StarVFS",
 			"lua53",
-			"readline",
 			"StaticZLib",
 		}
 		files {
