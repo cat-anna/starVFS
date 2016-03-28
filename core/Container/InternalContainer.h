@@ -48,10 +48,11 @@ public:
 
 	virtual bool RegisterContent() const override { return false; }
 
-	virtual const String& GetFileName() const override { return ""; }
+	virtual String GetContainerURI() const = 0;
 	virtual RWMode GetRWMode() const override { return RWMode::None; };
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override { return false; }
+	virtual FileID FindFile(const String& ContainerFileName) const = 0;
 
 
 //	using FileFlags = InternalFileFlags;

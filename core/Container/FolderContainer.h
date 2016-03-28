@@ -22,22 +22,15 @@ public:
 
 	virtual FileID GetFileCount() const override;
 
-	virtual const String& GetFileName() const override;
+	virtual String GetContainerURI() const override;
 
 	virtual RWMode GetRWMode() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
+	virtual FileID FindFile(const String& ContainerFileName) const override;
 
 	static bool CanOpen(const String& Location);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
-
-//	virtual FileReader GetFileReader(const string& file) const override;
-//	virtual FileReader GetFileReader(const RawFilePointer *file) const override;
-//	virtual FileWritter GetFileWritter(const string& file) override;
-//	virtual FileWritter GetFileWritter(const RawFilePointer *filee) override;
-//	virtual bool FileExists(const string& file) const override;
-//	virtual const string& GetFileName() const override;
-//	virtual bool EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const override;
 private:
 	enum class FileType {
 		File, Directory,
@@ -57,14 +50,6 @@ private:
 	std::vector<Entry> m_FileEntry;
 
 	bool ScanPath();
-
-//	string FullPath(const string &sub) const
-//	{
-//		return m_Path + sub;
-//	}
-
-//	mutable std::list<std::unique_ptr<FolderContainerPointer>> m_PtrList;
-//	mutable std::unordered_map<string, FolderContainerPointer*> m_PtrMap;
 };
 
 } //namespace Containers 

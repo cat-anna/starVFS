@@ -25,13 +25,15 @@ FolderContainer::~FolderContainer() {
 
 //-------------------------------------------------------------------------------------------------
 
-const String& FolderContainer::GetFileName() const { return m_Path; }
+String FolderContainer::GetContainerURI() const { return m_Path; }
 RWMode FolderContainer::GetRWMode() const { return RWMode::RW; }
 
 //-------------------------------------------------------------------------------------------------
 
 bool FolderContainer::ScanPath() {
 	m_FileEntry.clear();
+	m_FileEntry.reserve(2048);// because why not
+	m_FileEntry.emplace_back(Entry{ FileType::Directory, "", "", 0, });
 
 	std::function<void(const String&, FileType)> handler;
 
@@ -76,7 +78,7 @@ bool FolderContainer::RegisterContent() const {
 		return false;
 	}
 
-	for (FileID cfid = 0, j = fcount; cfid < j; ++cfid) {
+	for (FileID cfid = 1, j = fcount; cfid < j; ++cfid) {
 		auto &f = m_FileEntry[cfid];
 
 		FileID fid = fti->AllocFileID((CString)f.m_SubPath.c_str());
@@ -106,12 +108,12 @@ bool FolderContainer::RegisterContent() const {
 //-------------------------------------------------------------------------------------------------
 
 FileID FolderContainer::GetFileCount() const {
-	return static_cast<FileID>(m_FileEntry.size());
+	return static_cast<FileID>(m_FileEntry.size() - 1);//dont count invalid 0-id
 }
 
 bool FolderContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	out.reset();
-	if (ContainerFID >= m_FileEntry.size())
+	if (ContainerFID >= m_FileEntry.size() || ContainerFID == 0)
 		return false;
 
 	auto &f = m_FileEntry[ContainerFID];
@@ -126,6 +128,14 @@ bool FolderContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	inp.read(out.get(), size);
 	inp.close();
 	return true;
+}
+
+FileID FolderContainer::FindFile(const String& ContainerFileName) const {
+	for (auto it = m_FileEntry.begin(), jt = m_FileEntry.end(); it != jt; ++it)
+		if (it->m_SubPath == ContainerFileName)
+			return static_cast<FileID>(it - m_FileEntry.begin());
+
+	return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -182,101 +192,6 @@ CreateContainerResult FolderContainer::CreateFor(StarVFS *svfs, const String& Mo
 	StarVFSAssert(svfs);
 	return svfs->CreateContainer<FolderContainer>(MountPoint, Location);
 }
-
-#if 0
-
-FileWritter FolderContainer::GetFileWritter(const string& file)
-{
-	string s = FullPath(file);
-	boost::filesystem::path p(s);
-	boost::filesystem::create_directories(p.parent_path());
-	auto ptr = std::make_shared<FolderFileWritter>(const_cast<FolderContainer*>(this), s);
-	return ptr;
-}
-
-FileReader FolderContainer::GetFileReader(const RawFilePointer *file) const
-{
-	const FolderContainerPointer *ptr = dynamic_cast<const FolderContainerPointer*>(file);
-	if (!ptr) {
-		AddLog(Error, "Invalid file pointer!");
-		return FileReader();
-	}
-	return GetFileReader(ptr->SubPath);
-}
-
-FileWritter FolderContainer::GetFileWritter(const RawFilePointer *file)
-{
-	const FolderContainerPointer *ptr = dynamic_cast<const FolderContainerPointer*>(file);
-	if (!ptr) {
-		AddLog(Error, "Invalid file pointer!");
-		return FileWritter();
-	}
-	return GetFileWritter(ptr->SubPath);
-}
-
-//-------------------------------------------------------------------------------------------------
-
-bool FolderContainer::FileExists(const string& file) const
-{
-	string s = FullPath(file);
-	return boost::filesystem::exists(s);
-}
-
-bool FolderContainer::EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const
-{
-	if (!func) return false;
-	const FolderContainerPointer *ptr = dynamic_cast<const FolderContainerPointer*>(root);
-	if (!ptr && root) {
-		AddLog(Error, "Invalid file pointer!");
-		return false;
-	}
-
-	string s;
-	if (ptr)
-		s = FullPath(ptr->SubPath);
-	else
-		s = m_Path;
-
-	using boost::filesystem::directory_iterator;
-	boost::filesystem::path p(s);
-	if (!boost::filesystem::exists(p))
-		return false;
-	directory_iterator it(p);
-	for (; it != directory_iterator(); ++it) {
-		auto item = it->path();
-		FileType type;
-		if (boost::filesystem::is_regular_file(item))
-			type = FileType::File;
-		else
-			type = FileType::Directory;
-
-		string fn = item.filename().string();
-		string hash = item.string();
-		std::transform(hash.begin(), hash.end(), hash.begin(), [](int c)->int { if (c == '\\') return '/'; return c; });
-
-		FolderContainerPointer *fptr;
-		FolderContainerPointer **fptrptr = &m_PtrMap[hash];
-		if (!*fptrptr) {
-			m_PtrList.emplace_back(std::make_unique<FolderContainerPointer>());
-			fptr = m_PtrList.back().get();
-			*fptrptr = fptr;
-			fptr->SubPath = string(hash.c_str() + m_Path.length());
-			if (type == FileType::File)
-				fptr->Size = (FileSize)boost::filesystem::file_size(hash);
-		} else
-			fptr = *fptrptr;
-
-		func(fn, type, fptr);
-	}
-	return true;
-}
-
-const string& FolderContainer::GetFileName() const
-{
-	return m_Path;
-}
-
-#endif
 
 } //namespace Containers 
 } //namespace StarVFS 

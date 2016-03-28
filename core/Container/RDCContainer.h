@@ -26,8 +26,9 @@ public:
 	virtual bool RegisterContent() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
+	virtual FileID FindFile(const String& ContainerFileName) const override;
 
-	virtual const String& GetFileName() const override { return m_FileName; }
+	virtual String GetContainerURI() const override;
 	virtual RWMode GetRWMode() const override { return RWMode::RW; };
 
 	static bool CanOpen(const String&);

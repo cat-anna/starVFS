@@ -46,6 +46,16 @@ InternalContainer::InternalContainer(FileTableInterface  *fti):
 
 }
 
+//-------------------------------------------------------------------------------------------------
+
+String InternalContainer::GetContainerURI() const {
+	return "";
+}
+
+FileID InternalContainer::FindFile(const String& ContainerFileName) const {
+	return 0;
+}
+
 #if 0
 
 const string& InternalContainer::GetFileName() const {

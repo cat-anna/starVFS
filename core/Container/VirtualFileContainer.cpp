@@ -45,7 +45,7 @@ VirtualFileContainer::~VirtualFileContainer() {
 //-------------------------------------------------------------------------------------------------
 
 bool VirtualFileContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
-	if(!ContainerFID || ContainerFID >= m_Files.size())
+	if(ContainerFID == 0 || ContainerFID >= m_Files.size())
 		return false;
 
 	auto &f = m_Files[ContainerFID];
@@ -60,7 +60,18 @@ bool VirtualFileContainer::GetFileData(FileID ContainerFID, ByteTable &out) cons
 	return ret;
 }
 
+FileID VirtualFileContainer::FindFile(const String& ContainerFileName) const {
+	for (auto it = m_Files.begin(), jt = m_Files.end(); it != jt; ++it)
+		if (it->m_FullPath == ContainerFileName)
+			return static_cast<FileID>(it - m_Files.begin());
+	return 0;
+}
+
 //-------------------------------------------------------------------------------------------------
+
+String VirtualFileContainer::GetContainerURI() const {
+	return "VirtualFileContainer";
+}
 
 FileID VirtualFileContainer::GetFileCount() const {
 	return static_cast<FileID>(m_Files.size() - 1);//dont count invalid id 0
@@ -84,6 +95,7 @@ bool VirtualFileContainer::RegisterFile(SharedVirtualFileInterface SharedFile, c
 	fi.m_FullPath = Path;
 	fi.m_InternalID = m_InternalIDCounter++;
 	fi.m_WeakPtr = SharedFile;
+	fi.m_SharedPtr = nullptr;
 	m_Files.emplace_back(std::move(fi));
 	return ReloadFile(m_Files.back());
 }
