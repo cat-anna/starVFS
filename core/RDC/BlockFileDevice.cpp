@@ -42,8 +42,11 @@ bool BlockFileDevice::CreateFile(const String& FileName) {
 		StarVFSAssert(false);
 		return false;
 	}
-
-	m_File.reset(fopen(FileName.c_str(), "w+b"));
+	Flags._uintvalue = 0;
+	FILE *f;
+	if (fopen_s(&f, FileName.c_str(), "w+b") != 0)
+		return false;
+	m_File.reset(f);
 	Flags.Ok = 1;
 	Flags.Opened = 1;
 	Flags.CanWrite = 1;
@@ -57,11 +60,15 @@ bool BlockFileDevice::OpenForRead(const String& FileName) {
 		StarVFSAssert(false);
 		return false;
 	}
+	Flags._uintvalue = 0;
+	FILE *f;
+	if (fopen_s(&f, FileName.c_str(), "rb") != 0)
+		return false;
+	m_File.reset(f);
 	Flags.Ok = 1;
 	Flags.Opened = 1;
 	Flags.CanWrite = 0;
 	Flags.CanRead = 1;
-	m_File.reset(fopen(FileName.c_str(), "rb"));
 	return static_cast<bool>(m_File);
 }
 

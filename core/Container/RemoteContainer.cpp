@@ -87,7 +87,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	bool Connect(const String& Host, int port) {
 		tcp::resolver resolver(m_io_service);
 		char strPort[16];
-		sprintf(strPort, "%d", port);
+		sprintf_s(strPort, "%d", port);
 
 		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(Host), (short)port);
 		boost::system::error_code error;
