@@ -1,7 +1,7 @@
 	
 group "Utils"
 	project "svfs"
-		location(bindir .. "svfs")
+		location(dir.bin .. "svfs")
 		kind "ConsoleApp"
 		links {
 			"StarVFS",
