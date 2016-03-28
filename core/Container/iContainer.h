@@ -30,13 +30,17 @@ public:
 
 	/** Get total number of files in container. Folders shall be counted. All children shall have bigger id than parent. */
 	virtual FileID GetFileCount() const = 0;
-	/** Retrive info about all file in container. */
+	/** Retrieve info about all file in container. */
 
-	virtual const String& GetFileName() const = 0;
+	/** Get string which may be used to reopen container (filename, base path or ip address) */
+	virtual String GetContainerURI() const = 0;
 	virtual RWMode GetRWMode() const = 0;
 
 	FileTableInterface* GetFileTableInterface() { return m_FTI; }
 	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
+
+	/** Find file in container. ContainerFileName shall be relative to container. Function is slow. */
+	virtual FileID FindFile(const String& ContainerFileName) const = 0;
 
 	/** Container shall not do any buffering. */
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const = 0;

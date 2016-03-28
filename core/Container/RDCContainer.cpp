@@ -50,6 +50,12 @@ bool RDCContainer::Initialize() {
 
 //-----------------------------------------------------------------------------
 
+String RDCContainer::GetContainerURI() const {
+	return m_FileName;
+}
+
+//-----------------------------------------------------------------------------
+
 FileID RDCContainer::GetFileCount() const {
 	return static_cast<FileID>(m_OffsetTable.size());
 }
@@ -163,6 +169,10 @@ bool RDCContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 		return false;
 	}
 	return true;
+}
+
+FileID RDCContainer::FindFile(const String& ContainerFileName) const {
+	throw "RDCContainer::FindFile is not implemented";
 }
 
 } //namespace Containers 

@@ -171,25 +171,30 @@ RemoteContainer::~RemoteContainer() {
 
 //-------------------------------------------------------------------------------------------------
 
-const String& RemoteContainer::GetFileName() const { return m_Host; }
+String RemoteContainer::GetContainerURI() const {
+	char buff[128];
+	sprintf_s(buff, "tcp://%s:%d", m_Host.c_str(), m_Port);
+	return buff;
+}
+
 RWMode RemoteContainer::GetRWMode() const { return RWMode::R; }
 
 //-------------------------------------------------------------------------------------------------
 
 bool RemoteContainer::ReloadContainer() {
-	m_Connection.reset();
+	//m_Connection.reset();
+	//
+	//m_Connection = std::make_unique<Connection>(this);
+	//if (!m_Connection->Connect(m_Host, m_Port)) {
+	//	m_Connection.reset();
+	//	return false;
+	//}
 
-	m_Connection = std::make_unique<Connection>(this);
-	if (!m_Connection->Connect(m_Host, m_Port)) {
-		m_Connection.reset();
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 FileID RemoteContainer::GetFileCount() const {
-	if (!m_Connection) return false;
+	if (!m_Connection) return false;//wonderfull :)
 	return m_Connection->GetFileCount();
 }
 
@@ -224,6 +229,10 @@ bool RemoteContainer::RegisterContent() const {
 	return true;
 }
 
+FileID RemoteContainer::FindFile(const String& ContainerFileName) const {
+	throw "RemoteContainer::FindFile is not implemented";
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool RemoteContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
@@ -241,21 +250,21 @@ bool RemoteContainer::CanOpen(const String& Location) {
 }
 
 CreateContainerResult RemoteContainer::CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) {
-	String uri = Location;
-	auto port = (char*)strrchr(uri.c_str(), ':');
-	auto host = (char*)strrchr(uri.c_str(), '/');
-
-	if (port < host)
-		port = 0;
-
-	if (port)
-		*port++ = 0;
-
-	if (host) {
-		*host++ = 0;
-		int intport = port ? strtol(port, nullptr, 10) : 0;
-		return svfs->CreateContainer<RemoteContainer>(MountPoint, intport, host);
-	}
+//	String uri = Location;
+//	auto port = (char*)strrchr(uri.c_str(), ':');
+//	auto host = (char*)strrchr(uri.c_str(), '/');
+//
+//	if (port < host)
+//		port = 0;
+//
+//	if (port)
+//		*port++ = 0;
+//
+//	if (host) {
+//		*host++ = 0;
+//		int intport = port ? strtol(port, nullptr, 10) : 0;
+//		return svfs->CreateContainer<RemoteContainer>(MountPoint, intport, host);
+//	}
 	return CreateContainerResult(VFSErrorCode::InternalError, nullptr);
 }
 

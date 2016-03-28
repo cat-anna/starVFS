@@ -23,11 +23,11 @@ public:
 	virtual FileID GetFileCount() const override;
 	virtual bool RegisterContent() const override;
 
-	virtual const String& GetFileName() const override;
-
+	virtual String GetContainerURI() const override;
 	virtual RWMode GetRWMode() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
+	virtual FileID FindFile(const String& ContainerFileName) const override;
 
 	static bool CanOpen(const String& Location);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
