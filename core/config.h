@@ -30,6 +30,10 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 } //namespace StarVFS 
 
+#if defined(GCC) && !defined(sprintf_s)
+#define sprintf_s snprintf
+#endif
+
 #ifdef STARVFS_LOG_TO_SINK
 
 #define STARVFS_DEFINE_DEFAULT_LOG_API
@@ -40,6 +44,27 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 		sprintf(__logbuf, fmt, __VA_ARGS__); \
 		::StarVFS::StarVFSLogSink(__FILE__, __FUNCTION__, __LINE__, __logbuf, #What);\
 	} while(0)
+
+#elif defined(STARVFS_USE_ORBITLOGGER)
+
+#include <OrbitLogger/OrbitLogger.h>
+namespace OrbitLogger {
+namespace LogChannels {
+enum SVFSChannels : LogChannel {
+	StarVFS = internal_reserved_2,
+};
+}
+}
+
+#define STARVFSLOG(What, fmt, ...) AddLogf(StarVFS, fmt, __VA_ARGS__)
+
+#if defined(DEBUG) || defined(STARVFS_ENABLE_DEBUG_LOG)
+#	define STARVFSDebugLog(fmt, ...) AddLogf(Debug, "[StarVFS] " fmt, __VA_ARGS__)
+#else
+#	define STARVFSDebugLog(fmt, ...) do { } while(0)
+#endif
+
+#define STARVFSErrorLog(fmt, ...) AddLogf(Debug, "[StarVFS] " fmt, __VA_ARGS__)
 
 #else
 
@@ -56,15 +81,18 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #endif
 
-#define STARVFSErrorLog(fmt, ...) STARVFSLOG(ERROR, fmt, __VA_ARGS__)
+#ifndef STARVFSErrorLog
+#	define STARVFSErrorLog(fmt, ...) STARVFSLOG(Error, fmt, __VA_ARGS__)
+#endif
 
-#if defined(DEBUG) || defined(STARVFS_ENABLE_DEBUG_LOG)
-#define STARVFSDebugLog(fmt, ...) STARVFSLOG(DEBUG, fmt, __VA_ARGS__)
-#else
-#define STARVFSDebugLog(fmt, ...) do { } while(0)
+#ifndef STARVFSDebugLog
+#	if defined(DEBUG) || defined(STARVFS_ENABLE_DEBUG_LOG)
+#		define STARVFSDebugLog(fmt, ...) STARVFSLOG(Debug, fmt, __VA_ARGS__)
+#	else
+#		define STARVFSDebugLog(fmt, ...) do { } while(0)
+#	endif
 #endif
 
 #define STARVFSDebugInfoLog STARVFSDebugLog
-
 
 #define StarVFSAssert assert

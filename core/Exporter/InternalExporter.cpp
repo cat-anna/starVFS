@@ -37,9 +37,9 @@ struct InternalExporter::ExporterImpl {
 		return r;
 	}
 
-	template<class ...ARGS>
-	static const char *xsprintf(char *buf, const char *fmt, ARGS ...args) {
-		sprintf(buf, fmt, std::forward<ARGS>(args)...);
+	template<size_t SIZE, class ...ARGS>
+	static const char *xsprintf(char (&buf)[SIZE], const char *fmt, ARGS ...args) {
+		sprintf_s(buf, fmt, std::forward<ARGS>(args)...);
 		return buf;
 	}
 
