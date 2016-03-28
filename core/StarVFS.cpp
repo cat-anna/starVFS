@@ -85,7 +85,11 @@ bool StarVFS::IsFileDirectory(FileID fid) const {
 }
 
 String StarVFS::GetFullFilePath(FileID fid) const {
-	return m_FileTable->GetFileFullPath(fid);
+	return m_FileTable->GetFilePath(fid, 0);
+}
+
+String StarVFS::GetFilePath(FileID fid, FileID ParentFID) const {
+	return m_FileTable->GetFilePath(fid, ParentFID);
 }
 
 const CString StarVFS::GetFileName(FileID fid) const {

@@ -245,20 +245,22 @@ File* FileTable::AllocFile(FileID Parent, FilePathHash PathHash, const CString F
 
 //-------------------------------------------------------------------------------------------------
 
-String FileTable::GetFileFullPath(FileID fid) const {
+String FileTable::GetFilePath(FileID fid, FileID ParentFID) const {
 	std::stringstream ss;
 	auto f = GetFile(fid);
 	if (!f)
 		return String();
 	struct T {
-		static void Do(std::stringstream &ss, const File *f, const FileTable* This) {
-			if (!f || f->m_GlobalFileID <= 1)
+		static void Do(std::stringstream &ss, const File *f, const FileTable* This, FileID ParentFID) {
+			if (!f || f->m_GlobalFileID <= 1 || ParentFID == f->m_GlobalFileID)
 				return;
-			Do(ss, This->GetFileParent(f), This);
-			ss << "/" << This->m_StringTable->Get(f->m_NameStringID);
+			Do(ss, This->GetFileParent(f), This, ParentFID);
+			if(ParentFID != f->m_GlobalFileID)
+				ss << "/";
+			ss << This->m_StringTable->Get(f->m_NameStringID);
 		}
 	};
-	T::Do(ss, f, this);
+	T::Do(ss, f, this, ParentFID);
 	return ss.str();
 }
 
