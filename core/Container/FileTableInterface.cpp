@@ -118,9 +118,12 @@ bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) {
 	if (!f)
 		return false;
 
-	if (f->m_Flags.ValidDirectory()) {
-		//release subtree
+	if (f->m_Flags.ValidFile()) {
 		assert(false);
+	}
+
+	if (f->m_Flags.ValidDirectory()) {
+		return true;
 	}
 
 	f->m_ContainerFileID = cfid;
