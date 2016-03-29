@@ -62,7 +62,7 @@ StarVFS::~StarVFS() {
 StarVFSCallback* StarVFS::SetCallback(StarVFSCallback *newone) {
 	auto prv = m_Callback;
 	m_Callback = newone;
-	return m_Callback;
+	return prv;
 }
 
 //-----------------------------------------------------------------------------
