@@ -9,6 +9,9 @@
 #ifndef InternalContainer_H
 #define InternalContainer_H
 
+//InternalContainer is not yet implemented
+#define STARVFS_DISABLE_INTERNALCONTAINER
+
 namespace StarVFS {
 namespace Containers {
 
