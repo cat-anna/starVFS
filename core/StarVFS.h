@@ -11,7 +11,7 @@
 
 namespace StarVFS {
 
-class StarVFS {
+class StarVFS final {
 public:
  	StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
@@ -68,6 +68,9 @@ public:
 	FileTable* GetFileTable() { return m_FileTable.get(); }
 	HandleTable* GetHandleTable();
 
+	/** Set callback for StrVFS facade. Returns previous one. */
+	StarVFSCallback* SetCallback(StarVFSCallback *newone);
+
 	Register* GetRegister();
 protected:
 //	virtual bool CanLoadContainer(iContainer *container);
@@ -77,9 +80,10 @@ private:
 	struct Internals;
 	std::unique_ptr<Internals> m_Internals;
 	std::unique_ptr<FileTable> m_FileTable;
+	StarVFSCallback *m_Callback;
 
 	VFSErrorCode MountContainer(Container c, String MountPoint);
-	VFSErrorCode ReloadContainer(ContainerID cid);
+	VFSErrorCode ReloadContainer(ContainerID cid, bool FirstMount);
 	Containers::FileTableInterface* NewFileTableInterface(const String &MountPoint, bool Force = false);
 	Modules::iModule* InsertModule(std::unique_ptr<Modules::iModule> module);
 };
