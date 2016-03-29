@@ -36,8 +36,7 @@ public:
 	virtual String GetContainerURI() const = 0;
 	virtual RWMode GetRWMode() const = 0;
 
-	FileTableInterface* GetFileTableInterface() { return m_FTI; }
-	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
+	ContainerID GetContainerID() const { return GetFileTableInterface()->GetContainerID(); }
 
 	/** Find file in container. ContainerFileName shall be relative to container. Function is slow. */
 	virtual FileID FindFile(const String& ContainerFileName) const = 0;
@@ -48,46 +47,9 @@ public:
 
 	static bool CanOpen(const String&) { return false; }
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) { return CreateContainerResult(VFSErrorCode::InternalError, nullptr); }
-
-	//virtual bool GetFileSize(FileID ContainerFileID, FileSize &Size) const = 0;
-//	/** Get file reader. Returns nullptr if file cannot be read */
-//	virtual FileReader GetFileReader(const string& file) const;
-//	/** Get file reader. Returns nullptr if file cannot be read */
-//	virtual FileReader GetFileReader(const RawFilePointer *file) const;
-//	/** Get file writter. Returns nullptr if file cannto be written */
-//	virtual FileWritter GetFileWritter(const string& file);
-//	/** Get file writter. Returns nullptr if file cannto be written */
-//	virtual FileWritter GetFileWritter(const RawFilePointer *file);
-//
-//	/** Returns true if file or directory exists. */
-//	virtual bool FileExists(const string& file) const;
-//
-//	/** Get count of filed inside container. (Folders are not included)*/
-//	virtual size_t FilesCount() const;
-//	/** Get total container size. (without metadata) */
-//	virtual size_t ContainerSize() const;
-//
-//	virtual const string& GetFileName() const;
-//	virtual const string& GetContainerName() const;
-//
-//	enum class MetadataRetriveStatus {
-//		Success,
-//		FatalError,
-//		InvalidIndex,
-//		InvalidRequest,
-//		ReadError,
-//		InternalError,
-//	};
-//
-//	//virtual MetadataRetriveStatus GetMetadataCount() const = 0;
-//	//virtual MetadataRetriveStatus GetContainerMetadata(XMLFile &meta, unsigned MetadataIndex) const = 0;
-//
-//	/** Enumeratrion function used during folder content enumeration */
-//	using FolderEnumerateFunc = std::function < void(const string &FileName, FileType type, const RawFilePointer *ptr) > ;
-//
-//	/** Enumerate content of directory by pointer. Returns false if Path is not valid folder. set root = nullptr to enumerate root */
-//	virtual bool EnumerateFolder(const RawFilePointer *root, FolderEnumerateFunc func) const;
 protected:
+	FileTableInterface* GetFileTableInterface() { return m_FTI; }
+	FileTableInterface* GetFileTableInterface() const { return m_FTI; }
 private: 
 	FileTableInterface *m_FTI;
 };
@@ -97,8 +59,3 @@ private:
 
 #endif
 
-/*
-	virtual container (each file is a set of functions)
-
-
-*/
