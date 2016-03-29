@@ -33,6 +33,7 @@ enum class VFSErrorCode {
 	ContainerCriticalError,
 	UnknownContainerFormat,
 	InternalError,
+	NotAllowed,					//callback did not allow to mount container
 };
 
 
@@ -106,6 +107,17 @@ struct File final {
 	FilePathHash m_Hash;
 };
 static_assert(std::is_pod<File>::value, "File structure must be a POD type");
+
+//-------------------------------------------------------------------------------------------------
+
+struct StarVFSCallback {
+	virtual ~StarVFSCallback() {}
+
+	enum class BeforeContainerMountResult { Mount, Cancel, };
+	virtual BeforeContainerMountResult BeforeContainerMount(Containers::iContainer *ptr, const String &MountPoint) { return BeforeContainerMountResult::Mount; }
+	
+	virtual void AfterContainerMounted(Containers::iContainer *ptr) { }
+};
 
 //-------------------------------------------------------------------------------------------------
 

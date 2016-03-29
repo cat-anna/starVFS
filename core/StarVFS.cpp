@@ -46,7 +46,8 @@ struct StarVFS::Internals {
 
 //-----------------------------------------------------------------------------
 
-StarVFS::StarVFS(unsigned FSFlags) {
+StarVFS::StarVFS(unsigned FSFlags): 
+		m_Callback(nullptr) {
 	m_FileTable = std::make_unique<FileTable>(this);
 	m_Internals = std::make_unique<Internals>();
 	m_Internals->m_HandleTable = std::make_unique<HandleTable>(m_FileTable.get());
@@ -56,6 +57,12 @@ StarVFS::StarVFS(unsigned FSFlags) {
 StarVFS::~StarVFS() {
 	m_Internals.reset();
 	m_FileTable.reset();
+}
+
+StarVFSCallback* StarVFS::SetCallback(StarVFSCallback *newone) {
+	auto prv = m_Callback;
+	m_Callback = newone;
+	return m_Callback;
 }
 
 //-----------------------------------------------------------------------------
@@ -120,11 +127,11 @@ FileID StarVFS::FindFile(const String& FileName) { return m_FileTable->Lookup(Fi
 FileHandle StarVFS::OpenFile(const String& FileName, RWMode ReadMode, OpenMode FileMode) {
 	FileID fid = 0;
 	switch (FileMode) {
-//	case OpenMode::CreateNew: //TBD
-//		break;
 	case OpenMode::OpenExisting:
 		fid = FindFile(FileName);
 		break;
+	case OpenMode::CreateNew: //TBD
+		STARVFSErrorLog("OpenMode::CreateNew is not implemented!");
 	default:
 		return FileHandle();
 	}
@@ -189,14 +196,30 @@ VFSErrorCode StarVFS::MountContainer(Container c, String MountPoint) {
 		return VFSErrorCode::InternalError;
 	}
 
+	if (m_Callback) {
+		auto res = m_Callback->BeforeContainerMount(c.get(), MountPoint);
+		switch (res) {
+		case StarVFSCallback::BeforeContainerMountResult::Mount:
+			break;
+		case StarVFSCallback::BeforeContainerMountResult::Cancel:
+			if (!c->Finalize()) {
+				STARVFSErrorLog("container finalization failed!");
+			}
+			return VFSErrorCode::NotAllowed;
+		default:
+			STARVFSErrorLog("Invalid enum %s value %d", typeid(res).name(), (int)res);
+			break;
+		}
+	}
+
 	m_Internals->m_Containers.emplace_back();
 	Internals::ContainerInfo &ci = m_Internals->m_Containers.back();
 	ci.m_Container.swap(c);
 	ci.m_MountPoint.swap(MountPoint);
 
-	auto cid = ci.m_Container->GetFileTableInterface()->GetContainerID();
+	auto cid = ci.m_Container->GetContainerID();
 
-	return ReloadContainer(cid);
+	return ReloadContainer(cid, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +228,7 @@ ContainerID StarVFS::GetContainerCount() const {
 	return static_cast<ContainerID>(m_Internals->m_Containers.size() - 1); //dont count first entry
 }
 
-VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {
+VFSErrorCode StarVFS::ReloadContainer(ContainerID cid, bool FirstMount) {
 	StarVFSAssert(cid < m_Internals->m_Containers.size());
 	auto &ci = m_Internals->m_Containers[cid];
 	if (!ci.m_Container->ReloadContainer()) {
@@ -217,23 +240,12 @@ VFSErrorCode StarVFS::ReloadContainer(ContainerID cid) {
 		STARVFSErrorLog("Failed to register container content cid: %d", cid);
 		return VFSErrorCode::InternalError;
 	}
-//
-//	cin->SetContainerID((ContainerID)m_Containers.size());
-//	m_Containers.emplace_back(std::move(cin));
-//	auto &c = m_Containers.back();
-//
-//	FileID FileCount = c->GetFileCount();
-//	STARVFSDebugInfoLog("Container %s has %d files", c->GetFileName().c_str(), FileCount);
-//
-//	if (!EnsureCapacity(FileCount)) {
-//		//TODO: log
-//		return false;
-//	}
-//
-//	if (!c->RegisterFiles(this)) {
-//		STARVFSErrorLog("Faield to register files for container %d", m_Containers.size());
-//		return false;
-//	}
+
+	if (m_Callback) {
+		if(FirstMount)
+			m_Callback->AfterContainerMounted(ci.m_Container.get());
+	}
+
 	return VFSErrorCode::Success;
 }
 
