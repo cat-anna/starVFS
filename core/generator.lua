@@ -23,6 +23,7 @@ local function generateDetectType(basedir, searchpattern, namespace, regfunc, ou
 		addout(string.format("\t\t\treturn \"%s\";", v.name))
 		addout "#endif"
 	end
+	addout "\t\treturn nullptr;"
 	addout "\t}"
 	addout ""
 	addout "	template<class T> inline"
@@ -33,7 +34,7 @@ local function generateDetectType(basedir, searchpattern, namespace, regfunc, ou
 		addout(string.format("\t\t\treturn %s::CreateFor(svfs, MountPoint, Location);", v.name))
 		addout "#endif" --svfs->template CreateContainer<%s>(MountPoint, Location).second
 	end
-	addout "\t\treturn CreateContainerResult(VFSErrorCode::InternalError, nullptr);"
+	addout "\t\treturn CreateContainerResult(VFSErrorCode::UnknownContainerFormat, nullptr);"
 	addout "\t}"
 	addout "}"
 end
@@ -70,6 +71,9 @@ end
 
 function GenerateModules(outfilename, basedir)
 	basedir = basedir or ""
+	
+	print ("outfilename", outfilename)
+	print ("basedir", basedir)
 	
 	if not outfilename then
 		print "Out file name is not provided!"
@@ -122,10 +126,10 @@ function GenerateModules(outfilename, basedir)
 		exporterout(...)
 	end		
 	
-	process(basedir, "core/Container/*Container.h", "Containers", "RegisterContainer", outdata, containerout)
-	process(basedir, "core/Module/*Module.h", "Modules", "RegisterModule", outdata, moduleout)
-	process(basedir, "core/Exporter/*Exporter.h", "Exporters", "RegisterExporter", outdata, exporterout)	
-	generateDetectType(basedir, "core/Container/*Container.h", "Containers", "Container", outdata, containerout)
+	process(basedir, "Container/*Container.h", "Containers", "RegisterContainer", outdata, containerout)
+	process(basedir, "Module/*Module.h", "Modules", "RegisterModule", outdata, moduleout)
+	process(basedir, "Exporter/*Exporter.h", "Exporters", "RegisterExporter", outdata, exporterout)	
+	generateDetectType(basedir, "Container/*Container.h", "Containers", "Container", outdata, containerout)
 	
 	addout "/*"
 	addout " * Automatically generated file"
@@ -135,7 +139,7 @@ function GenerateModules(outfilename, basedir)
 	addout ""
 	for i,v in ipairs(outdata.headers) do
 		addout (string.format("#ifndef %s", v.define:upper()))
-		addout (string.format("#include <%s>", v.file))
+		addout (string.format("#include <%s%s>", basedir, v.file))
 		addout "#endif"
 	end
 	addout ""

@@ -9,6 +9,7 @@ group "Libraries"
 		
 include "generator.lua"
 		local outfile = dir.bin .. "SVFSRegister.h"
-		GenerateModules(outfile, path.getrelative(os.getcwd(), dir.base) .. "/")
+		print("cwd", os.getcwd())
+		GenerateModules(outfile, os.getcwd() .. "/")
 		files { outfile }
-		
+		-- path.getrelative(os.getcwd(), dir.base)
