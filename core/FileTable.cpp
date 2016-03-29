@@ -255,7 +255,7 @@ String FileTable::GetFilePath(FileID fid, FileID ParentFID) const {
 			if (!f || f->m_GlobalFileID <= 1 || ParentFID == f->m_GlobalFileID)
 				return;
 			Do(ss, This->GetFileParent(f), This, ParentFID);
-			if(ParentFID != f->m_GlobalFileID)
+			if(ParentFID != f->m_ParentFileID)
 				ss << "/";
 			ss << This->m_StringTable->Get(f->m_NameStringID);
 		}
