@@ -4,6 +4,10 @@
 #include <string>
 #include <cassert>
 
+#ifdef GLOBAL_CONFIGURATION_FILE
+#include GLOBAL_CONFIGURATION_FILE
+#endif
+
 namespace StarVFS {
 
 struct Settings {
@@ -48,13 +52,6 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 #elif defined(STARVFS_USE_ORBITLOGGER)
 
 #include <OrbitLogger/OrbitLogger.h>
-namespace OrbitLogger {
-namespace LogChannels {
-enum SVFSChannels : LogChannel {
-	StarVFS = internal_reserved_2,
-};
-}
-}
 
 #define STARVFSLOG(What, fmt, ...) AddLogf(StarVFS, fmt, __VA_ARGS__)
 
