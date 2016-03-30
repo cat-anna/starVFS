@@ -72,9 +72,6 @@ end
 function GenerateModules(outfilename, basedir)
 	basedir = basedir or ""
 	
-	print ("outfilename", outfilename)
-	print ("basedir", basedir)
-	
 	if not outfilename then
 		print "Out file name is not provided!"
 		os.exit(1)
