@@ -78,7 +78,7 @@ bool FolderContainer::RegisterContent() const {
 		return false;
 	}
 
-	for (FileID cfid = 1, j = fcount; cfid < j; ++cfid) {
+	for (FileID cfid = 1, j = fcount; cfid <= j; ++cfid) {
 		auto &f = m_FileEntry[cfid];
 
 		FileID fid = fti->AllocFileID((CString)f.m_SubPath.c_str());
