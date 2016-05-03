@@ -51,7 +51,7 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #elif defined(STARVFS_USE_ORBITLOGGER)
 
-#include <OrbitLogger/OrbitLogger.h>
+#include <OrbitLogger/src/OrbitLogger.h>
 
 #define STARVFSLOG(What, fmt, ...) AddLogf(StarVFS, fmt, __VA_ARGS__)
 
