@@ -25,6 +25,8 @@ namespace Modules {
 RemoteModule::RemoteModule(StarVFS *svfs, const String &port): iModule(svfs), m_Port(port) {
 	m_ThreadRunning = false;
 	m_CanRun = false;
+
+	m_Port = "";
 }
 
 RemoteModule::~RemoteModule() {
@@ -180,27 +182,18 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 //-------------------------------------------------------------------------------------------------
 
 void RemoteModule::ThreadMain() {
-//	tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), Settings::Modules::Remote::BasePort);
-//	a.open(endpoint.protocol());
-//	deadline_timer deadline(io_service);
-
 	Connection c(this);
 
-	int id = 0;
-	uint16_t port = (uint16_t)strtol(m_Port.c_str(), nullptr, 10);
-	if (port == 0) {
-		port = static_cast<uint16_t>(RemoteHeaders::Settings::BasePort);
-		m_Port = std::to_string(port);
-	}
-	tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));
 	while (m_CanRun) {
-		//a.async_accept(c.m_Socket, [this, &c](boost::system::error_code ec) {
-		//	if (ec) {
-		//		STARVFSDebugLog("Accept failed");
-		//		return;
-		//	}
-		//	c.HandleClient();
-		//});
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+		int id = 0;
+		uint16_t port = (uint16_t)strtol(m_Port.c_str(), nullptr, 10);
+		if (port == 0) {
+			port = static_cast<uint16_t>(RemoteHeaders::Settings::BasePort);
+			m_Port = std::to_string(port);
+		}
+		tcp::acceptor a(c.m_io_service, tcp::endpoint(tcp::v4(), port));
 
 		STARVFSDebugLog("Waiting for connection %d", id++);
 		boost::system::error_code error;
@@ -211,8 +204,6 @@ void RemoteModule::ThreadMain() {
 
 	//	deadline.expires_from_now(boost::posix_time::seconds(1));
 	//	io_service.run();
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		//		std::thread(session, std::move(sock)).detach();
 	}
 }
 
