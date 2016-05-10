@@ -11,7 +11,7 @@
 
 namespace StarVFS {
 
-class StarVFS final {
+class StarVFS {
 public:
  	StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
