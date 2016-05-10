@@ -12,7 +12,7 @@ workspace "StarVFS"
 	language "C++"
 	
 	startproject "svfs"	
-	location "."
+	location(dir.bin)
 	basedir "."
 	debugdir "."
 	targetdir(bindir)
