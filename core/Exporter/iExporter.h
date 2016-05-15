@@ -20,7 +20,7 @@ enum class ExportResult {
 
 class iExporter : public AttributeMap {
 public:
- 	iExporter(StarVFS *svfs);
+ 	explicit iExporter(StarVFS *svfs);
  	virtual ~iExporter();
 
 	struct ExporterFile {

@@ -14,7 +14,7 @@ namespace StarVFS {
 
 class Register final {
 public:
-	Register(StarVFS *Owner);
+	explicit Register(StarVFS *Owner);
 	Register(const Register&) = delete;
  	~Register();
 

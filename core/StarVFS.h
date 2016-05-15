@@ -13,7 +13,7 @@ namespace StarVFS {
 
 class StarVFS {
 public:
- 	StarVFS(unsigned FSFlags = 0);
+ 	explicit StarVFS(unsigned FSFlags = 0);
  	virtual ~StarVFS();
 
 	template<class T, class ...ARGS>

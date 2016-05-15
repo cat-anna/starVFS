@@ -13,7 +13,7 @@ namespace StarVFS {
 
 class HandleTable final {
 public:
- 	HandleTable(FileTable *FT);
+ 	explicit HandleTable(FileTable *FT);
  	~HandleTable();
 
 	FileHandle CreateHandle(FileID fid, RWMode ReadMode);

@@ -17,7 +17,7 @@ namespace Containers {
 
 class iContainer {
 public:
- 	iContainer(FileTableInterface  *fti);
+ 	explicit iContainer(FileTableInterface  *fti);
  	virtual ~iContainer();
 
 	virtual bool Initialize() { return true; }

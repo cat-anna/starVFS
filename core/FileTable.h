@@ -13,7 +13,7 @@ namespace StarVFS {
 
 class FileTable final {
 public:
- 	FileTable(StarVFS *Owner);
+ 	explicit FileTable(StarVFS *Owner);
  	~FileTable();
 
 	void DumpStructure(std::ostream &out) const;

@@ -71,7 +71,7 @@ struct unique_table {
 
 	size_t size() const { return m_Size; }
 	size_t byte_size() const { return m_Size * sizeof(T); }
-	size_t element_size() const { return sizeof(T); }
+	static size_t element_size() { return sizeof(T); }
 
 	T& operator[](size_t idx) { 
 		StarVFSAssert(idx < m_Size);
@@ -112,7 +112,7 @@ struct unique_table {
 
 	struct base_iterator {
 		base_iterator() : m_Ptr(nullptr) {}
-		base_iterator(T *p) : m_Ptr(p) {}
+		explicit base_iterator(T *p) : m_Ptr(p) {}
 
 		bool operator <(const base_iterator &other) const { return m_Ptr < other.m_Ptr; }
 		bool operator <=(const base_iterator &other) const { return m_Ptr <= other.m_Ptr; }
@@ -130,7 +130,7 @@ struct unique_table {
 
 	struct const_iterator : public base_iterator {
 		const_iterator() : base_iterator(nullptr) {}
-		const_iterator(T *p) : const_iterator(p) {}
+		explicit const_iterator(T *p) : const_iterator(p) {}
 		const_iterator& operator++() { StarVFSAssert(this->m_Ptr); ++this->m_Ptr; return *this; }
 		const_iterator operator++(int) { StarVFSAssert(this->m_Ptr); return const_iterator(this->m_Ptr + 1); }
 		const_iterator& operator--() { StarVFSAssert(this->m_Ptr); --this->m_Ptr; return *this; }
@@ -139,7 +139,7 @@ struct unique_table {
 
 	struct iterator : public base_iterator {
 		iterator() : base_iterator(nullptr) {}
-		iterator(T *p) : base_iterator(p) {}
+		explicit iterator(T *p) : base_iterator(p) {}
 		iterator& operator++() { StarVFSAssert(this->m_Ptr); ++this->m_Ptr; return *this; }
 		iterator operator++(int) { StarVFSAssert(this->m_Ptr); return iterator(this->m_Ptr + 1); }
 		iterator& operator--() { StarVFSAssert(this->m_Ptr); --this->m_Ptr; return *this; }

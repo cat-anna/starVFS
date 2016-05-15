@@ -14,7 +14,7 @@ namespace Modules {
 
 class iModule : public AttributeMap {
 public:
- 	iModule(StarVFS *svfs);
+ 	explicit iModule(StarVFS *svfs);
  	virtual ~iModule();
 
 	StarVFS* GetVFS() { return m_SVFS; }
