@@ -68,7 +68,7 @@ public:
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
 	const File* GetTable() const { return m_FileTable.get(); }
-	FileID GetAllocatedFileCount() { return m_Allocated; }
+	FileID GetAllocatedFileCount() const { return m_Allocated; }
 	FileID GetRootID()const { return 1; }
 	File* GetRoot() const { return m_FileTable.get() + GetRootID(); }
 

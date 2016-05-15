@@ -59,9 +59,12 @@ private:
 		if (m_Capacity >= NewCapacity)
 			return;
 		auto p = m_Memory.release();
-		p = (T*)realloc(p, NewCapacity * sizeof(T));
+		auto mem = (T*)realloc(p, NewCapacity * sizeof(T));
+		if(!mem) {
+			return;
+		}
 		if (!m_Capacity)
-			p[0] = 0;
+			mem[0] = 0;
 		m_Memory.reset(p);
 		m_Capacity = NewCapacity;
 	}
