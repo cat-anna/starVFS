@@ -91,8 +91,8 @@ protected:
 	template<class T>
 	struct OwnedAttributeMapInstance final : public AttributeMapInstance {
 		void AddAttrib(const String_t &Name, const String_t&(T::*get)()const, void(T::*set)(const String_t &) = nullptr) {
-			AttribData ad{ static_cast<GetFunc>(get), static_cast<SetFunc>(set), };
-			m_Attribs.emplace(Name, ad);
+			typename AttributeMapInstance::AttribData ad{ static_cast<GetFunc>(get), static_cast<SetFunc>(set), };
+			this->m_Attribs.emplace(Name, ad);
 		}
 	protected:
 		virtual bool ValidateType(BaseAttributeMap *Object) const override final {

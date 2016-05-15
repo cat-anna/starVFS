@@ -99,7 +99,7 @@ String StarVFS::GetFilePath(FileID fid, FileID ParentFID) const {
 	return m_FileTable->GetFilePath(fid, ParentFID);
 }
 
-const CString StarVFS::GetFileName(FileID fid) const {
+CString StarVFS::GetFileName(FileID fid) const {
 	return m_FileTable->GetFileName(fid);
 }
 

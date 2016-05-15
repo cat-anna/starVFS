@@ -6,12 +6,13 @@
 /*--END OF HEADER BLOCK--*/
 #define _WIN32_WINNT 0x0501
 
+#include <thread>
+#include <boost/asio.hpp>
+
 #include "../StarVFSInternal.h"
 #include "RemoteContainer.h"
 #include "../Module/RemoteHeaders.h"
 
-#include <boost/asio.hpp>
-#include <thread>
 
 using boost::asio::ip::tcp;
 
@@ -42,11 +43,11 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		m_MessageBuffer->Clear();
 		auto hdr = m_MessageBuffer->GetHeader();
 
-		hdr->Command = RemoteHeaders::Command::GetFileTable;
+		hdr->CommandID = RemoteHeaders::Command::GetFileTable;
 		if (!SendAndWait(*m_MessageBuffer.get()))
 			return 0;
 
-		hdr->Command = RemoteHeaders::Command::GetStringTable;
+		hdr->CommandID = RemoteHeaders::Command::GetStringTable;
 		if (!SendAndWait(*m_MessageBuffer.get()))
 			return 0;
 
@@ -56,11 +57,11 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	bool GetFileData(FileID ContainerFID, ByteTable &out) const {
 		m_MessageBuffer->Clear();
 		auto hdr = m_MessageBuffer->GetHeader();
-		hdr->Command = RemoteHeaders::Command::GetFile;
+		hdr->CommandID = RemoteHeaders::Command::GetFile;
 		auto request = m_MessageBuffer->AllocAndZero<RemoteHeaders::GetFileRequest>();
 		request->ID = ContainerFID;
-		request->RWMode = RWMode::R;
-		request->OpenMode = OpenMode::OpenExisting;
+		request->AccessMode = RWMode::R;
+		request->FileOpenMode = OpenMode::OpenExisting;
 		request->Mode = RemoteHeaders::GetFileRequest::FindMode::ID;
 
 		if (!((Connection*)this)->WaitForResponse(*m_MessageBuffer.get()))
@@ -79,15 +80,15 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	bool LoadMeta() {
 		auto hdr = m_MessageBuffer->GetHeader();
 		m_MessageBuffer->Clear();
-		hdr->Command = RemoteHeaders::Command::Ping;
+		hdr->CommandID = RemoteHeaders::Command::Ping;
 		WriteMessage(*m_MessageBuffer.get());
 		return DispatchPendingCommand(*m_MessageBuffer.get());
 	}
 
 	bool Connect(const String& Host, int port) {
 		tcp::resolver resolver(m_io_service);
-		char strPort[16];
-		sprintf_s(strPort, "%d", port);
+		//char strPort[16];
+		//sprintf(strPort, "%d", port);
 
 		boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(Host), (short)port);
 		boost::system::error_code error;
@@ -108,10 +109,10 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 	bool ProcessPingPong(MessageBuffer &message) {
 		message.Clear();
 		auto hdr = message.GetHeader();
-		if (hdr->Command == RemoteHeaders::Command::Ping)
-			hdr->Command = RemoteHeaders::Command::Pong;
+		if (hdr->CommandID == RemoteHeaders::Command::Ping)
+			hdr->CommandID = RemoteHeaders::Command::Pong;
 		else
-			hdr->Command = RemoteHeaders::Command::Ping;
+			hdr->CommandID = RemoteHeaders::Command::Ping;
 		return WriteMessage(message);
 	}
 #endif
@@ -123,7 +124,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		size_t len = hdr->ElementCount * sizeof(File);
 		memcpy(&m_FileTable[0], message.PullBytes(len), len);
 		m_FileCount = (FileID)hdr->ElementCount;
-		STARVFSErrorLog("table %d %d", hdr->ElementCount, len);
+		STARVFSErrorLog("table %d %u", hdr->ElementCount, (unsigned)len);
 		return true;
 	}
 	bool ReadStringTable(MessageBuffer &message) {
@@ -131,14 +132,14 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 		m_ByteTable.resize(hdr->ElementCount);
 		size_t len = hdr->ElementCount * sizeof(Char);
 		memcpy(&m_ByteTable[0], message.PullBytes(len), len);
-		STARVFSErrorLog("string %d %d", hdr->ElementCount, len);
+		STARVFSErrorLog("string %d %u", hdr->ElementCount, (unsigned)len);
 		return true;
 	}
 
 	virtual bool ProcessCommand(MessageBuffer &message) override {
 		auto hdr = message.GetHeader();
 
-		switch (hdr->Command) {
+		switch (hdr->CommandID) {
 		case RemoteHeaders::Command::GetFileTable:
 			return ReadFileTable(message);
 		case RemoteHeaders::Command::GetStringTable:
@@ -173,7 +174,7 @@ RemoteContainer::~RemoteContainer() {
 
 String RemoteContainer::GetContainerURI() const {
 	char buff[128];
-	sprintf_s(buff, "tcp://%s:%d", m_Host.c_str(), m_Port);
+	sprintf(buff, "tcp://%s:%d", m_Host.c_str(), m_Port);
 	return buff;
 }
 

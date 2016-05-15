@@ -123,9 +123,9 @@ function GenerateModules(outfilename, basedir)
 		exporterout(...)
 	end		
 	
-	process(basedir, "Container/*Container.h", "Containers", "RegisterContainer", outdata, containerout)
-	process(basedir, "Module/*Module.h", "Modules", "RegisterModule", outdata, moduleout)
-	process(basedir, "Exporter/*Exporter.h", "Exporters", "RegisterExporter", outdata, exporterout)	
+	process(basedir, "Container/*Container.h", "Containers", "template RegisterContainer", outdata, containerout)
+	process(basedir, "Module/*Module.h", "Modules", "template RegisterModule", outdata, moduleout)
+	process(basedir, "Exporter/*Exporter.h", "Exporters", "template RegisterExporter", outdata, exporterout)	
 	generateDetectType(basedir, "Container/*Container.h", "Containers", "Container", outdata, containerout)
 	
 	addout "/*"

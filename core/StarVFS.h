@@ -44,7 +44,7 @@ public:
 	String GetFullFilePath(FileID fid) const;
 	/** Get file relative path to ParentFID. fid and ParentFID must have line relation. */
 	String GetFilePath(FileID fid, FileID ParentFID) const;
-	const CString GetFileName(FileID fid) const;
+	CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
 	bool GetFileData(FileID fid, ByteTable &data);
 

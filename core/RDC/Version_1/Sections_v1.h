@@ -50,7 +50,8 @@ private: \
 	Type *m_ ## Name = 0;									
 
 struct BaseSection {
-	BaseSection(SectionFileBuilderInterface *sfbi, SectionIndex index, SectionType Type) : m_SFBI(sfbi), m_Index(index), m_Type(Type) {}
+	BaseSection(SectionFileBuilderInterface *sfbi, SectionIndex index, SectionType Type) : 
+		m_Index(index), m_Type(Type), m_SFBI(sfbi) {}
 	virtual ~BaseSection() {}
 
 	SectionIndex GetIndex() const { return m_Index; }

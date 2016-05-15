@@ -8,7 +8,7 @@ bindir = dir.bin
 
 workspace "StarVFS"
 	configurations { "Debug", "Release", }
-	platforms { "x32", "x64", }
+	platforms { "x64", "x32", }
 	language "C++"
 	
 	startproject "svfs"	
@@ -40,7 +40,7 @@ workspace "StarVFS"
 	filter "action:gmake"
 		defines { "GCC", }
 		buildoptions{ 
-			"-std=c++1y", 
+			"-std=gnu++14", 
 		}
 		-- linkoptions{ "-Wl,--no-as-needed", }
 		links { 

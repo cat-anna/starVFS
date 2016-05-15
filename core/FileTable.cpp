@@ -40,7 +40,7 @@ FileTable::~FileTable() {
 void FileTable::DumpStructure(std::ostream &out) const {
 	const char *fmt = "%5s. %3s:%-4s %8s %5s %6s %6s %6s %10s %s%s\n";
 	char buf[512];
-	sprintf_s(buf, fmt, "GFID", "CID", "CFID", "HASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "", "NAME");
+	snprintf(buf, sizeof(buf), fmt, "GFID", "CID", "CFID", "HASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "", "NAME");
 	out << buf;
 
 	std::function<void(FileID, int)> Printer;
@@ -68,22 +68,22 @@ void FileTable::DumpStructure(std::ostream &out) const {
 		auto &f = m_FileTable[id];
 		char flagsbuf[6] = "     ";
 
-		sprintf_s(idbuf, "%d", id);
-		sprintf_s(containeridbuf, "%d", f.m_ContainerID);
-		sprintf_s(containerfileidbuf, "%d", f.m_ContainerFileID);
-		sprintf_s(hashbuf, "%08x", f.m_Hash);
+		snprintf(idbuf, sizeof(idbuf), "%d", id);
+		snprintf(containeridbuf, sizeof(containeridbuf), "%d", f.m_ContainerID);
+		snprintf(containerfileidbuf, sizeof(containerfileidbuf), "%d", f.m_ContainerFileID);
+		snprintf(hashbuf, sizeof(hashbuf), "%08x", f.m_Hash);
 
-		sprintf_s(parentbuf, "%d", f.m_ParentFileID);
-		sprintf_s(firstchildbuf, "%d", f.m_FirstChild);
-		sprintf_s(nextsyblingbuf, "%d", f.m_NextSibling);
+		snprintf(parentbuf, sizeof(parentbuf), "%d", f.m_ParentFileID);
+		snprintf(firstchildbuf, sizeof(firstchildbuf), "%d", f.m_FirstChild);
+		snprintf(nextsyblingbuf, sizeof(nextsyblingbuf), "%d", f.m_NextSibling);
 
-		sprintf_s(sizebuf, "%d", f.m_Size);
+		snprintf(sizebuf, sizeof(sizebuf), "%d", f.m_Size);
 
 		if (f.m_Flags.Valid) flagsbuf[0] = 'V';
 		if (f.m_Flags.Directory) flagsbuf[1] = 'D';
 		if (f.m_Flags.SymLink) flagsbuf[2] = 'S';
 
-		sprintf_s(buf, fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, flagsbuf,
+		snprintf(buf, sizeof(buf), fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, flagsbuf,
 				parentbuf, firstchildbuf, nextsyblingbuf, sizebuf, levelbuf, m_StringTable->Get(f.m_NameStringID));
 		out << buf;
 
@@ -110,7 +110,7 @@ void FileTable::DumpFileTable(std::ostream &out) const {
 	char firstchildbuf[32];
 	char nextsyblingbuf[32];
 	
-	sprintf_s(buf, fmt, "GFID", "CID", "CFID", "HASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "NAME");
+	snprintf(buf, sizeof(buf), fmt, "GFID", "CID", "CFID", "HASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "NAME");
 	out << buf;
 
 	for (FileID i = 0; i < m_Allocated; ++i) {
@@ -118,22 +118,22 @@ void FileTable::DumpFileTable(std::ostream &out) const {
 
 		char flagsbuf[6] = "     ";
 
-		sprintf_s(idbuf, "%d", i);
-		sprintf_s(containeridbuf, "%d", f.m_ContainerID);
-		sprintf_s(containerfileidbuf, "%d", f.m_ContainerFileID);
-		sprintf_s(hashbuf, "%08x", f.m_Hash);
+		snprintf(idbuf, sizeof(idbuf), "%d", i);
+		snprintf(containeridbuf, sizeof(containeridbuf), "%d", f.m_ContainerID);
+		snprintf(containerfileidbuf, sizeof(containerfileidbuf), "%d", f.m_ContainerFileID);
+		snprintf(hashbuf, sizeof(hashbuf), "%08x", f.m_Hash);
 
-		sprintf_s(parentbuf, "%d", f.m_ParentFileID);
-		sprintf_s(firstchildbuf, "%d", f.m_FirstChild);
-		sprintf_s(nextsyblingbuf, "%d", f.m_NextSibling);
+		snprintf(parentbuf, sizeof(parentbuf), "%d", f.m_ParentFileID);
+		snprintf(firstchildbuf, sizeof(firstchildbuf), "%d", f.m_FirstChild);
+		snprintf(nextsyblingbuf, sizeof(nextsyblingbuf), "%d", f.m_NextSibling);
 
-		sprintf_s(sizebuf, "%d", f.m_Size);
+		snprintf(sizebuf, sizeof(sizebuf), "%d", f.m_Size);
 
 		if (f.m_Flags.Valid) flagsbuf[0] = 'V';
 		if (f.m_Flags.Directory) flagsbuf[1] = 'D';
 		if (f.m_Flags.SymLink) flagsbuf[2] = 'S';
 
-		sprintf_s(buf, fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, flagsbuf,
+		snprintf(buf, sizeof(buf), fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, flagsbuf,
 				parentbuf, firstchildbuf, nextsyblingbuf, sizebuf, m_StringTable->Get(f.m_NameStringID));
 		out << buf;
 	}
@@ -147,18 +147,18 @@ void FileTable::DumpHashTable(std::ostream &out) const {
 	char gfidbuf[32];
 	char hashbuf[32];
 
-	sprintf_s(buf, fmt, "ID", "HASH", "GFID");
+	snprintf(buf, sizeof(buf), fmt, "ID", "HASH", "GFID");
 	out << buf;
 
 	for (FileID i = 0, j = m_HashFileTable.GetAllocated(); i < j; ++i) {
 		auto fid = m_HashFileTable.GetFileIDAtIndex(i);
 		auto hash = m_HashFileTable.GetPathHashAtIndex(i);
 
-		sprintf_s(idbuf, "%d", i);
-		sprintf_s(gfidbuf, "%u", (unsigned)fid);
-		sprintf_s(hashbuf, "%08x", hash);
+		snprintf(idbuf, sizeof(idbuf), "%d", i);
+		snprintf(gfidbuf, sizeof(gfidbuf), "%u", (unsigned)fid);
+		snprintf(hashbuf, sizeof(hashbuf), "%08x", hash);
 
-		sprintf_s(buf, fmt, idbuf, hashbuf, gfidbuf);
+		snprintf(buf, sizeof(buf), fmt, idbuf, hashbuf, gfidbuf);
 		out << buf;
 	}
 }
@@ -264,7 +264,7 @@ String FileTable::GetFilePath(FileID fid, FileID ParentFID) const {
 	return ss.str();
 }
 
-const CString FileTable::GetFileName(FileID fid) const {
+CString FileTable::GetFileName(FileID fid) const {
 	if (!fid || fid >= m_Allocated)
 		return nullptr;
 	return (CString)m_StringTable->Get(m_FileTable[fid].m_NameStringID);

@@ -62,7 +62,7 @@ struct BaseDataBlock {
 struct DataBlock : public BaseDataBlock {
 	RDC_HEADER_STRUCTURE(DataBlock);
 
-	FilePointer FilePointer = 0;
+	FilePointer FileLocation = 0;
 	u32 unused_32_0 = UNUSED32;
 };
 static_assert(sizeof(DataBlock) % 8 == 0, "DataBlock has invalid size!");
@@ -84,7 +84,7 @@ struct FileFooter {
 	u8 unused_8_0 = UNUSED8;
 	u8 unused_8_1 = UNUSED8;
 	u8 unused_8_2 = UNUSED8;
-	Signature Signature = Signature::Footer; ///Footer signature
+	Signature FooterSignature = Signature::Footer; ///Footer signature
 };
 static_assert(sizeof(FileFooter) % 8 == 0, "FileFooter has invalid size!");
 

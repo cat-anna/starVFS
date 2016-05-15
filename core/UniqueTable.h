@@ -122,8 +122,8 @@ struct unique_table {
 		bool operator !=(const base_iterator &other) const { return m_Ptr != other.m_Ptr; }
 
 
-		const T& operator *() const { return *m_ptr; }
-		const T* operator->() const { return m_ptr; }
+		const T& operator *() const { return *m_Ptr; }
+		const T* operator->() const { return m_Ptr; }
 	protected:
 		T* m_Ptr;
 	};
@@ -131,27 +131,27 @@ struct unique_table {
 	struct const_iterator : public base_iterator {
 		const_iterator() : base_iterator(nullptr) {}
 		const_iterator(T *p) : const_iterator(p) {}
-		const_iterator& operator++() { StarVFSAssert(m_Ptr); ++m_Ptr; return *this; }
-		const_iterator operator++(int) { StarVFSAssert(m_Ptr); return const_iterator(m_Ptr + 1); }
-		const_iterator& operator--() { StarVFSAssert(m_Ptr); --m_Ptr; return *this; }
-		const_iterator operator--(int) { StarVFSAssert(m_Ptr); return const_iterator(m_Ptr - 1); }
+		const_iterator& operator++() { StarVFSAssert(this->m_Ptr); ++this->m_Ptr; return *this; }
+		const_iterator operator++(int) { StarVFSAssert(this->m_Ptr); return const_iterator(this->m_Ptr + 1); }
+		const_iterator& operator--() { StarVFSAssert(this->m_Ptr); --this->m_Ptr; return *this; }
+		const_iterator operator--(int) { StarVFSAssert(this->m_Ptr); return const_iterator(this->m_Ptr - 1); }
 	};
 
 	struct iterator : public base_iterator {
 		iterator() : base_iterator(nullptr) {}
 		iterator(T *p) : base_iterator(p) {}
-		iterator& operator++() { StarVFSAssert(m_Ptr); ++m_Ptr; return *this; }
-		iterator operator++(int) { StarVFSAssert(m_Ptr); return iterator(m_Ptr + 1); }
-		iterator& operator--() { StarVFSAssert(m_Ptr); --m_Ptr; return *this; }
-		iterator operator--(int) { StarVFSAssert(m_Ptr); return iterator(m_Ptr - 1); }
+		iterator& operator++() { StarVFSAssert(this->m_Ptr); ++this->m_Ptr; return *this; }
+		iterator operator++(int) { StarVFSAssert(this->m_Ptr); return iterator(this->m_Ptr + 1); }
+		iterator& operator--() { StarVFSAssert(this->m_Ptr); --this->m_Ptr; return *this; }
+		iterator operator--(int) { StarVFSAssert(this->m_Ptr); return iterator(this->m_Ptr - 1); }
 		
-		T& operator *() { return *m_ptr; }
-		T* operator->() { return m_ptr; }
+		T& operator *() { return *this->m_Ptr; }
+		T* operator->() { return this->m_Ptr; }
 	};
 
-	iterator begin() { if (!m_Table) return Iterator(nullptr); return iterator(m_Table.get()); }
+	iterator begin() { if (!m_Table) return iterator(nullptr); return iterator(m_Table.get()); }
 	const_iterator begin() const { if (!m_Table) return const_iterator(nullptr); return const_iterator(m_Table.get()); }
-	iterator end() { if (!m_Table) return Iterator(nullptr); return iterator(m_Table.get() + m_Size); }
+	iterator end() { if (!m_Table) return iterator(nullptr); return iterator(m_Table.get() + m_Size); }
 	const_iterator end() const { if (!m_Table) return const_iterator(nullptr); return const_iterator(m_Table.get() + m_Size); }
 
 	operator bool() const { return static_cast<bool>(m_Table); }

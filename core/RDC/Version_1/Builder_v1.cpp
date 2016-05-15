@@ -109,7 +109,8 @@ bool Builder_v1::WriteSections() {
 		}
 
 		if (ret.m_Compression == Compression::CompressionResult::UnableToReduceSize) {
-			STARVFSDebugLog("Section %d (Type: %02x, class: %s) not compressed. Reason: Unable to reduce size", it->GetIndex(), it->GetType(), typeid(*it.get()).name());
+			STARVFSDebugLog("Section %d (Type: %02x, class: %s) not compressed. Reason: Unable to reduce size",
+						(int)it->GetIndex(), (int)it->GetType(), typeid(*it.get()).name());
 		}
 	}
 	return true;

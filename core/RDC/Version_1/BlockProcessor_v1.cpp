@@ -25,7 +25,7 @@ BlockProcessingResult BlockProcessor::ReadBlock(const BlockFileDevice *device, B
 	out.reset();
 	ByteTable bt;
 	bt.make_new(block.ContainerSize);
-	if (!device->ReadFromBegining(block.FilePointer, bt.get(), bt.byte_size())) {
+	if (!device->ReadFromBegining(block.FileLocation, bt.get(), bt.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 		return BlockProcessingResult::IOFailure();
 	}
@@ -43,7 +43,7 @@ BlockProcessingResult BlockProcessor::ReadBlock(const BlockFileDevice *device, B
 	out.reset();
 	ByteTable bt;
 	bt.make_new(offset.ContainerSize);
-	if (!device->ReadFromBegining(block.FilePointer + offset.SectionOffset, bt.get(), bt.byte_size())) {
+	if (!device->ReadFromBegining(block.FileLocation + offset.SectionOffset, bt.get(), bt.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 		return BlockProcessingResult::IOFailure();
 	}
@@ -63,7 +63,7 @@ BlockProcessingResult BlockProcessor::WriteBlock(const BlockFileDevice *device, 
 
 	BlockProcessingResult ret = ProcessOutputBlock(in, block);
 
-	block.FilePointer = device->GetSize();
+	block.FileLocation = device->GetSize();
 	block.ContainerSize = in.byte_size();
 
 	ret.m_DeviceIORequested = true;
@@ -81,7 +81,7 @@ BlockProcessingResult BlockProcessor::WriteBlock(const BlockFileDevice *device, 
 
 	BlockProcessingResult ret = ProcessOutputBlock(in, offset);
 
-	offset.SectionOffset = device->GetSize() - block.FilePointer;
+	offset.SectionOffset = device->GetSize() - block.FileLocation;
 	offset.ContainerSize = in.byte_size();
 
 	ret.m_DeviceIORequested = true;
@@ -158,7 +158,7 @@ Compression::CompressionResult BlockProcessor::ProcessCompression(ByteTable &ino
 #endif
 	}
 	default:
-		STARVFSErrorLog("Unknown compression mode: %d", config.Mode);
+		STARVFSErrorLog("Unknown compression mode: %u", (unsigned)config.Mode);
 		break;
 	}
 
@@ -198,7 +198,7 @@ Compression::CompressionResult BlockProcessor::ProcessDecompression(ByteTable &i
 #endif
 	}
 	default:
-		STARVFSErrorLog("Unknown compression mode: %d", config.Mode);
+		STARVFSErrorLog("Unknown compression mode: %u", (unsigned)config.Mode);
 		break;
 	}
 

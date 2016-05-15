@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef nRDC_H
 #define nRDC_H
@@ -20,18 +19,18 @@ struct Settings {
 } //namespace RDC 
 } //namespace StarVFS 
 
-#ifdef _MSC_VER
+//#ifdef _MSC_VER
 #pragma pack(push, RDC_headers, 1)
-#else
-#error not supported compiler!
-#endif
+//#else
+//#error not supported compiler!
+//#endif
 
 #include "Headers.h"
 #include "Version_1/Headers_v1.h"
 
-#ifdef _MSC_VER
+//#ifdef _MSC_VER
 #pragma pack(pop, RDC_headers)
-#endif
+//#endif
 
 #include "BlockFileDevice.h"
 #include "Builder.h"

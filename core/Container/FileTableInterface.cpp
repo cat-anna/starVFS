@@ -158,11 +158,11 @@ bool FileTableInterface::RegisterFileStructure(FileID Parent, const FileSubStruc
 	}
 
 	auto root = m_Owner->GetRoot();
-	bool UseLocalHash;
+//	bool UseLocalHash;
 	if (root == parent) {
-		UseLocalHash = true;
+//		UseLocalHash = true;
 	} else {
-		UseLocalHash = false;
+//		UseLocalHash = false;
 		StarVFSAssert(false);
 	}
 

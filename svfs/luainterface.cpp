@@ -53,7 +53,7 @@ static int Lua_print(lua_State *L, std::ostringstream &out) {
 	return 0;
 }
 
-static int lua_Debug(lua_State *lua) {
+static int lua_DebugPrint(lua_State *lua) {
 	std::ostringstream out;
 	out << "[DEBUG][LUA] ";
 	Lua_print(lua, out);
@@ -73,7 +73,7 @@ Lua::Lua() {
 
 void Lua::RegisterAPI() {
 	luabridge::getGlobalNamespace(m_Lua.get())
-		.addCFunction("debug", &lua_Debug)
+		.addCFunction("debug", &lua_DebugPrint)
 		;
 }
 

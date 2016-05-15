@@ -51,7 +51,7 @@ public:
 	bool IsDirectory(FileID fid) const;
 	bool IsFile(FileID fid) const;
 
-	const CString GetFileName(FileID fid) const { return m_Owner->GetFileName(fid); }
+	CString GetFileName(FileID fid) const { return m_Owner->GetFileName(fid); }
 	String GetFileFullPath(FileID fid) const { return m_Owner->GetFileFullPath(fid); }
 
 	ContainerID GetContainerID() const { return m_CID; }

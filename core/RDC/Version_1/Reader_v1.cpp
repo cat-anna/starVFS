@@ -96,7 +96,8 @@ bool Reader_v1::ReadSectionBlock(SectionIndex Index, TableType &out) const {
 	}
 	auto &section = m_Sections[Index];
 	if (section.Type != Type) {
-		STARVFSErrorLog("Invalid section type! want:%d got:%d (index: %d, tabletype: %s)", Type, section.Type, Index, typeid(out).name());
+		STARVFSErrorLog("Invalid section type! want:%d got:%d (index: %d, tabletype: %s)",
+				(int)Type, (int)section.Type, (int)Index, typeid(out).name());
 		return false;
 	}
 
@@ -158,7 +159,7 @@ bool Reader_v1::TestFooterIntegrity(UniqueBlockFileDevice &device, FileFooter *f
 	if (!device->ReadFromEnd(sizeof(*footer), (char*)footer, sizeof(*footer)))
 		return false;
 
-	if (footer->Signature != Signature::Footer) {
+	if (footer->FooterSignature != Signature::Footer) {
 		STARVFSDebugInfoLog("Invalid footer signature!");
 		return false;
 	}

@@ -60,7 +60,7 @@ public:
 	File* GetFileFirstChild(const File *f) const { return GetFile(f->m_FirstChild); }
 	File* GetFileNextSibling(const File *f) const { return GetFile(f->m_NextSibling); }
 
-	const CString GetFileName(FileID fid) const;
+	CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const { return GetFilePath(fid, 0); }
 	String GetFilePath(FileID fid, FileID ParentFID) const;
 	bool GetFileData(FileID fid, ByteTable &data);

@@ -79,10 +79,10 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 	bool ProcessPingPong(MessageBuffer &message) {
 		message.Clear();
 		auto hdr = message.GetHeader();
-		if (hdr->Command == RemoteHeaders::Command::Ping)
-			hdr->Command = RemoteHeaders::Command::Pong;
+		if (hdr->CommandID == RemoteHeaders::Command::Ping)
+			hdr->CommandID = RemoteHeaders::Command::Pong;
 		else
-			hdr->Command = RemoteHeaders::Command::Ping;
+			hdr->CommandID = RemoteHeaders::Command::Ping;
 
 		return WriteMessage(message);
 	}
@@ -125,10 +125,10 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 		case Mode::Hash:
 			break;
 		case Mode::ID:
-			h = vfs->OpenFile(request->ID, request->RWMode);
+			h = vfs->OpenFile(request->ID, request->AccessMode);
 			break;
 		case Mode::Path:
-			h = vfs->OpenFile((CString)request->Path, request->RWMode, request->OpenMode);
+			h = vfs->OpenFile((CString)request->Path, request->AccessMode, request->FileOpenMode);
 			break;
 		default:
 			break;
@@ -150,9 +150,9 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 	virtual bool ProcessCommand(MessageBuffer &message) override {
 		auto hdr = message.GetHeader();
 
-		STARVFSDebugInfoLog("Recived command:%d payload:%d", hdr->Command, hdr->PayLoadSize);
+		STARVFSDebugInfoLog("Recived command:%u payload:%u", (unsigned)hdr->CommandID, (unsigned)hdr->PayLoadSize);
 
-		switch (hdr->Command) {
+		switch (hdr->CommandID) {
 		case RemoteHeaders::Command::GetFileTable:
 			return SendFileTable(message);
 		case RemoteHeaders::Command::GetStringTable:
