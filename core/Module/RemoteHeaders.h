@@ -79,7 +79,7 @@ struct DynamicMessageBuffer {
 
 	const char* GetBuffer() const { return m_Buffer; }
 	size_t UsedSize() const { return m_UsedSize; }
-	size_t HeaderSize() const { return sizeof(Header); }
+	static size_t HeaderSize() { return sizeof(Header); }
 	size_t PayLoadSize() const { return UsedSize() - HeaderSize(); }
 
 	template<class T> bool Push(T & t) {
@@ -187,15 +187,15 @@ private:
 	char m_Buffer[Size];
 
 	template<class T>
-	void Check() {
+	static void Check() {
 		static_assert(std::is_pod<T>::value, "DynamicMessageBuffer accepts only POD types");
 	}
 };
 
 struct MemoryNoLockPolicy {
 	struct Guard_t { Guard_t(MemoryNoLockPolicy&) {} };
-	void lock() {}
-	void unlock() {}
+	static void lock() {}
+	static void unlock() {}
 };
 
 using MessageBuffer = DynamicMessageBuffer<Settings::MaxMessageSize, MasterHeader, MemoryNoLockPolicy>;

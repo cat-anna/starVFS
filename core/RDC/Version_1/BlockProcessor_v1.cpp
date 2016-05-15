@@ -153,7 +153,7 @@ Compression::CompressionResult BlockProcessor::ProcessCompression(ByteTable &ino
 		ret = zlib.Compress(inout, output);
 		break;
 #else
-		STARVFSErrorLog("ZLib compression is disabled!", config.Mode);
+		STARVFSErrorLog("ZLib compression is disabled! (mode %u)", (unsigned)config.Mode);
 		break;
 #endif
 	}
@@ -193,7 +193,7 @@ Compression::CompressionResult BlockProcessor::ProcessDecompression(ByteTable &i
 		ret = zlib.Decompress(inout, output);
 		break;
 #else
-		STARVFSErrorLog("ZLib decompression is disabled!", config.Mode);
+		STARVFSErrorLog("ZLib compression is disabled! (mode %u)", (unsigned)config.Mode);
 		break;
 #endif
 	}

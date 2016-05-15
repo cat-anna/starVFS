@@ -69,8 +69,8 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 #define STARVFSLOG(What, args...)\
 	do { \
 		char __logbuf[1024 * 16]; \
-		sprintf(__logbuf, "[%s][%s:%s:%d] StarVFS: ", #What, __FILE__, __FUNCTION__, __LINE__); \
-		sprintf(strchr(__logbuf, '\0'), args ); \
+		int c = sprintf(__logbuf, "[%s][%s:%s:%d] StarVFS: ", #What, __FILE__, __FUNCTION__, __LINE__); \
+		sprintf(__logbuf + c, args ); \
 		std::cout << __logbuf << std::flush; \
 	} while(0)
 

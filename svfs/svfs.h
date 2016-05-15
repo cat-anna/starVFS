@@ -44,9 +44,9 @@ private:
 	const char* RawGetFileName(int fid) const { return GetFileName((::StarVFS::FileID)fid); }
 	int RawIsFileDirectory(int fid) const { return IsFileDirectory((::StarVFS::FileID)fid) ? 1 : 0; }
 	
-	void CoutDumpStructure() { DumpStructure(std::cout); }
-	void CoutDumpFileTable() { DumpFileTable(std::cout); }
-	void CoutDumpHashTable() { DumpHashTable(std::cout); }
+	void CoutDumpStructure() const { DumpStructure(std::cout); }
+	void CoutDumpFileTable() const { DumpFileTable(std::cout); }
+	void CoutDumpHashTable() const { DumpHashTable(std::cout); }
 
 };
 
