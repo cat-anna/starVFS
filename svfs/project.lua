@@ -6,7 +6,7 @@ group "Utils"
 		links {
 			"StarVFS",
 			"lua",
-			"StaticZLib",
+			"z",
 			"boost_program_options",
 		}
 		files {
