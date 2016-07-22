@@ -55,11 +55,15 @@ public:
 
 	FileSize GetSize() const;
 	String GetFullPath() const;
+	CString GetName() const;
+
+	FilePathHash GetHash() const;
 
 	bool GetFileData(ByteTable &data) const;
 
 	RWMode GetRWMode() const;
 	FileID GetFID() const;
+	FileID GetParrentID() const;
 
 	bool IsDirectory() const;
 	bool IsSymlink() const;

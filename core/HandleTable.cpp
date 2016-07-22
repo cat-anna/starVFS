@@ -111,6 +111,11 @@ String HandleTable::HandleGetFullPath(const FileHandle& h) const {
 	return hd ? m_FileTable->GetFileFullPath(hd->m_FileID) : String();
 }
 
+CString HandleTable::HandleGetName(const FileHandle& h) const {
+	auto hd = GetDataFromHandle(h);
+	return hd ? m_FileTable->GetFileName(hd->m_FileID) : nullptr;
+}
+
 bool HandleTable::HandleGetFileData(const FileHandle& h, ByteTable &data) const {
 	auto hd = GetDataFromHandle(h);
 	if (!hd) return false;
@@ -122,9 +127,29 @@ RWMode HandleTable::HandleGetRWMode(const FileHandle& h) const {
 	return hd ? hd->m_Mode : RWMode::None;
 }
 
-FileID HandleTable::HandleGetFID(const FileHandle& h) {
+FileID HandleTable::HandleGetFID(const FileHandle& h) const {
 	auto hd = GetDataFromHandle(h);
 	return hd ? hd->m_FileID : FileID(0);
+}
+
+FileID HandleTable::HandleGetParrentID(const FileHandle& h) const {
+	auto hd = GetDataFromHandle(h);
+	if(!hd)
+		return FileID(0);
+	auto f = m_FileTable->GetFile(hd->m_FileID);
+	if (!f)
+		return FileID(0);
+	return f->m_ParentFileID;
+}
+
+FilePathHash HandleTable::HandleGetHash(const FileHandle& h) const {
+	auto hd = GetDataFromHandle(h);
+	if (!hd)
+		return FilePathHash();
+	auto f = m_FileTable->GetFile(hd->m_FileID);
+	if (!f)
+		return FilePathHash();
+	return f->m_Hash;
 }
 
 bool HandleTable::HandleIsDirectory(const FileHandle& h) const {
@@ -177,6 +202,12 @@ bool HandleTable::HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFu
 	}
 
 	return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+void HandleTable::InvalidateCID(ContainerID cid) {
+	STARVFSErrorLog("Not implemented: %s", __FUNCTION__);
 }
 
 } //namespace StarVFS 

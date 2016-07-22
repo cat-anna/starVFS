@@ -22,6 +22,12 @@ String FileHandle::GetFullPath() const {
 	return m_Owner->HandleGetFullPath(*this);
 }
 
+CString FileHandle::GetName() const {
+	if (!m_Owner)
+		return nullptr;
+	return m_Owner->HandleGetName(*this);
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool FileHandle::GetFileData(ByteTable &data) const {
@@ -36,6 +42,12 @@ FileID FileHandle::GetFID() const {
 	if (!m_Owner)
 		return FileID(0);
 	return m_Owner->HandleGetFID(*this);
+}
+
+FileID FileHandle::GetParrentID() const {
+	if (!m_Owner)
+		return FileID(0);
+	return m_Owner->HandleGetParrentID(*this);
 }
 
 RWMode FileHandle::GetRWMode() const {
@@ -54,6 +66,12 @@ bool FileHandle::IsSymlink() const {
 	if (!m_Owner)
 		return false;
 	return m_Owner->HandleIsSymlink(*this);
+}
+
+FilePathHash FileHandle::GetHash() const {
+	if (!m_Owner)
+		return false;
+	return m_Owner->HandleGetHash(*this);
 }
 
 //-------------------------------------------------------------------------------------------------

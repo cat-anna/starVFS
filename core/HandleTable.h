@@ -20,6 +20,7 @@ public:
 
 	FileSize HandleGetSize(const FileHandle& h) const;
 	String HandleGetFullPath(const FileHandle& h) const;
+	CString HandleGetName(const FileHandle& h) const;
 	bool HandleGetFileData(const FileHandle& h, ByteTable &data) const;
 	RWMode HandleGetRWMode(const FileHandle& h) const;
 	bool HandleIsDirectory(const FileHandle& h) const;
@@ -28,7 +29,11 @@ public:
 	void HandleClose(const FileHandle& h);
 	bool HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFunc &func) const;
 	void HandleCloneTo(const FileHandle& src, FileHandle& dst);
-	FileID HandleGetFID(const FileHandle& h);
+	FileID HandleGetFID(const FileHandle& h) const;
+	FileID HandleGetParrentID(const FileHandle& h) const;
+	FilePathHash HandleGetHash(const FileHandle& h) const;
+
+	void InvalidateCID(ContainerID cid);
 private: 
 	struct HandleData;
 	FileTable *m_FileTable;
