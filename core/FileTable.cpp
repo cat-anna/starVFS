@@ -393,4 +393,10 @@ bool FileTable::RegisterStructureTable(FileStructureInfo &info) {
 	return true;
 }
 
+//-------------------------------------------------------------------------------------------------
+
+void FileTable::InvalidateCID(ContainerID cid) {
+	STARVFSErrorLog("Not implemented: %s", __FUNCTION__);
+}
+
 } //namespace StarVFS 

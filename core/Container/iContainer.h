@@ -38,7 +38,7 @@ public:
 
 	ContainerID GetContainerID() const { return GetFileTableInterface()->GetContainerID(); }
 
-	/** Find file in container. ContainerFileName shall be relative to container. Function is slow. */
+	/** Find file in container. ContainerFileName shall be relative to container. Function is may be slow. */
 	virtual FileID FindFile(const String& ContainerFileName) const = 0;
 
 	/** Container shall not do any buffering. */

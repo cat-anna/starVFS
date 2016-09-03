@@ -74,6 +74,8 @@ public:
 
 	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);
 	bool EnsureCapacity(FileID RequiredEmptySpace);
+
+	void InvalidateCID(ContainerID cid);
 private:
 	std::unique_ptr<StringTable> m_StringTable;
 	std::vector<UniqueFileTableInterface> m_Interfaces;

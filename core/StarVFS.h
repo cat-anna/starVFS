@@ -28,6 +28,7 @@ public:
 	}
 	Containers::iContainer* GetContainer(ContainerID cid);
 	ContainerID GetContainerCount() const;
+	bool CloseContainer(ContainerID cid);
 
 	VFSErrorCode OpenContainer(const String& ContainerFile, const String &MountPoint = "/");
 

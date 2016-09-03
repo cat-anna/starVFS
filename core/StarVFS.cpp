@@ -25,6 +25,11 @@ struct StarVFS::Internals {
 		Container m_Container;
 		String m_MountPoint;
 
+		void Release() {
+			m_Container.release();
+			m_MountPoint.clear();
+		}
+
 		ContainerInfo() { }
 		ContainerInfo(const ContainerInfo&) = delete;
 		ContainerInfo(ContainerInfo&& oth) : m_Container(std::move(oth.m_Container)), m_MountPoint(std::move(oth.m_MountPoint)) { }
@@ -118,6 +123,17 @@ Containers::iContainer* StarVFS::GetContainer(ContainerID cid) {
 	if (cid >= m_Internals->m_Containers.size())
 		return nullptr;
 	return m_Internals->m_Containers[cid].m_Container.get();
+}
+
+bool StarVFS::CloseContainer(ContainerID cid) {
+	if (cid >= m_Internals->m_Containers.size())
+		return false;
+
+	m_FileTable->InvalidateCID(cid);
+	m_Internals->m_HandleTable->InvalidateCID(cid);
+	m_Internals->m_Containers[cid].Release();
+
+	return true;
 }
 
 //-----------------------------------------------------------------------------
