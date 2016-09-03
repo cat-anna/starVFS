@@ -31,7 +31,7 @@ private:
 		return (int)OpenContainer(what, where ? where : "/");
 	}
 
-	bool RawForcePath(const char* path) {
+	bool RawForcePath(const char* path) const {
 		return false;
 	}
 
@@ -41,12 +41,12 @@ private:
 		return OpenFile(FileName, (::StarVFS::RWMode)ReadMode, (::StarVFS::OpenMode)FileMode);
 	}
 
-	const char* RawGetFileName(int fid) { return GetFileName((::StarVFS::FileID)fid); }
-	int RawIsFileDirectory(int fid) { return IsFileDirectory((::StarVFS::FileID)fid) ? 1 : 0; }
+	const char* RawGetFileName(int fid) const { return GetFileName((::StarVFS::FileID)fid); }
+	int RawIsFileDirectory(int fid) const { return IsFileDirectory((::StarVFS::FileID)fid) ? 1 : 0; }
 	
-	void CoutDumpStructure() { DumpStructure(std::cout); }
-	void CoutDumpFileTable() { DumpFileTable(std::cout); }
-	void CoutDumpHashTable() { DumpHashTable(std::cout); }
+	void CoutDumpStructure() const { DumpStructure(std::cout); }
+	void CoutDumpFileTable() const { DumpFileTable(std::cout); }
+	void CoutDumpHashTable() const { DumpHashTable(std::cout); }
 
 };
 

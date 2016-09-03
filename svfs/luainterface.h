@@ -11,7 +11,12 @@
 
 #include <memory>
 
-#include <lua/lua.hpp>
+extern "C" {
+#define LUA_COMPAT_5_1
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+}
 #include <LuaBridge/LuaBridge.h>
 
 struct LuaDeleter {

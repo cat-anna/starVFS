@@ -96,7 +96,7 @@ FileID FileTableInterface::AllocFileID(FileID Parent, FilePathHash PathHash, con
 
 //-------------------------------------------------------------------------------------------------
 
-bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) {
+bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) const {
 	auto f = m_Owner->GetRawFile(fid);
 	if (!f)
 		return false;
@@ -113,7 +113,7 @@ bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) {
 	return true;
 }
 
-bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) {
+bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) const {
 	auto f = m_Owner->GetRawFile(fid);
 	if (!f)
 		return false;
@@ -158,11 +158,11 @@ bool FileTableInterface::RegisterFileStructure(FileID Parent, const FileSubStruc
 	}
 
 	auto root = m_Owner->GetRoot();
-	bool UseLocalHash;
+//	bool UseLocalHash;
 	if (root == parent) {
-		UseLocalHash = true;
+//		UseLocalHash = true;
 	} else {
-		UseLocalHash = false;
+//		UseLocalHash = false;
 		StarVFSAssert(false);
 	}
 

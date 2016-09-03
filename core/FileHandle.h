@@ -58,6 +58,7 @@ public:
 	CString GetName() const;
 
 	FilePathHash GetHash() const;
+	bool GetFileData(ByteTable &data) const;
 
 	bool GetFileData(ByteTable &data) const;
 

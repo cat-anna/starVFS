@@ -29,6 +29,7 @@ using StringID = uint32_t;
 using Char = char;
 using String = std::string;// std::basic_string<Char>;
 using CString = Char*;
+using ConstCString = const CString;
 
 extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned line, const char *log, const char *type);
 
@@ -69,22 +70,23 @@ extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned l
 
 #include <iostream>
 
-#define STARVFSLOG(What, fmt, ...)\
+#define STARVFSLOG(What, args...)\
 	do { \
-		char __logbuf[1024]; \
-		sprintf(__logbuf, "[%s][%s:%d] StarVFS: " fmt "\n", #What, strrchr(__FILE__, '\\')+1, __LINE__, __VA_ARGS__); \
-		std::cout << __logbuf << std::flush;\
+		char __logbuf[1024 * 16]; \
+		int c = sprintf(__logbuf, "[%s][%s:%s:%d] StarVFS: ", #What, __FILE__, __FUNCTION__, __LINE__); \
+		sprintf(__logbuf + c, args ); \
+		std::cout << __logbuf << std::flush; \
 	} while(0)
 
 #endif
 
 #ifndef STARVFSErrorLog
-#	define STARVFSErrorLog(fmt, ...) STARVFSLOG(Error, fmt, __VA_ARGS__)
+#	define STARVFSErrorLog(...) STARVFSLOG(Error, __VA_ARGS__)
 #endif
 
 #ifndef STARVFSDebugLog
 #	if defined(DEBUG) || defined(STARVFS_ENABLE_DEBUG_LOG)
-#		define STARVFSDebugLog(fmt, ...) STARVFSLOG(Debug, fmt, __VA_ARGS__)
+#		define STARVFSDebugLog(...) STARVFSLOG(debug, __VA_ARGS__)
 #	else
 #		define STARVFSDebugLog(fmt, ...) do { } while(0)
 #	endif

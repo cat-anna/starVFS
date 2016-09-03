@@ -87,13 +87,13 @@ bool FolderContainer::RegisterContent() const {
 			continue;
 		}
 
-		bool success;
+//		bool success;
 		switch (f.m_Type) {
 		case FileType::Directory:
-			success = fti->CreateDirectory(fid, cfid);
+			/*success =*/ fti->CreateDirectory(fid, cfid);
 			break;
 		case FileType::File:
-			success = fti->CreateFile(fid, cfid, static_cast<FileSize>(f.m_FileSize));
+			/*success =*/ fti->CreateFile(fid, cfid, static_cast<FileSize>(f.m_FileSize));
 			break;
 		default:
 			STARVFSErrorLog("Invalid FileType value!");

@@ -264,7 +264,7 @@ String FileTable::GetFilePath(FileID fid, FileID ParentFID) const {
 	return ss.str();
 }
 
-const CString FileTable::GetFileName(FileID fid) const {
+CString FileTable::GetFileName(FileID fid) const {
 	if (!fid || fid >= m_Allocated)
 		return nullptr;
 	return (CString)m_StringTable->Get(m_FileTable[fid].m_NameStringID);

@@ -13,7 +13,7 @@ namespace StarVFS {
 
 class FileTable final {
 public:
- 	FileTable(StarVFS *Owner);
+ 	explicit FileTable(StarVFS *Owner);
  	~FileTable();
 
 	void DumpStructure(std::ostream &out) const;
@@ -60,7 +60,7 @@ public:
 	File* GetFileFirstChild(const File *f) const { return GetFile(f->m_FirstChild); }
 	File* GetFileNextSibling(const File *f) const { return GetFile(f->m_NextSibling); }
 
-	const CString GetFileName(FileID fid) const;
+	CString GetFileName(FileID fid) const;
 	String GetFileFullPath(FileID fid) const { return GetFilePath(fid, 0); }
 	String GetFilePath(FileID fid, FileID ParentFID) const;
 	bool GetFileData(FileID fid, ByteTable &data);
@@ -68,8 +68,8 @@ public:
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }
 	const File* GetTable() const { return m_FileTable.get(); }
-	FileID GetAllocatedFileCount() { return m_Allocated; }
-	FileID GetRootID()const { return 1; }
+	FileID GetAllocatedFileCount() const { return m_Allocated; }
+	static FileID GetRootID() { return 1; }
 	File* GetRoot() const { return m_FileTable.get() + GetRootID(); }
 
 	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);

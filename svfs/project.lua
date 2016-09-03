@@ -5,8 +5,10 @@ group "Utils"
 		kind "ConsoleApp"
 		links {
 			"StarVFS",
-			"lua53",
+			"lua",
+			"z",
 			"StaticZLib",
+			"boost_program_options",
 		}
 		files {
 			"**",

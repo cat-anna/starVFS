@@ -1,7 +1,5 @@
-#pragma once
-
-#include "../StarVFSInternal.h"
-#include "RemoteHeaders.h"
+//#include "../StarVFSInternal.h"
+//#include "RemoteHeaders.h"
 
 namespace StarVFS {
 namespace Modules {

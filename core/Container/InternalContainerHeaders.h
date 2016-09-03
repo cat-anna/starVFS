@@ -9,7 +9,7 @@
 #ifndef InternalContainerHeaders_H
 #define InternalContainerHeaders_H
 
-#include <StarVFS/core/config.h>
+#include "../config.h"
 
 namespace StarVFS {
 namespace Containers {

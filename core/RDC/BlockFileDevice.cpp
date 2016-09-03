@@ -4,7 +4,13 @@
   * by Paweu
 */
 /*--END OF HEADER BLOCK--*/
+
+#include <cstdio>
 #include "nRDC.h"
+
+#ifdef __unix
+#define fopen_s(pFile,filename,mode) (((*(pFile)) = fopen((filename),(mode))) == nullptr)
+#endif
 
 namespace StarVFS {
 namespace RDC {
@@ -147,7 +153,7 @@ bool BlockFileDevice::CheckWriteAligment(bool DoFill) const {
 		return true;
 
 	auto pos = ftell(m_File.get());
-	auto gap = pos % m_BlockWriteAllign;
+	size_t gap = pos % m_BlockWriteAllign;
 	if (gap == 0)
 		return true;
 	gap = m_BlockWriteAllign - gap - 1;

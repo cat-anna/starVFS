@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <functional>
 
 #include "config.h"

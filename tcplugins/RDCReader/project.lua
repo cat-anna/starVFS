@@ -1,3 +1,6 @@
+if not os.is("windows") then
+	return
+end
 
 group "tcplugins"
 	project "RDCReader"

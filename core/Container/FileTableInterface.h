@@ -39,8 +39,8 @@ public:
 	FileID GetRootID() const { return m_MountPoint; }
 	bool IsMoutedToRoot() const { return m_MountPoint == 1; }
 
-	bool CreateFile(FileID fid, FileID cfid, FileSize Size);
-	bool CreateDirectory(FileID fid, FileID cfid);
+	bool CreateFile(FileID fid, FileID cfid, FileSize Size) const;
+	bool CreateDirectory(FileID fid, FileID cfid) const;
 	//bool CreateLink()
 	//bool DeleteFile()
 
@@ -51,7 +51,7 @@ public:
 	bool IsDirectory(FileID fid) const;
 	bool IsFile(FileID fid) const;
 
-	const CString GetFileName(FileID fid) const { return m_Owner->GetFileName(fid); }
+	CString GetFileName(FileID fid) const { return m_Owner->GetFileName(fid); }
 	String GetFileFullPath(FileID fid) const { return m_Owner->GetFileFullPath(fid); }
 
 	ContainerID GetContainerID() const { return m_CID; }
