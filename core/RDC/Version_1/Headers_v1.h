@@ -63,7 +63,6 @@ struct DataBlock : public BaseDataBlock {
 	RDC_HEADER_STRUCTURE(DataBlock);
 
 	FilePointer FileLocation = 0;
-	void Zero() { memset(this, 0, sizeof(*this)); }
 	u32 unused_32_1 = UNUSED32;
 };
 static_assert(sizeof(DataBlock) % 8 == 0, "DataBlock has invalid size!");
@@ -71,7 +70,6 @@ static_assert(sizeof(DataBlock) % 8 == 0, "DataBlock has invalid size!");
 struct OffsetDataBlock : BaseDataBlock {
 	RDC_HEADER_STRUCTURE(OffsetDataBlock);
 
-	void Zero() { memset(this, 0, sizeof(*this)); }
 	FilePointer SectionOffset = 0;
 	u32 unused_32_1 = UNUSED32;
 };

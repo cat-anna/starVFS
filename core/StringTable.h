@@ -65,7 +65,7 @@ private:
 		}
 		if (!m_Capacity)
 			mem[0] = 0;
-		m_Memory.reset(p);
+		m_Memory.reset(mem);
 		m_Capacity = NewCapacity;
 	}
 };
