@@ -28,6 +28,7 @@ public:
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
 	virtual FileID FindFile(const String& ContainerFileName) const override;
+	virtual bool EnumerateFiles(ContainerFileEnumFunc filterFunc)const override;
 
 	static bool CanOpen(const String& Location);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);

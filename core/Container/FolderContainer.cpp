@@ -138,6 +138,21 @@ FileID FolderContainer::FindFile(const String& ContainerFileName) const {
 	return 0;
 }
 
+bool FolderContainer::EnumerateFiles(ContainerFileEnumFunc filterFunc) const {
+	for (auto &entry: m_FileEntry) {
+		auto cfid = static_cast<FileID>(&entry - &m_FileEntry[0]);
+		FileFlags flags;
+		flags.intval = 0;
+		flags.Directory = entry.m_Type == FileType::Directory;
+		flags.Valid = true;
+//		using ContainerFileEnumFunc = std::function<bool(ConstCString fname, FileFlags flags, FileID CFid, FileID ParentCFid)>;
+		
+		if (!filterFunc((ConstCString)entry.m_SubPath.c_str(), flags, cfid, (FileID)0/*parentcfid*/))
+			break;
+	}
+	return true;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 template <class T>

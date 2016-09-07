@@ -16,5 +16,13 @@ iContainer::iContainer(FileTableInterface  *fti): m_FTI(fti) {
 iContainer::~iContainer() {
 }
 
+ConstCString iContainer::GetFileName(FileID ContainerFID) const  {
+	return nullptr;
+}
+
+bool iContainer::EnumerateFiles(ContainerFileEnumFunc filterFunc) const {
+	return false;
+}
+
 } //namespace Containers 
 } //namespace StarVFS 

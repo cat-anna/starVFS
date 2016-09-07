@@ -21,6 +21,7 @@ class StarVFS;
 class Register;
 class FileHandle;
 class HandleTable;
+
 using HandleEnumerateFunc = std::function<bool(FileID)>; //shall return false to break enumeration
 
 template<class T, class INDEX> class DynamicStringTable;
@@ -36,7 +37,6 @@ enum class VFSErrorCode {
 	InternalError,
 	NotAllowed,					//callback did not allow to mount container
 };
-
 
 enum class OpenMode {
 	CreateNew,
@@ -67,13 +67,15 @@ using Container = std::unique_ptr<Containers::iContainer>;
 union FileFlags {
 	uint8_t intval;
 	struct {
-		uint8_t Valid : 1;				//Entry is valid
-		uint8_t Directory : 1;
-		uint8_t SymLink : 1;			//not yet used
-		uint8_t Deleted : 1;			//valid but deleted
+		bool Valid : 1;				//Entry is valid
+		bool Directory : 1;
+		bool SymLink : 1;			//not yet used
+		bool Deleted : 1;			//valid but deleted
 										//uint8_t Used : 1;
 										//uint8_t unused7 : 1;
 										//shadowed ?
+		//compressed
+		//encrypted
 	};
 
 	bool ValidDirectory() const { return Valid && Directory; }
@@ -119,6 +121,11 @@ struct StarVFSCallback {
 	
 	virtual void AfterContainerMounted(Containers::iContainer *ptr) { }
 };
+
+//-------------------------------------------------------------------------------------------------
+
+///return false to stop enumeration
+using ContainerFileEnumFunc = std::function<bool(ConstCString fname, FileFlags flags, FileID CFid, FileID ParentCFid)>;
 
 //-------------------------------------------------------------------------------------------------
 

@@ -45,6 +45,12 @@ public:
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const = 0;
 //	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in, FileSize DataSize) const = 0;
 
+	///Get filename by cfid. Returns nullptr if cfid is not valid or function is not supported
+	virtual ConstCString GetFileName(FileID ContainerFID) const;
+
+	/** Enumerate files in container. cfids are in container domain. Returns false if not supported */
+	virtual bool EnumerateFiles(ContainerFileEnumFunc filterFunc) const;
+
 	static bool CanOpen(const String&) { return false; }
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location) { return CreateContainerResult(VFSErrorCode::InternalError, nullptr); }
 protected:

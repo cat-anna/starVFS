@@ -93,7 +93,7 @@ bool StarVFS::IsFileValid(FileID fid) const {
 bool StarVFS::IsFileDirectory(FileID fid) const {
 	auto f =  m_FileTable->GetFile(fid);
 	if (!f) return false;
-	return f->m_Flags.Directory > 0;
+	return f->m_Flags.Directory;
 }
 
 String StarVFS::GetFullFilePath(FileID fid) const {
