@@ -142,7 +142,7 @@ struct RemoteModule::Connection : public BaseConnectionClass {
 			response->Result = 1;
 		} else {
 			response->DataSize = h.GetSize();
-			message.PushString(ct.get(), h.GetSize());
+			message.PushString((char*)ct.get(), h.GetSize());
 		}
 
 		return WriteMessage(message);

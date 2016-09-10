@@ -72,7 +72,7 @@ struct RemoteContainer::Connection : public BaseConnectionClass {
 			return false;
 
 		out.make_new(response->DataSize);
-		m_MessageBuffer->PullBytes(response->DataSize, out.get());
+		m_MessageBuffer->PullBytes(response->DataSize, (char*)out.get());
 		out[response->DataSize] = 0;
 		return true;
 	}

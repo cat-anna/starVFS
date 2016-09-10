@@ -11,6 +11,11 @@ template<class T> inline void unique_table_construction_helper::create(std::uniq
 	t.reset(new T[size]);
 }
 
+template<> inline void unique_table_construction_helper::create(std::unique_ptr<char[]> &t, size_t size) {
+	t.reset(new char[size + 1]);
+	t[size] = 0;
+}
+
 template<> inline void unique_table_construction_helper::create(std::unique_ptr<int8_t[]> &t, size_t size) {
 	t.reset(new int8_t[size + 1]);
 	t[size] = 0;

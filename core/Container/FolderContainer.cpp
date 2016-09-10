@@ -125,7 +125,7 @@ bool FolderContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	auto size = (size_t)boost::filesystem::file_size(f.m_FullPath);
 
 	out.make_new(size);
-	inp.read(out.get(), size);
+	inp.read((char*)out.get(), out.byte_size());
 	inp.close();
 	return true;
 }

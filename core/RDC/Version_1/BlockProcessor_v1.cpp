@@ -25,7 +25,7 @@ BlockProcessingResult BlockProcessor::ReadBlock(const BlockFileDevice *device, B
 	out.reset();
 	ByteTable bt;
 	bt.make_new(block.ContainerSize);
-	if (!device->ReadFromBegining(block.FileLocation, bt.get(), bt.byte_size())) {
+	if (!device->ReadFromBegining(block.FileLocation, (char*)bt.get(), bt.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 		return BlockProcessingResult::IOFailure();
 	}
@@ -43,7 +43,7 @@ BlockProcessingResult BlockProcessor::ReadBlock(const BlockFileDevice *device, B
 	out.reset();
 	ByteTable bt;
 	bt.make_new(offset.ContainerSize);
-	if (!device->ReadFromBegining(block.FileLocation + offset.SectionOffset, bt.get(), bt.byte_size())) {
+	if (!device->ReadFromBegining(block.FileLocation + offset.SectionOffset, (char*)bt.get(), bt.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 		return BlockProcessingResult::IOFailure();
 	}
@@ -68,7 +68,7 @@ BlockProcessingResult BlockProcessor::WriteBlock(const BlockFileDevice *device, 
 
 	ret.m_DeviceIORequested = true;
 	ret.m_DeviceIOResult = false;
-	if (!device->WriteAtEnd(in.get(), in.byte_size())) {
+	if (!device->WriteAtEnd((char*)in.get(), in.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 	}
 	else
@@ -86,7 +86,7 @@ BlockProcessingResult BlockProcessor::WriteBlock(const BlockFileDevice *device, 
 
 	ret.m_DeviceIORequested = true;
 	ret.m_DeviceIOResult = false;
-	if (!device->WriteAtEnd(in.get(), in.byte_size())) {
+	if (!device->WriteAtEnd((char*)in.get(), in.byte_size())) {
 		STARVFSErrorLog("Failed to read device!");
 	}
 	else

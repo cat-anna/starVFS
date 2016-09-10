@@ -27,7 +27,7 @@ using HandleEnumerateFunc = std::function<bool(FileID)>; //shall return false to
 template<class T, class INDEX> class DynamicStringTable;
 using StringTable = DynamicStringTable<Char, StringID>;
 
-using ByteTable = unique_table<char>;
+using ByteTable = unique_table<uint8_t>;
 
 enum class VFSErrorCode {
 	Success,
