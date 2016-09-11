@@ -129,6 +129,37 @@ using ContainerFileEnumFunc = std::function<bool(ConstCString fname, FileFlags f
 
 //-------------------------------------------------------------------------------------------------
 
+inline String MakeContainerFilePathURI(ContainerID cid, const char *fname) {
+	char buf[128];
+	sprintf_s(buf, "cidfn://%llu/%s", static_cast<uint64_t>(cid), fname);
+	return buf;
+}
+
+inline String MakeContainerFidURI(ContainerID cid, FileID cfid) {
+	char buf[128];
+	sprintf_s(buf, "cfid://%llu/%llu", static_cast<uint64_t>(cid), static_cast<uint64_t>(cfid));
+	return buf;
+}
+
+inline String MakeFidURI(FileID cfid) {
+	char buf[128];
+	sprintf_s(buf, "fid://%llu", static_cast<uint64_t>(cfid));
+	return buf;
+}
+
+inline String MakePathHashURI(FilePathHash hash) {
+	char buf[128];
+	sprintf_s(buf, "hash://%08x", hash);
+	return buf;
+}
+
+inline String MakeFileURI(const char *fname) {
+	char buf[128];
+	sprintf_s(buf, "file://%s", fname);
+	return buf;
+}
+//-------------------------------------------------------------------------------------------------
+
 namespace Compression {
 
 enum class Compressionlevel : int {
