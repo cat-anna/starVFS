@@ -40,6 +40,7 @@ private:
 
 	struct Entry {
 		FileType m_Type;
+		FileID m_GlobalFid;
 		String m_FullPath;
 		String m_SubPath;
 		uint64_t m_FileSize;

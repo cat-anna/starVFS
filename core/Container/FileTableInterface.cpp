@@ -122,16 +122,16 @@ bool FileTableInterface::CreateDirectory(FileID fid, FileID cfid) const {
 		assert(false);
 	}
 
-	if (f->m_Flags.ValidDirectory()) {
-		return true;
-	}
-
 	f->m_ContainerFileID = cfid;
 	f->m_Size = 0;
 	f->m_Flags.intval = 0;
 	f->m_Flags.Valid = 1;
 	f->m_Flags.Directory = 1;
 	return true;
+}
+
+bool FileTableInterface::DeleteFile(FileID fid) {
+	return m_Owner->DeleteFile(fid, m_CID);
 }
 
 //-------------------------------------------------------------------------------------------------

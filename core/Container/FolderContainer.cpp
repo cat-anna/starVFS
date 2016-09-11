@@ -33,7 +33,7 @@ RWMode FolderContainer::GetRWMode() const { return RWMode::RW; }
 bool FolderContainer::ScanPath() {
 	m_FileEntry.clear();
 	m_FileEntry.reserve(2048);// because why not
-	m_FileEntry.emplace_back(Entry{ FileType::Directory, "", "", 0, });
+	m_FileEntry.emplace_back(Entry{ FileType::Directory, 0, "", "", 0, });
 
 	std::function<void(const String&, FileType)> handler;
 
@@ -51,7 +51,7 @@ bool FolderContainer::ScanPath() {
 			} 
 			catch (...) {
 			}
-		m_FileEntry.emplace_back(Entry{ type, path, subpath, fsize, });
+		m_FileEntry.emplace_back(Entry{ type, 0, path, subpath, fsize, });
 	};
 
 	if (!EnumerateFolder(m_Path, handler)) {
@@ -64,6 +64,13 @@ bool FolderContainer::ScanPath() {
 }
 
 bool FolderContainer::ReloadContainer() {
+	auto fcount = GetFileCount();
+	auto fti = GetFileTableInterface();
+	StarVFSAssert(fti);
+	for (FileID cfid = 1, j = fcount; cfid <= j; ++cfid) {
+		auto &f = m_FileEntry[cfid];
+		fti->DeleteFile(f.m_GlobalFid);
+	}
 	return ScanPath();
 }
 
@@ -79,13 +86,14 @@ bool FolderContainer::RegisterContent() const {
 	}
 
 	for (FileID cfid = 1, j = fcount; cfid <= j; ++cfid) {
-		auto &f = m_FileEntry[cfid];
+		auto &f = const_cast<Entry&>(m_FileEntry[cfid]);
 
 		FileID fid = fti->AllocFileID((CString)f.m_SubPath.c_str());
 		if (!fid){
 			STARVFSErrorLog("Failed to alloc fileid for %s", f.m_SubPath.c_str());
 			continue;
 		}
+		f.m_GlobalFid = fid;
 
 //		bool success;
 		switch (f.m_Type) {
@@ -108,6 +116,8 @@ bool FolderContainer::RegisterContent() const {
 //-------------------------------------------------------------------------------------------------
 
 FileID FolderContainer::GetFileCount() const {
+	if (m_FileEntry.empty())
+		return 0;
 	return static_cast<FileID>(m_FileEntry.size() - 1);//dont count invalid 0-id
 }
 

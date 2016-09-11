@@ -222,7 +222,7 @@ File* FileTable::AllocNewFile(FileID ParentID, FilePathHash PathHash, const CStr
 File* FileTable::AllocFile(const CString InternalFullPath) {
 	auto fid = m_HashFileTable.Lookup(InternalFullPath);
 	if (fid) {
-		STARVFSErrorLog("Alloc file returns existing one! %d", fid);
+		STARVFSErrorLog("Alloc file returns existing one! %d (%s)", fid, InternalFullPath);
 		return m_FileTable.get() + fid;
 	}
 	return AllocNewFile(InternalFullPath);
@@ -304,6 +304,30 @@ FileFlags FileTable::GetFileFlags(FileID fid) const {
 		return flags;
 	}
 	return f->m_Flags;
+}
+
+bool FileTable::DeleteFile(FileID fid) {
+	auto f = GetFile(fid);
+	if (!f)
+		return false;
+
+	f->m_Flags.Valid = false;
+	f->m_Flags.Deleted = true;
+
+	return true;
+}
+
+bool FileTable::DeleteFile(FileID fid, ContainerID cid) {
+	auto f = GetFile(fid);
+	if (!f)
+		return false;
+	if (f->m_ContainerID != cid)
+		return false;
+
+	f->m_Flags.Valid = false;
+	f->m_Flags.Deleted = true;
+
+	return true;
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -38,7 +38,7 @@ public:
 	
 	template<class ... ARGS> FileID Lookup(ARGS... args) { return m_HashFileTable.Lookup(std::forward<ARGS>(args)...); }
 
-	bool IsValid(FileID fid) const { return fid && fid < m_Allocated && m_FileTable[fid].m_Flags.Valid; }
+	bool IsValid(FileID fid) const { return fid && fid < m_Allocated && m_FileTable[fid].m_Flags.ValidOrDeleted(); }
 	File* GetFile(FileID fid) const {
 		if (!IsValid(fid)) return nullptr;
 		return &m_FileTable[fid];
@@ -72,6 +72,9 @@ public:
 	FileID GetAllocatedFileCount() const { return m_Allocated; }
 	static FileID GetRootID() { return 1; }
 	File* GetRoot() const { return m_FileTable.get() + GetRootID(); }
+
+	bool DeleteFile(FileID fid);
+	bool DeleteFile(FileID fid, ContainerID cid);
 
 	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);
 	bool EnsureCapacity(FileID RequiredEmptySpace);

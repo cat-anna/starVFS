@@ -78,9 +78,10 @@ union FileFlags {
 		//encrypted
 	};
 
-	bool ValidDirectory() const { return Valid && Directory; }
-	bool ValidFile() const { return Valid && !Directory; }
-	bool ValidSymlink() const { return Valid && SymLink; }
+	bool ValidOrDeleted() const { return Valid || Deleted; }
+	bool ValidDirectory() const { return Valid && Directory /*&& !Deleted*/; }
+	bool ValidFile() const { return Valid && !Directory /*&& !Deleted*/; }
+	bool ValidSymlink() const { return Valid && SymLink /*&& !Deleted*/; }
 };
 static_assert(sizeof(FileFlags) == 1, "File flags may have only 1 byte");
 

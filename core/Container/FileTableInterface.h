@@ -42,7 +42,7 @@ public:
 	bool CreateFile(FileID fid, FileID cfid, FileSize Size) const;
 	bool CreateDirectory(FileID fid, FileID cfid) const;
 	//bool CreateLink()
-	//bool DeleteFile()
+	bool DeleteFile(FileID fid);
 
 	/** function fails if container is not owner of fid pr fid is not a regular file */
 	bool UpdateFileSize(FileID fid, FileSize NewSize);

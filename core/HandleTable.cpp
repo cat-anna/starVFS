@@ -204,8 +204,10 @@ bool HandleTable::HandleEnumerateChildren(const FileHandle& h, HandleEnumerateFu
 	f = m_FileTable->GetFileFirstChild(f);
 
 	while (f) {
-		if(!func(f->m_GlobalFileID))
-			break;
+		if (f->m_Flags.Valid) {
+			if (!func(f->m_GlobalFileID))
+				break;
+		}
 		f = m_FileTable->GetFileNextSibling(f);
 	}
 
