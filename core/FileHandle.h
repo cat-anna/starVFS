@@ -59,6 +59,7 @@ public:
 
 	FilePathHash GetHash() const;
 	bool GetFileData(ByteTable &data) const;
+	bool SetFileData(const ByteTable &data) const;
 
 	RWMode GetRWMode() const;
 	FileID GetFID() const;

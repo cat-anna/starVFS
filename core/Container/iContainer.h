@@ -43,7 +43,7 @@ public:
 
 	/** Container shall not do any buffering. */
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const = 0;
-//	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in, FileSize DataSize) const = 0;
+	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in) const;
 
 	///Get filename by cfid. Returns nullptr if cfid is not valid or function is not supported
 	virtual ConstCString GetFileName(FileID ContainerFID) const;

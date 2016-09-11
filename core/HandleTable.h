@@ -22,6 +22,7 @@ public:
 	String HandleGetFullPath(const FileHandle& h) const;
 	CString HandleGetName(const FileHandle& h) const;
 	bool HandleGetFileData(const FileHandle& h, ByteTable &data) const;
+	bool HandleSetFileData(const FileHandle& h, const ByteTable &data) const;
 	RWMode HandleGetRWMode(const FileHandle& h) const;
 	bool HandleIsDirectory(const FileHandle& h) const;
 	bool HandleIsSymlink(const FileHandle& h) const;

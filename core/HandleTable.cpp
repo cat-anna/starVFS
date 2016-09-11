@@ -122,6 +122,14 @@ bool HandleTable::HandleGetFileData(const FileHandle& h, ByteTable &data) const 
 	return m_FileTable->GetFileData(hd->m_FileID, data);
 }
 
+bool HandleTable::HandleSetFileData(const FileHandle& h, const ByteTable &data) const {
+	auto hd = GetDataFromHandle(h);
+	if (!hd) return false;
+	if (hd->m_Mode < RWMode::R)
+		return false;
+	return m_FileTable->SetFileData(hd->m_FileID, data);
+}
+
 RWMode HandleTable::HandleGetRWMode(const FileHandle& h) const {
 	auto hd = GetDataFromHandle(h);
 	return hd ? hd->m_Mode : RWMode::None;

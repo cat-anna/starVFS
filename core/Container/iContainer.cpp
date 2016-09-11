@@ -16,6 +16,10 @@ iContainer::iContainer(FileTableInterface  *fti): m_FTI(fti) {
 iContainer::~iContainer() {
 }
 
+bool iContainer::SetFileData(FileID ContainerFID, const ByteTable & in) const {
+	return false;
+}
+
 ConstCString iContainer::GetFileName(FileID ContainerFID) const  {
 	return nullptr;
 }

@@ -130,6 +130,18 @@ bool FolderContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	return true;
 }
 
+bool FolderContainer::SetFileData(FileID ContainerFID, const ByteTable &in) const {
+	if (ContainerFID >= m_FileEntry.size() || ContainerFID == 0)
+		return false;
+
+	auto &f = m_FileEntry[ContainerFID];
+	std::ofstream outf(f.m_FullPath.c_str(), std::ios::out | std::ios::binary);
+	outf.write(in.c_str(), in.byte_size());
+	outf.close();
+
+	return true;
+}
+
 FileID FolderContainer::FindFile(const String& ContainerFileName) const {
 	for (auto it = m_FileEntry.begin(), jt = m_FileEntry.end(); it != jt; ++it)
 		if (it->m_SubPath == ContainerFileName)

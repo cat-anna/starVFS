@@ -36,6 +36,12 @@ bool FileHandle::GetFileData(ByteTable &data) const {
 	return m_Owner->HandleGetFileData(*this, data);
 }
 
+bool FileHandle::SetFileData(const ByteTable &data) const {
+	if (!m_Owner)
+		return false;
+	return m_Owner->HandleSetFileData(*this, data);
+}
+
 //-------------------------------------------------------------------------------------------------
 
 FileID FileHandle::GetFID() const {

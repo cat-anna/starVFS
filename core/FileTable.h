@@ -64,6 +64,7 @@ public:
 	String GetFileFullPath(FileID fid) const { return GetFilePath(fid, 0); }
 	String GetFilePath(FileID fid, FileID ParentFID) const;
 	bool GetFileData(FileID fid, ByteTable &data);
+	bool SetFileData(FileID fid, const ByteTable &data);
 	FileFlags GetFileFlags(FileID fid) const;
 
 	const StringTable* GetStringTable() const { return m_StringTable.get(); }

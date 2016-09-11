@@ -27,6 +27,7 @@ public:
 	virtual RWMode GetRWMode() const override;
 
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const override;
+	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in) const override;
 	virtual FileID FindFile(const String& ContainerFileName) const override;
 	virtual bool EnumerateFiles(ContainerFileEnumFunc filterFunc)const override;
 

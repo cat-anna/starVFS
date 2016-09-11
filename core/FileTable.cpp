@@ -283,6 +283,19 @@ bool FileTable::GetFileData(FileID fid, ByteTable &data) {
 	return c->GetFileData(f->m_ContainerFileID, data);
 }
 
+bool FileTable::SetFileData(FileID fid, const ByteTable & data) {
+	auto f = GetFile(fid);
+	if (!fid)
+		//TODO: log
+		return false;
+	auto c = m_Owner->GetContainer(f->m_ContainerID);
+	if (!c) {
+		STARVFSErrorLog("Invalid cid for file %d", fid);
+		return false;
+	}
+	return c->SetFileData(f->m_ContainerFileID, data);
+}
+
 FileFlags FileTable::GetFileFlags(FileID fid) const {
 	auto f = GetFile(fid);
 	if (!fid) {

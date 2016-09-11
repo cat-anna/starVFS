@@ -71,8 +71,14 @@ struct unique_table {
 		m_Table.reset((T*)other.release());
 	}
 
+	void from_string(const std::string &str) {
+		make_new(str.length());
+		memcpy(m_Table.get(), str.data(), byte_size());
+	}
+
 	T* get() { return m_Table.get(); }
 	const T* get() const { return m_Table.get(); }
+	const char* c_str() const { return (const char*)get(); }
 
 	size_t size() const { return m_Size; }
 	size_t byte_size() const { return m_Size * sizeof(T); }
