@@ -18,9 +18,9 @@ public:
 	
 	FileID Lookup(FilePathHash Hash);
 
-	FileID Lookup(const CString Path, size_t PathLen) { return Lookup(FilePathHashAlgorithm::Hash(Path, PathLen)); }
+	FileID Lookup(ConstCString Path, size_t PathLen) { return Lookup(FilePathHashAlgorithm::Hash(Path, PathLen)); }
 	FileID Lookup(const String &Path) { return Lookup((const CString)Path.c_str(), Path.length()); }
-	FileID Lookup(const CString Path) { return Lookup(Path, strlen(Path)); }
+	FileID Lookup(ConstCString Path) { return Lookup(Path, strlen(Path)); }
 
 	void Add(File* f, bool Rebuild = true);
 

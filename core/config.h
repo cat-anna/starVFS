@@ -29,7 +29,7 @@ using StringID = uint32_t;
 using Char = char;
 using String = std::string;// std::basic_string<Char>;
 using CString = Char*;
-using ConstCString = const CString;
+using ConstCString = const Char*;
 
 extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned line, const char *log, const char *type);
 
