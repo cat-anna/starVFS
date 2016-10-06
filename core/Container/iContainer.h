@@ -45,6 +45,9 @@ public:
 	virtual bool GetFileData(FileID ContainerFID, ByteTable &out) const = 0;
 	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in) const;
 
+	virtual bool CreateFile(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput = nullptr);
+	virtual bool CreateDirectory(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput = nullptr);
+
 	///Get filename by cfid. Returns nullptr if cfid is not valid or function is not supported
 	virtual ConstCString GetFileName(FileID ContainerFID) const;
 

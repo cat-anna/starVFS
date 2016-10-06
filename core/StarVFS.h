@@ -40,6 +40,8 @@ public:
 	bool ForcePath(const String& path);
 
 	FileID FindFile(const String& FileName);
+	///LastName is ptr inside to FileName arg
+	FileID FindOneBeforeLastFile(const String& FileName, ConstCString *LastName = nullptr);
 	bool IsFileValid(FileID fid) const;
 	bool IsFileDirectory(FileID fid) const;
 	String GetFullFilePath(FileID fid) const;
@@ -51,6 +53,7 @@ public:
 
 	FileHandle OpenFile(const String& FileName, RWMode ReadMode = RWMode::R, OpenMode FileMode = OpenMode::OpenExisting);
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);
+	FileHandle CreateDirectory(const String& FileName, RWMode ReadMode = RWMode::R);
 
 	template<class T, class ...ARGS>
 	Modules::iModule* AddModule(ARGS ...args) {

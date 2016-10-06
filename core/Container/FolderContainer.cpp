@@ -175,6 +175,82 @@ bool FolderContainer::EnumerateFiles(ContainerFileEnumFunc filterFunc) const {
 	return true;
 }
 
+bool FolderContainer::CreateFile(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput) {
+	Entry *f;
+	size_t index;
+	if (!AllocateFile(ContainerBaseFID, Name, f, index))
+		return false;
+
+	f->m_Type = FileType::File;
+	auto fti = GetFileTableInterface();
+	StarVFSAssert(fti);
+	if (!fti->CreateFile(f->m_GlobalFid, index, 0)) {
+		STARVFSErrorLog("Failed to create file for %s", f->m_SubPath.c_str());
+		//todo: cfid is not deallocated;
+		return false;
+	}
+	if (GlobalFIDOutput)
+		*GlobalFIDOutput = f->m_GlobalFid;
+	std::ofstream of(f->m_FullPath, std::ios::out);
+	of.close();
+	return true;
+}
+
+bool FolderContainer::CreateDirectory(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput) {
+	Entry *f;
+	size_t index;
+	if (!AllocateFile(ContainerBaseFID, Name, f, index))
+		return false;
+
+	f->m_Type = FileType::Directory;
+	auto fti = GetFileTableInterface();
+	StarVFSAssert(fti);
+	if (!fti->CreateDirectory(f->m_GlobalFid, index)) {
+		STARVFSErrorLog("Failed to create file for %s", f->m_SubPath.c_str());
+		//todo: cfid is not deallocated;
+		return false;
+	}
+	if (GlobalFIDOutput)
+		*GlobalFIDOutput = f->m_GlobalFid;
+
+	try {
+		boost::filesystem::create_directory(f->m_FullPath);
+	}
+	catch (...) { 		
+		return false;//todo: handle this
+	}
+
+	return true;
+}
+
+bool FolderContainer::AllocateFile(FileID ContainerBaseFID, ConstCString Name, Entry *&out, size_t &index) {
+	if (GetRWMode() < RWMode::W || ContainerBaseFID >= m_FileEntry.size() || ContainerBaseFID == 0)
+		return false;
+
+	auto &basef = m_FileEntry[ContainerBaseFID];
+	std::string path = basef.m_FullPath + "/" + Name;
+
+	size_t idx = index = m_FileEntry.size();
+
+	auto fti = GetFileTableInterface();
+	StarVFSAssert(fti);
+	Entry f;
+	f.m_FullPath = path;
+	f.m_FileSize = 0;
+	f.m_SubPath = basef.m_SubPath + "/" + Name;
+
+	f.m_GlobalFid = fti->AllocFileID((CString)f.m_SubPath.c_str());
+	if (!f.m_GlobalFid) {
+		STARVFSErrorLog("Failed to alloc fileid for %s", f.m_SubPath.c_str());
+		return false;
+	}
+
+	m_FileEntry.emplace_back(std::move(f));
+	out = &m_FileEntry.back();
+
+	return true;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 template <class T>

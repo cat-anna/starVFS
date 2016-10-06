@@ -140,14 +140,50 @@ bool StarVFS::CloseContainer(ContainerID cid) {
 
 FileID StarVFS::FindFile(const String& FileName) { return m_FileTable->Lookup(FileName); }
 
+FileID StarVFS::FindOneBeforeLastFile(const String & FileName, ConstCString *LastName) {
+	const char *base = FileName.c_str();
+	const char *last = strrchr(base, '/');
+	size_t len;
+	if (!last) {
+		last = base;
+		len = strlen(base);
+		++last;
+	} else {
+		len = last - base;
+		++last;
+	}
+	if (LastName)
+		*LastName = last;
+	return m_FileTable->Lookup((ConstCString)base, len);
+}
+
 FileHandle StarVFS::OpenFile(const String& FileName, RWMode ReadMode, OpenMode FileMode) {
 	FileID fid = 0;
 	switch (FileMode) {
 	case OpenMode::OpenExisting:
 		fid = FindFile(FileName);
 		break;
-	case OpenMode::CreateNew: //TBD
-		STARVFSErrorLog("OpenMode::CreateNew is not implemented!");
+	case OpenMode::CreateNew: {
+		ConstCString last = nullptr;
+		auto basefid = FindOneBeforeLastFile(FileName, &last);
+		auto basef = m_FileTable->GetFile(basefid);
+		if (!basef || !basef->m_Flags.ValidDirectory()) {
+			return FileHandle();
+		}
+
+		auto *cptr = GetContainer(basef->m_ContainerID);
+		if (!cptr) {
+			return FileHandle();
+		}
+		if (cptr->GetRWMode() < RWMode::W) {
+			return FileHandle();
+		}
+
+		if (!cptr->CreateFile(basef->m_ContainerFileID, last, &fid)) {
+			return FileHandle();
+		}
+		break;
+	}
 	default:
 		return FileHandle();
 	}
@@ -156,6 +192,29 @@ FileHandle StarVFS::OpenFile(const String& FileName, RWMode ReadMode, OpenMode F
 }
 
 FileHandle StarVFS::OpenFile(FileID fid, RWMode ReadMode) {
+	return m_Internals->m_HandleTable->CreateHandle(fid, ReadMode);
+}
+
+FileHandle StarVFS::CreateDirectory(const String & FileName, RWMode ReadMode) {
+	ConstCString last = nullptr;
+	FileID fid = 0;
+	auto basefid = FindOneBeforeLastFile(FileName, &last);
+	auto basef = m_FileTable->GetFile(basefid);
+	if (!basef || !basef->m_Flags.ValidDirectory()) {
+		return FileHandle();
+	}
+
+	auto *cptr = GetContainer(basef->m_ContainerID);
+	if (!cptr) {
+		return FileHandle();
+	}
+	if (cptr->GetRWMode() < RWMode::W) {
+		return FileHandle();
+	}
+
+	if (!cptr->CreateDirectory(basef->m_ContainerFileID, last, &fid)) {
+		return FileHandle();
+	}
 	return m_Internals->m_HandleTable->CreateHandle(fid, ReadMode);
 }
 

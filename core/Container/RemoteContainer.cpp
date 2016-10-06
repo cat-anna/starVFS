@@ -9,6 +9,9 @@
 #include <thread>
 #include <boost/asio.hpp>
 
+#undef CreateFile
+#undef CreateDirectory
+
 #include "../StarVFSInternal.h"
 #include "RemoteContainer.h"
 #include "../Module/RemoteHeaders.h"

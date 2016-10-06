@@ -30,6 +30,8 @@ public:
 	virtual bool SetFileData(FileID ContainerFID, const ByteTable &in) const override;
 	virtual FileID FindFile(const String& ContainerFileName) const override;
 	virtual bool EnumerateFiles(ContainerFileEnumFunc filterFunc)const override;
+	virtual bool CreateFile(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput = nullptr) override;
+	virtual bool CreateDirectory(FileID ContainerBaseFID, ConstCString Name, FileID *GlobalFIDOutput = nullptr) override;
 
 	static bool CanOpen(const String& Location);
 	static CreateContainerResult CreateFor(StarVFS *svfs, const String& MountPoint, const String& Location);
@@ -53,6 +55,7 @@ private:
 	std::vector<Entry> m_FileEntry;
 
 	bool ScanPath();
+	bool AllocateFile(FileID ContainerBaseFID, ConstCString Name, Entry *&out, size_t &index);
 };
 
 } //namespace Containers 
