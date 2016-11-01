@@ -9,6 +9,7 @@
 #include <list>
 #include <mutex>
 #include <iostream>
+#include <algorithm>
 
 #include "nfStarVFS.h"
 

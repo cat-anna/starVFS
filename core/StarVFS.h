@@ -55,6 +55,9 @@ public:
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);
 	FileHandle CreateDirectory(const String& FileName, RWMode ReadMode = RWMode::R);
 
+	void FindFilesByTypeHash(const CString ext, DynamicFIDTable &table);
+	void FindFilesByTypeHash(FileTypeHash fth, DynamicFIDTable &table);
+
 	template<class T, class ...ARGS>
 	Modules::iModule* AddModule(ARGS ...args) {
 		static_assert(std::is_base_of<Modules::iModule, T>::value , "Invalid module class!");

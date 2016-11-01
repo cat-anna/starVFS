@@ -21,6 +21,7 @@ struct Settings {
 };
 
 using FilePathHash = uint32_t;
+using FileTypeHash = uint32_t;
 using FileSize = uint32_t;
 using FileID = uint16_t; //value 0 means invalid id
 using ContainerID = uint8_t;
@@ -30,6 +31,8 @@ using Char = char;
 using String = std::string;// std::basic_string<Char>;
 using CString = Char*;
 using ConstCString = const Char*;
+
+using DynamicFIDTable = std::vector<FileID>;
 
 extern void (*StarVFSLogSink)(const char *file, const char *function, unsigned line, const char *log, const char *type);
 

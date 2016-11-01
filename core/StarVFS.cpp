@@ -218,6 +218,14 @@ FileHandle StarVFS::CreateDirectory(const String & FileName, RWMode ReadMode) {
 	return m_Internals->m_HandleTable->CreateHandle(fid, ReadMode);
 }
 
+void StarVFS::FindFilesByTypeHash(const CString ext, DynamicFIDTable & table) {
+	m_FileTable->FindFilesByTypeHash(ext, table);
+}
+
+void StarVFS::FindFilesByTypeHash(FileTypeHash fth, DynamicFIDTable & table) {
+	m_FileTable->FindFilesByTypeHash(fth, table);
+}
+
 //-----------------------------------------------------------------------------
 
 VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &MountPoint) {

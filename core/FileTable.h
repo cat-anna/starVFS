@@ -79,12 +79,16 @@ public:
 	Containers::FileTableInterface *AllocateInterface(const String& MountPoint);
 	bool EnsureCapacity(FileID RequiredEmptySpace);
 
+	void FindFilesByTypeHash(const CString ext, DynamicFIDTable &table) { return FindFilesByTypeHash(MakeFileTypeHash(ext), table); }
+	void FindFilesByTypeHash(FileTypeHash fth, DynamicFIDTable &table);
+
 	void InvalidateCID(ContainerID cid);
 private:
 	std::unique_ptr<StringTable> m_StringTable;
 	std::vector<UniqueFileTableInterface> m_Interfaces;
 	HashFileTable m_HashFileTable;
 	std::unique_ptr<File[]> m_FileTable;
+	std::unique_ptr<FileTypeHash[]> m_FileTypeHash;
 	FileID m_Capacity, m_Allocated;
 	StarVFS *m_Owner;
 
@@ -94,6 +98,19 @@ private:
 	File* AllocNewFile(FileID ParentID, FilePathHash PathHash, const CString FName);
 	File* AllocNewFile(const CString fullpath);
 
+	FileTypeHash MakeFileTypeHash(const CString FName) {
+		auto dot = strrchr(FName, '.');
+		if (!dot)
+			dot = "";
+		else
+			++dot;
+
+		Char ext[128];
+		auto len = strlen(dot);
+		std::transform(dot, dot + len, ext, ::tolower);
+
+		return Murmur3Hash32::Hash(ext, len);
+	}
 };
 
 } //namespace StarVFS 

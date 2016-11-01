@@ -14,7 +14,6 @@ FileTable::FileTable(StarVFS *Owner):
 	StarVFSAssert(Owner);
 
 	m_Capacity = m_Allocated = 0;
-	m_FileTable = nullptr;
 	m_Interfaces.push_back(nullptr);
 
 	m_StringTable = std::make_unique<StringTable>();
@@ -31,16 +30,18 @@ FileTable::FileTable(StarVFS *Owner):
 FileTable::~FileTable() {
 	m_Capacity = m_Allocated = 0;
 
-	m_FileTable = nullptr;
+	m_FileTable.reset();
+	m_FileTypeHash.reset();
+
 	m_StringTable.reset();
 }
 
 //-------------------------------------------------------------------------------------------------
 
 void FileTable::DumpStructure(std::ostream &out) const {
-	const char *fmt = "%5s. %3s:%-4s %8s %5s %6s %6s %6s %10s %s%s\n";
+	const char *fmt = "%5s. %3s:%-4s %8s:%8s %5s %6s %6s %6s %10s %s%s\n";
 	char buf[512];
-	sprintf_s(buf, fmt, "GFID", "CID", "CFID", "HASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "", "NAME");
+	sprintf_s(buf, fmt, "GFID", "CID", "CFID", "HASH", "TYPEHASH", "FLAGS", "PARENT", "FCHILD", "NEXT", "SIZE", "", "NAME");
 	out << buf;
 
 	std::function<void(FileID, int)> Printer;
@@ -49,7 +50,7 @@ void FileTable::DumpStructure(std::ostream &out) const {
 		char idbuf[32];
 		char containeridbuf[32];
 		char containerfileidbuf[32];
-		char hashbuf[32];
+		char hashbuf[32], typehashbuf[32];
 		char sizebuf[32];
 		char parentbuf[32];
 		char firstchildbuf[32];
@@ -65,13 +66,15 @@ void FileTable::DumpStructure(std::ostream &out) const {
 	//	levelbuf[level * 3 + 1] = ' ';
 		levelbuf[level * 3 + 1] = 0;
 
-		auto &f = m_FileTable[id];
+		const auto &f = m_FileTable[id];
+		const auto &fthash = m_FileTypeHash[id];
 		char flagsbuf[6] = "     ";
 
 		sprintf_s(idbuf, "%d", id);
 		sprintf_s(containeridbuf, "%d", f.m_ContainerID);
 		sprintf_s(containerfileidbuf, "%d", f.m_ContainerFileID);
 		sprintf_s(hashbuf, "%08x", f.m_Hash);
+		sprintf_s(typehashbuf, "%08x", fthash);
 
 		sprintf_s(parentbuf, "%d", f.m_ParentFileID);
 		sprintf_s(firstchildbuf, "%d", f.m_FirstChild);
@@ -83,7 +86,7 @@ void FileTable::DumpStructure(std::ostream &out) const {
 		if (f.m_Flags.Directory) flagsbuf[1] = 'D';
 		if (f.m_Flags.SymLink) flagsbuf[2] = 'S';
 
-		sprintf_s(buf, fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, flagsbuf,
+		sprintf_s(buf, fmt, idbuf, containeridbuf, containerfileidbuf, hashbuf, typehashbuf, flagsbuf,
 				parentbuf, firstchildbuf, nextsyblingbuf, sizebuf, levelbuf, m_StringTable->Get(f.m_NameStringID));
 		out << buf;
 
@@ -212,6 +215,8 @@ File* FileTable::AllocNewFile(FileID ParentID, FilePathHash PathHash, const CStr
 	f->m_NextSibling = Parent->m_FirstChild;
 	Parent->m_FirstChild = f->m_GlobalFileID;
 	f->m_Hash = PathHash;
+
+	m_FileTypeHash[f->m_GlobalFileID] = MakeFileTypeHash(FName);
 
 	m_HashFileTable.Add(f);
 	return f;
@@ -343,17 +348,21 @@ bool FileTable::Realloc(FileID NewCapacity) {
 		return true;
 
 	auto NewMemory = std::unique_ptr<File[]>(new File[NewCapacity]);
-	if (!NewMemory)
+	auto NewHashMemory = std::unique_ptr<FileTypeHash[]>(new FileTypeHash[NewCapacity]);
+	if (!NewMemory || !NewHashMemory)
 		return false;
 
 	memset(NewMemory.get(), 0, sizeof(File) * NewCapacity);
+	memset(NewHashMemory.get(), 0, sizeof(FileTypeHash) * NewCapacity);
 
 	if (m_Allocated > 0) {
 		memcpy(NewMemory.get(), m_FileTable.get(), sizeof(File) * m_Allocated);
+		memcpy(NewHashMemory.get(), m_FileTypeHash.get(), sizeof(FileTypeHash) * m_Allocated);
 	}
 
 	STARVFSDebugLog("Reallocated FileTable to %d entries", NewCapacity);
 	m_FileTable.swap(NewMemory);
+	m_FileTypeHash.swap(NewHashMemory);
 	m_Capacity = NewCapacity;
 	 
 	return m_HashFileTable.Resize(NewCapacity);
@@ -431,6 +440,13 @@ bool FileTable::RegisterStructureTable(FileStructureInfo &info) {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+void FileTable::FindFilesByTypeHash(FileTypeHash fth, DynamicFIDTable &table) {
+	table.clear();
+	for (FileID fid = 0; fid < m_Allocated; ++fid) 
+		if (m_FileTypeHash[fid] == fth)
+			table.push_back(fid);
+}
 
 void FileTable::InvalidateCID(ContainerID cid) {
 	STARVFSErrorLog("Not implemented: %s", __FUNCTION__);
