@@ -7,7 +7,7 @@
 #include "../StarVFSInternal.h"
 #include "RDCExporter.h"
 #include "../RDC/nRDC.h"
-#include <boost/algorithm/string.hpp>
+//#include <boost/algorithm/string.hpp>
 
 namespace StarVFS {
 namespace Exporters {
@@ -143,12 +143,12 @@ ExportResult RDCExporter::WriteLocalFile(const String &LocalFileName) {
 void RDCExporter::SetCompressionMode(const String& value) {
 	m_Impl->m_StringCompressionMode = value;
 
-	if (!boost::iequals(value.c_str(), "zlib")) {
-		m_Impl->m_CompressionMode = RDC::CompressionMode::ZLib;
-	} else {
-		m_Impl->m_CompressionMode = RDC::CompressionMode::None;
-		STARVFSErrorLog("Unknown compression mode %s", value.c_str());
-	}
+	//if (!boost::iequals(value.c_str(), "zlib")) {
+	//	m_Impl->m_CompressionMode = RDC::CompressionMode::ZLib;
+	//} else {
+	//	m_Impl->m_CompressionMode = RDC::CompressionMode::None;
+	//	STARVFSErrorLog("Unknown compression mode %s", value.c_str());
+	//}
 }
 
 const String& RDCExporter::GetCompressionMode() const {
@@ -158,24 +158,24 @@ const String& RDCExporter::GetCompressionMode() const {
 void RDCExporter::SetCompressionLevel(const String& value) {
 	m_Impl->m_StringCompressionLevel = value;
 
-	if (!boost::iequals(value.c_str(), "low")) {
-		m_Impl->m_CompressionLevel = Compression::Compressionlevel::Low;
-	} else {
-		if (!boost::iequals(value.c_str(), "medium")) {
-			m_Impl->m_CompressionLevel = Compression::Compressionlevel::Medium;
-		} else {
-			if (!boost::iequals(value.c_str(), "high")) {
-				m_Impl->m_CompressionLevel = Compression::Compressionlevel::High;
-			} else {
-				if (!boost::iequals(value.c_str(), "none")) {
-					m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
-				} else {
-					m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
-					STARVFSErrorLog("Unknown compression level %s", value.c_str());
-				}
-			}
-		}
-	}
+	//if (!boost::iequals(value.c_str(), "low")) {
+	//	m_Impl->m_CompressionLevel = Compression::Compressionlevel::Low;
+	//} else {
+	//	if (!boost::iequals(value.c_str(), "medium")) {
+	//		m_Impl->m_CompressionLevel = Compression::Compressionlevel::Medium;
+	//	} else {
+	//		if (!boost::iequals(value.c_str(), "high")) {
+	//			m_Impl->m_CompressionLevel = Compression::Compressionlevel::High;
+	//		} else {
+	//			if (!boost::iequals(value.c_str(), "none")) {
+	//				m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
+	//			} else {
+	//				m_Impl->m_CompressionLevel = Compression::Compressionlevel::NoCompression;
+	//				STARVFSErrorLog("Unknown compression level %s", value.c_str());
+	//			}
+	//		}
+	//	}
+	//}
 }
 
 const String& RDCExporter::GetCompressionLevel() const {

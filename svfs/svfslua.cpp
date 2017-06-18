@@ -7,7 +7,7 @@
 
 #include "luainterface.h"
 #include "svfslua.h"
-#include <core/nStarVFS.h>
+#include "../core/nStarVFS.h"
 
 using ::StarVFS::AttributeMap;
 

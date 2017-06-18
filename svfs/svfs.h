@@ -13,8 +13,8 @@
 #include <memory>
 #include "luainterface.h"
 
-#include <core/nStarVFS.h>
-#include <core/Module/RemoteModule.h>
+#include "../core/nStarVFS.h"
+#include "../core/Module/RemoteModule.h"
 
 class SVFS : public ::StarVFS::StarVFS {
 public:
