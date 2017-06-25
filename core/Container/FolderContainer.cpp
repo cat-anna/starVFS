@@ -184,7 +184,7 @@ bool FolderContainer::CreateFile(FileID ContainerBaseFID, ConstCString Name, Fil
 	f->m_Type = FileType::File;
 	auto fti = GetFileTableInterface();
 	StarVFSAssert(fti);
-	if (!fti->CreateFile(f->m_GlobalFid, index, 0)) {
+	if (!fti->CreateFile(f->m_GlobalFid, static_cast<FileID>(index), 0)) {
 		STARVFSErrorLog("Failed to create file for %s", f->m_SubPath.c_str());
 		//todo: cfid is not deallocated;
 		return false;
@@ -205,7 +205,7 @@ bool FolderContainer::CreateDirectory(FileID ContainerBaseFID, ConstCString Name
 	f->m_Type = FileType::Directory;
 	auto fti = GetFileTableInterface();
 	StarVFSAssert(fti);
-	if (!fti->CreateDirectory(f->m_GlobalFid, index)) {
+	if (!fti->CreateDirectory(f->m_GlobalFid, static_cast<FileID>(index))) {
 		STARVFSErrorLog("Failed to create file for %s", f->m_SubPath.c_str());
 		//todo: cfid is not deallocated;
 		return false;
@@ -229,8 +229,6 @@ bool FolderContainer::AllocateFile(FileID ContainerBaseFID, ConstCString Name, E
 
 	auto &basef = m_FileEntry[ContainerBaseFID];
 	std::string path = basef.m_FullPath + "/" + Name;
-
-	size_t idx = index = m_FileEntry.size();
 
 	auto fti = GetFileTableInterface();
 	StarVFSAssert(fti);

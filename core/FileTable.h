@@ -107,7 +107,10 @@ private:
 
 		Char ext[128];
 		auto len = strlen(dot);
-		std::transform(dot, dot + len, ext, ::tolower);
+        auto tr = [](Char c) {
+            return static_cast<Char>(::tolower(static_cast<int>(c)));
+        };
+		std::transform(dot, dot + len, ext, tr);
 
 		return Murmur3Hash32::Hash(ext, len);
 	}
