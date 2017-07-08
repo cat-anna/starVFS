@@ -243,6 +243,7 @@ bool FolderContainer::AllocateFile(FileID ContainerBaseFID, ConstCString Name, E
 		return false;
 	}
 
+    index = m_FileEntry.size();
 	m_FileEntry.emplace_back(std::move(f));
 	out = &m_FileEntry.back();
 
