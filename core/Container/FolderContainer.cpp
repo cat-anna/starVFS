@@ -250,6 +250,14 @@ bool FolderContainer::AllocateFile(FileID ContainerBaseFID, ConstCString Name, E
 	return true;
 }
 
+bool FolderContainer::GetFileSystemPath(FileID cfid, std::string &out) {
+    if (cfid >= m_FileEntry.size() || cfid == 0)
+        return false;
+    auto &f = m_FileEntry[cfid];
+    out = f.m_FullPath;
+    return true;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 template <class T>

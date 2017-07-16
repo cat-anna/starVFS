@@ -50,6 +50,7 @@ public:
 	CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
 	bool GetFileData(FileID fid, ByteTable &data);
+    std::pair<ContainerID, FileID> GetFileContainerInfo(FileID fid) const;
 
 	FileHandle OpenFile(const String& FileName, RWMode ReadMode = RWMode::R, OpenMode FileMode = OpenMode::OpenExisting);
 	FileHandle OpenFile(FileID fid, RWMode ReadMode = RWMode::R);

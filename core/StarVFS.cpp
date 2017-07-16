@@ -226,6 +226,13 @@ void StarVFS::FindFilesByTypeHash(FileTypeHash fth, DynamicFIDTable & table) {
 	m_FileTable->FindFilesByTypeHash(fth, table);
 }
 
+std::pair<ContainerID, FileID> StarVFS::GetFileContainerInfo(FileID fid) const {
+    auto basef = m_FileTable->GetFile(fid);
+    if (!basef)
+        return {};
+    return { basef->m_ContainerID , basef->m_ContainerFileID };
+}
+
 //-----------------------------------------------------------------------------
 
 VFSErrorCode StarVFS::OpenContainer(const String& ContainerFile, const String &MountPoint) {
