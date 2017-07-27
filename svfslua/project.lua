@@ -1,23 +1,18 @@
 	
 group "Tools"
-	project "svfs"
-		location(dir.bin .. "svfs")
-		kind "ConsoleApp"
+	project "svfslua"
+		location(dir.bin .. "svfslua")
+		kind "StaticLib"
 		links {
-			"StarVFS",
-			"OrbitLogger",
-            "svfslua",
 		}
 		files {
 			"**",
 		}	
 		includedirs {
-            "../svfslua/",
 			"%{cfg.objdir}",
 		}
 		
 		filter 'files:scripts/**.lua'
 			buildmessage 'Compiling %{file.relpath} with bin2c'
 			buildcommands 'bin2c -o "%{cfg.objdir}/%{file.basename}.lua.h" -n %{file.basename}_lua "%{file.relpath}" '
-			buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'
-			
+			buildoutputs '%{cfg.objdir}/%{file.basename}.lua.h'			

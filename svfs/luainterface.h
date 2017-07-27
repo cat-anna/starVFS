@@ -11,13 +11,7 @@
 
 #include <memory>
 
-extern "C" {
-#define LUA_COMPAT_5_1
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-}
-#include <LuaBridge/LuaBridge.h>
+#include "../svfslua/luasupport.h"
 
 struct LuaDeleter {
 	void operator()(lua_State *l) {

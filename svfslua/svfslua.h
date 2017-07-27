@@ -10,7 +10,7 @@
 #define svfslua_H
 
 struct svfslua {
-	static void Install(lua_State *lua);
+    static void Install(lua_State *lua);
 };
 
 #endif

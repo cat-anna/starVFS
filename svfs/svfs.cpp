@@ -58,7 +58,7 @@ bool SVFS::Initialize() {
 
 	luabridge::getGlobalNamespace(m_Lua->GetState())
 		.beginNamespace("inst")
-			.addVariable<SVFS*>("svfs", this, false)
+			.addPtrVariable<SVFS>("svfs", this)
 		.endNamespace()
 		;
 

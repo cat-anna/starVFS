@@ -6,6 +6,7 @@
 /*--END OF HEADER BLOCK--*/
 
 #include "cli.h"
+#include "luasupport.h"
 #include <signal.h>
 #include <LuaBridge/LuaBridge.h>
 
@@ -339,7 +340,7 @@ bool CLI::InstallApi() {
 	luabridge::getGlobalNamespace(m_Lua->GetState())
 		.beginNamespace("inst")
 			//.addProperty<CLI*, CLI*>("cli", &GetgCLI)
-			.addVariable<CLI*>("cli", this, false)
+			.addPtrVariable<CLI>("cli", this)
 		.endNamespace()
 		;
 

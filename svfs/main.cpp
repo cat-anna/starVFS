@@ -5,6 +5,8 @@
 #include <list>
 #include <mutex>
 #include <iostream>
+#define BOOST_NUMERIC_CONVERSION_DETAIL_CONVERTER_FLC_12NOV2002_HPP
+#define BOOST_NUMERIC_CONVERSION_CONVERTER_FLC_12NOV2002_HPP
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
