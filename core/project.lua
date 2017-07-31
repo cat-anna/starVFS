@@ -1,7 +1,6 @@
 	
-group "Libraries"
+group "lib"
 	project "StarVFS"
-		location(dir.bin .. "StarVFS")
 		kind "StaticLib"
 		files {
 			"**",

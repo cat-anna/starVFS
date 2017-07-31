@@ -1,7 +1,6 @@
 	
 group "Tools"
 	project "svfs"
-		location(dir.bin .. "svfs")
 		kind "ConsoleApp"
 		links {
 			"StarVFS",

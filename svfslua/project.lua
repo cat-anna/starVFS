@@ -1,7 +1,6 @@
 	
 group "Tools"
 	project "svfslua"
-		location(dir.bin .. "svfslua")
 		kind "StaticLib"
 		links {
 		}
