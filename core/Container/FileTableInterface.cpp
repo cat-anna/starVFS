@@ -110,6 +110,7 @@ bool FileTableInterface::CreateFile(FileID fid, FileID cfid, FileSize Size) cons
 	f->m_Size = Size;
 	f->m_Flags.intval = 0;
 	f->m_Flags.Valid = 1;
+    f->m_Flags.Deleted = false;
 	return true;
 }
 
