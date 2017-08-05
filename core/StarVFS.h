@@ -49,6 +49,7 @@ public:
 	String GetFilePath(FileID fid, FileID ParentFID) const;
 	CString GetFileName(FileID fid) const;
 	FileSize GetFileSize(FileID fid) const;
+    bool DeleteFile(FileID fid);
 	bool GetFileData(FileID fid, ByteTable &data);
     std::pair<ContainerID, FileID> GetFileContainerInfo(FileID fid) const;
 

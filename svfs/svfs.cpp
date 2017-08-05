@@ -43,10 +43,12 @@ bool SVFS::Initialize() {
 
 				.addFunction("OpenContainer", &SVFS::RawOpenContainer)
 				.addFunction("OpenFile", &SVFS::RawOpenFile)
+				.addFunction("FindFile", &SVFS::RawFindFile)
 
 				.addFunction("GetFullFilePath", &SVFS::GetFullFilePath)
 				.addFunction("GetFileName", &SVFS::RawGetFileName)
 				.addFunction("GetFileSize", (int(SVFS::*)(int))&SVFS::GetFileSize)
+				.addFunction("DeleteFile", (int(SVFS::*)(int))&SVFS::DeleteFile)
 				.addFunction("IsFileValid", (int(SVFS::*)(int))&SVFS::IsFileValid)
 				.addFunction("IsFileDirectory", &SVFS::RawIsFileDirectory)
 	//FileID FindFile(const String& FileName);

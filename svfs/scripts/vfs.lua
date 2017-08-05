@@ -67,7 +67,7 @@ function fileinfo(id)
 		id = function () return id end,
 		name = function() return fname end,
 		size = function() return fsize end,
-		fullpath = function() return vfs:GetFullPath(id) end,
+		fullpath = function() return vfs:GetFullFilePath(id) end,
 		directory = function() return vfs:IsFileDirectory(id) end,
 	}
 end
@@ -198,3 +198,27 @@ function read(filename)
     end
     return data, len
 end
+
+Help.Register { Command="rm", Brief="remove file", Usage="rm(FILE)"}
+function rm(path)
+    assert(type(path) == "string")            
+    local fid = vfs:FindFile(path)
+    if fid > 0 then
+        return vfs:DeleteFile(fid)
+    end
+
+	local h = vfs:OpenFile(pwd(), 1, 1)
+	if h:IsValid() == 0 then
+		return false
+	end
+	
+	local fidt = h:GetChildren()
+	for i,v in ipairs(fidt) do
+		local fi = fileinfo(v)
+        local fp = fi.fullpath()
+        if fp:match(path) then
+            vfs:DeleteFile(vfs:FindFile(fp))
+        end
+	end
+    return true
+ end

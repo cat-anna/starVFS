@@ -125,6 +125,10 @@ Containers::iContainer* StarVFS::GetContainer(ContainerID cid) {
 	return m_Internals->m_Containers[cid].m_Container.get();
 }
 
+bool StarVFS::DeleteFile(FileID fid) {
+    return m_FileTable->DeleteFile(fid);
+}
+
 bool StarVFS::CloseContainer(ContainerID cid) {
 	if (cid >= m_Internals->m_Containers.size())
 		return false;
