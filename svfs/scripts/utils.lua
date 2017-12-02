@@ -1,4 +1,16 @@
 
+local org_print = print 
+
+if not table.unpack then
+    --compatibiity
+    table.unpack = unpack
+end
+
+function print(...)
+   org_print(...)
+   io.flush()
+end
+
 utils = utils or { }
 
 function utils.explode(div,str)

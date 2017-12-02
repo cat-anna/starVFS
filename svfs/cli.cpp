@@ -153,26 +153,24 @@ static int docall(lua_State *L, int narg, int nres) {
 }
 
 static void get_prompt(lua_State *L, int firstline) {
-	if(firstline) {
-		lua_getglobal(L, "prompt");
-		if (lua_isnil(L, -1)) {
-			lua_pop(L, 1);
-			lua_pushstring(L, "# ");
-			return;
-		}
-		if (lua_isstring(L, -1))
-			return;
-
-		if (lua_isfunction(L, -1) || lua_iscfunction(L, -1)) {
-			lua_call(L, 0, 1);
-			return;
-		}
+	lua_getglobal(L, "prompt");
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		lua_pushstring(L, "");
+		return;
 	}
-	lua_pushstring(L, "> ");
+
+	if (lua_isstring(L, -1))
+		return;
+
+	if (lua_isfunction(L, -1) || lua_iscfunction(L, -1)) {
+		lua_call(L, 0, 1);
+		return;
+	}
 }
 
 /* mark in error messages for incomplete statements */
-#define EOFMARK		"<eof>"
+#define EOFMARK		"'<eof>'"
 #define marklen		(sizeof(EOFMARK)/sizeof(char) - 1)
 
 /*

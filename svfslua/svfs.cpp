@@ -17,6 +17,24 @@ SVFS::SVFS(SharedLua Lua) {
 SVFS::~SVFS() {
 }
 
+int SVFS::RawCreateContainer(lua_State * lua) {
+    std::string_view name = luaL_checkstring(lua, -1);
+
+    if (name != "VirtualFileContainer") {
+        printf("Cannot create container: %s", name.data());
+        return 0;
+    }
+
+    auto c = this->CreateContainer<::StarVFS::Containers::VirtualFileContainer>("/");
+    if (c.first != ::StarVFS::VFSErrorCode::Success) {
+        printf("Error during mounting container: %s", name.data());
+        return 0;
+    }
+
+    luabridge::push(lua, dynamic_cast<::StarVFS::Containers::VirtualFileContainer*>(c.second));
+    return 1;
+}
+
 //-------------------------------------------------------------------------------------------------
 
 bool SVFS::Initialize() {
@@ -42,6 +60,7 @@ bool SVFS::Initialize() {
 				.addFunction("ForcePath", &SVFS::RawForcePath)
 
 				.addFunction("OpenContainer", &SVFS::RawOpenContainer)
+				.addCFunction("CreateContainer", &SVFS::RawCreateContainer)
 				.addFunction("OpenFile", &SVFS::RawOpenFile)
 				.addFunction("FindFile", &SVFS::RawFindFile)
 
@@ -55,12 +74,6 @@ bool SVFS::Initialize() {
 
 			.endClass() 
 			 
-		.endNamespace()
-		;
-
-	luabridge::getGlobalNamespace(m_Lua->GetState())
-		.beginNamespace("inst")
-			.addPtrVariable<SVFS>("svfs", this)
 		.endNamespace()
 		;
 

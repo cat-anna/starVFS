@@ -6,17 +6,14 @@
 /*--END OF HEADER BLOCK--*/
 
 #pragma once
-#ifndef Hash_H
-#define Hash_H
 
 namespace StarVFS {
 
 struct Murmur3Hash32 {
 	static FilePathHash Hash(const char *data, size_t len);
+    static FilePathHash Hash(const std::string &str) { return Hash(str.c_str(), str.length()); }
 };
 
 using FilePathHashAlgorithm = Murmur3Hash32;
 
 } //namespace StarVFS 
-
-#endif

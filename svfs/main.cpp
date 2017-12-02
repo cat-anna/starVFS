@@ -14,6 +14,31 @@
 #include "cli.h"
 #include "arguments.h"
 
+#include <main.lua.h>
+#include <InstanceProxy.lua.h>
+#include <cli.lua.h>
+#include <console.lua.h>
+#include <utils.lua.h>
+#include <vfs.lua.h>
+#include <help.lua.h>
+
+struct scriptinfo {
+    const unsigned char *data;
+    const long *len;
+    const char *name;
+};
+
+static const scriptinfo scripttable[] = {
+    { utils_lua, &utils_lua_size, "utils.lua" },
+    { help_lua, &help_lua_size, "help.lua" },
+    { main_lua, &main_lua_size, "main.lua" },
+    { InstanceProxy_lua, &InstanceProxy_lua_size, "InstanceProxy.lua" },
+    { console_lua, &console_lua_size, "console.lua" },
+    { cli_lua, &cli_lua_size, "cli.lua" },
+    { vfs_lua, &vfs_lua_size, "vfs.lua" },
+    {},
+};
+
 int main(int argc, char **argv) {
 //	svfs lvfs;
 //	if (!lvfs.HandleArguments(argc - 1, argv + 1)) {
@@ -28,19 +53,31 @@ int main(int argc, char **argv) {
 
 	auto lua = Lua::New();
 
-
 	auto svfs = std::make_unique<SVFS>(lua);
 	if (!svfs->Initialize()) {
 		printf("Unable to initialize svfs!\n");
 		return 1;
 	}
-	
+
+    luabridge::getGlobalNamespace(lua->GetState())
+        .beginNamespace("inst")
+        .addPtrVariable<SVFS>("svfs", svfs.get())
+        .endNamespace()
+        ;
+
 	CLI cli(lua);
 
 	if (!lua->Initialize()) {
 		printf("Unable to initialize lua vm!\n");
 		return 1;
 	}
+
+    for (const scriptinfo *si = scripttable; si->data; ++si) {
+        if (!lua->ExecuteChunk(si->data, *si->len, si->name)) {
+            printf("Unable to load internal script %s!\n", si->name);
+            return 1;
+        }
+    }
 
 	InitEnv initenv;
 	{

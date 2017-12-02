@@ -10,13 +10,6 @@
 
 #include "luainterface.h"
 
-#include <main.lua.h>
-#include <InstanceProxy.lua.h>
-#include <cli.lua.h>
-#include <console.lua.h>
-#include <utils.lua.h>
-#include <vfs.lua.h>
-#include <help.lua.h>
 
 static int Lua_print(lua_State *L, std::ostringstream &out) {
 	for (int i = 1, n = lua_gettop(L); i <= n; i++) {
@@ -114,45 +107,31 @@ bool Lua::ExecuteScriptChunk(const char *code, const char *name) {
 	return true;
 }
 
+bool Lua::ExecuteChunk(const unsigned char *data, long len, const char *name) {
+    auto L = GetState();
+    int status = luaL_loadbuffer(L, (const char*)data, len, name);
+    if (status) {
+        printf("Error: %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+        printf("Unable to load script %s\n", name);
+        return false;
+    }
+    status = lua_pcall(L, 0, LUA_MULTRET, 0);
+    if (status) {
+        luaL_traceback(L, L, "", 1);
+        printf("Unable to execute '%s'\nTrace:\n%s\n\n", name, lua_tostring(L, -1));
+        lua_pop(L, 1);
+        return false;
+    }
+    return true;
+}
+
 //-------------------------------------------------------------------------------------------------
-
-struct scriptinfo {
-	const unsigned char *data;
-	const long *len;
-	const char *name;
-};
-
-static const scriptinfo scripttable[] = {
-	{ utils_lua, &utils_lua_size, "utils.lua" },
-	{ help_lua, &help_lua_size, "help.lua" },
-	{ main_lua, &main_lua_size, "main.lua" },
-	{ InstanceProxy_lua, &InstanceProxy_lua_size, "InstanceProxy.lua" },
-	{ console_lua, &console_lua_size, "console.lua" },
-	{ cli_lua, &cli_lua_size, "cli.lua" },
-	{ vfs_lua, &vfs_lua_size, "vfs.lua" },
-	{},
-};
 
 bool Lua::Initialize() {
 	RegisterAPI();
 
-	auto L = m_Lua.get();
-	for (const scriptinfo *si = scripttable; si->data; ++si) {
-		int status = luaL_loadbuffer(L, (const char*)si->data, *si->len, si->name);
-		if (status) {
-			printf("Error: %s\n", lua_tostring(L, -1));
-			lua_pop(L, 1);
-			printf("Unable to load script %s\n", si->name);
-			return false;
-		}
-		status = lua_pcall(L, 0, LUA_MULTRET, 0);
-		if (status) {
-			luaL_traceback(L, L, "", 1);
-			printf("Unable to execute '%s'\nTrace:\n%s\n\n", si->name, lua_tostring(L, -1));
-			lua_pop(L, 1);
-			return false;
-		}
-	}
-
 	return true;
 }
+
+

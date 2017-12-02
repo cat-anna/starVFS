@@ -31,6 +31,8 @@ private:
 		return (int)OpenContainer(what, where ? where : "/");
 	}
 
+    int RawCreateContainer(lua_State *lua);
+
 	bool RawForcePath(const char* path) const {
 		return false;
 	}

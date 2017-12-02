@@ -222,3 +222,20 @@ function rm(path)
 	end
     return true
  end
+
+ Help.Register { Command="injectFile", Brief="Inject file into vfs", Usage="injectFile(VFS_PATH, SYSTEM_PATH)" }
+ local injectContainer
+function injectFile(virtual, system)
+    if type(virtual) ~= "string" then
+        print("invalid VFS_PATH")
+        return nil
+    end
+    if type(system) ~= "string" then
+        print("invalid SYSTEM_PATH")
+        return nil
+    end
+    if not injectContainer then
+        injectContainer = vfs:CreateContainer("VirtualFileContainer")
+    end
+    return injectContainer:InjectFile(system, virtual, true)
+end

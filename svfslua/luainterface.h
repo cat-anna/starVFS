@@ -35,6 +35,7 @@ struct Lua {
 	bool LoadLibrary(const char *c);
 	bool ExecuteScriptFile(const char *fname);
 	bool ExecuteScriptChunk(const char *code, const char *name = nullptr);
+    bool ExecuteChunk(const unsigned char *data, long len, const char *name);
 protected:
 	Lua();
 	virtual ~Lua() { }
