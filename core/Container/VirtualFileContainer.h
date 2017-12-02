@@ -36,6 +36,17 @@ private:
 	mutable FileSize m_LastSize;
 };
 
+class InjectedFileInterface : public VirtualFileInterface {
+public:
+    InjectedFileInterface(std::string systemPath);
+    virtual ~InjectedFileInterface();
+
+    virtual FileSize GetSize() const final;
+    virtual bool ReadFile(ByteTable &out) const final;
+private:
+    std::string systemPath;
+};
+
 using SharedVirtualFileInterface = std::shared_ptr<VirtualFileInterface>;
 using WeakVirtualFileInterface = std::weak_ptr<VirtualFileInterface>;
 
@@ -50,6 +61,8 @@ public:
 	bool AddFile(SharedVirtualFileInterface SharedFile, const String& Path, bool ForcePath = false);
 	/** Drop ownership of file. Has effect only on added files. */
 	bool DropFile(SharedVirtualFileInterface SharedFile);
+
+    bool InjectFile(std::string systemPath, std::string virtualPath, bool ForcePath = false);
 
 	virtual FileID GetFileCount() const override;
 	virtual bool ReloadContainer() override;

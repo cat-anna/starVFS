@@ -7,6 +7,8 @@
 #include "iContainer.h"
 #include "VirtualFileContainer.h"
 
+#include <boost/filesystem.hpp>
+
 namespace StarVFS {
 namespace Containers {
 
@@ -20,23 +22,44 @@ bool VirtualFileInterface::ReadFile(ByteTable &out) const { out.reset(); return 
 BaseDynamicFileInterface::BaseDynamicFileInterface() : m_LastSize(0) {}
 BaseDynamicFileInterface::~BaseDynamicFileInterface() { }
 FileSize BaseDynamicFileInterface::GetSize() const { return m_LastSize; }
-bool BaseDynamicFileInterface::ReadFile(ByteTable &out) const { 
-	std::stringstream ss;
-	const_cast<BaseDynamicFileInterface*>(this)->GenerateContent(ss);
-	std::string data = ss.str();
-	out.make_new(data.length());
-	memcpy(out.get(), data.c_str(), data.length());
-	m_LastSize = static_cast<FileSize>(data.length() + 1);
-	return true;
+bool BaseDynamicFileInterface::ReadFile(ByteTable &out) const {
+    std::stringstream ss;
+    const_cast<BaseDynamicFileInterface*>(this)->GenerateContent(ss);
+    std::string data = ss.str();
+    out.make_new(data.length());
+    memcpy(out.get(), data.c_str(), data.length());
+    m_LastSize = static_cast<FileSize>(data.length() + 1);
+    return true;
+}
+
+//-------------------------------------------------------------------------------------------------
+
+InjectedFileInterface::InjectedFileInterface(std::string systemPath) 
+    : systemPath(systemPath) { 
+}
+
+InjectedFileInterface::~InjectedFileInterface() { 
+}
+
+FileSize InjectedFileInterface::GetSize() const {
+    return static_cast<FileSize>(boost::filesystem::file_size(systemPath));
+}
+
+bool InjectedFileInterface::ReadFile(ByteTable & out) const {
+    out.make_new(GetSize());
+    std::ifstream file(systemPath, std::ios::in | std::ios::binary);
+    file.read((char*)out.c_str(), out.byte_size());
+    file.close();
+    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-VirtualFileContainer::VirtualFileContainer(FileTableInterface *fti):
-		iContainer(fti), m_InternalIDCounter(0) {
-	m_InternalIDCounter = 1;
-	m_Files.emplace_back(); //0 is not valid id always
+VirtualFileContainer::VirtualFileContainer(FileTableInterface *fti) :
+    iContainer(fti), m_InternalIDCounter(0) {
+    m_InternalIDCounter = 1;
+    m_Files.emplace_back(); //0 is not valid id always
 }
 
 VirtualFileContainer::~VirtualFileContainer() {
@@ -45,97 +68,101 @@ VirtualFileContainer::~VirtualFileContainer() {
 //-------------------------------------------------------------------------------------------------
 
 bool VirtualFileContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
-	if(ContainerFID == 0 || ContainerFID >= m_Files.size())
-		return false;
+    if (ContainerFID == 0 || ContainerFID >= m_Files.size())
+        return false;
 
-	auto &f = m_Files[ContainerFID];
-	auto ptr = f.GetPtr();
-	if (!ptr)
-		return false;
+    auto &f = m_Files[ContainerFID];
+    auto ptr = f.GetPtr();
+    if (!ptr)
+        return false;
 
-	auto ret = ptr->ReadFile(out);
-	if (ret) {
-		GetFileTableInterface()->UpdateFileSize(f.m_GlobalID, out.byte_size());
-	}
-	return ret;
+    auto ret = ptr->ReadFile(out);
+    if (ret) {
+        GetFileTableInterface()->UpdateFileSize(f.m_GlobalID, out.byte_size());
+    }
+    return ret;
 }
 
 FileID VirtualFileContainer::FindFile(const String& ContainerFileName) const {
-	for (auto it = m_Files.begin(), jt = m_Files.end(); it != jt; ++it)
-		if (it->m_FullPath == ContainerFileName)
-			return static_cast<FileID>(it - m_Files.begin());
-	return 0;
+    for (auto it = m_Files.begin(), jt = m_Files.end(); it != jt; ++it)
+        if (it->m_FullPath == ContainerFileName)
+            return static_cast<FileID>(it - m_Files.begin());
+    return 0;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 String VirtualFileContainer::GetContainerURI() const {
-	return "VirtualFileContainer";
+    return "VirtualFileContainer";
 }
 
 FileID VirtualFileContainer::GetFileCount() const {
-	return static_cast<FileID>(m_Files.size() - 1);//dont count invalid id 0
+    return static_cast<FileID>(m_Files.size() - 1);//dont count invalid id 0
 }
 
 bool VirtualFileContainer::ReloadContainer() {
-	return true;
+    return true;
 }
 
 bool VirtualFileContainer::RegisterContent() const {
-	return true;
+    return true;
 }
 
 //-------------------------------------------------------------------------------------------------
 
 bool VirtualFileContainer::RegisterFile(SharedVirtualFileInterface SharedFile, const String& Path, bool ForcePath) {
-	if (!SharedFile)
-		return false;
+    if (!SharedFile)
+        return false;
 
-	FileInfo fi = {};
-	fi.m_FullPath = Path;
-	fi.m_InternalID = m_InternalIDCounter++;
-	fi.m_WeakPtr = SharedFile;
-	fi.m_SharedPtr = nullptr;
-	m_Files.emplace_back(std::move(fi));
-	return ReloadFile(m_Files.back());
+    FileInfo fi = {};
+    fi.m_FullPath = Path;
+    fi.m_InternalID = m_InternalIDCounter++;
+    fi.m_WeakPtr = SharedFile;
+    fi.m_SharedPtr = nullptr;
+    m_Files.emplace_back(std::move(fi));
+    return ReloadFile(m_Files.back());
 }
 
 bool VirtualFileContainer::AddFile(SharedVirtualFileInterface SharedFile, const String& Path, bool ForcePath) {
-	if (!SharedFile)
-		return false;
+    if (!SharedFile)
+        return false;
 
-	FileInfo fi = {};
-	fi.m_FullPath = Path;
-	fi.m_InternalID = m_InternalIDCounter++;
-	fi.m_SharedPtr = SharedFile;
-	fi.m_WeakPtr = SharedFile;
-	m_Files.emplace_back(std::move(fi));
-	return ReloadFile(m_Files.back());
+    FileInfo fi = {};
+    fi.m_FullPath = Path;
+    fi.m_InternalID = m_InternalIDCounter++;
+    fi.m_SharedPtr = SharedFile;
+    fi.m_WeakPtr = SharedFile;
+    m_Files.emplace_back(std::move(fi));
+    return ReloadFile(m_Files.back());
 }
 
 bool VirtualFileContainer::DropFile(SharedVirtualFileInterface SharedFile) {
-	return false;
+    return false;
+}
+
+bool VirtualFileContainer::InjectFile(std::string systemPath, std::string virtualPath, bool ForcePath) {
+    return AddFile(std::make_shared<InjectedFileInterface>(systemPath), virtualPath, ForcePath);
 }
 
 //-------------------------------------------------------------------------------------------------
 
 bool VirtualFileContainer::ReloadFile(FileInfo &fi) {
-	if (fi.m_GlobalID)
-		return true;
+    if (fi.m_GlobalID)
+        return true;
 
-	auto fti = GetFileTableInterface();
+    auto fti = GetFileTableInterface();
 
-	auto fid = fti->ForceAllocFileID((CString)fi.m_FullPath.c_str());
-	if (!fid) {
-		STARVFSErrorLog("Failed to allocate file for '%s'", fi.m_FullPath.c_str());
-		return false;
-	}
+    auto fid = fti->ForceAllocFileID((CString)fi.m_FullPath.c_str());
+    if (!fid) {
+        STARVFSErrorLog("Failed to allocate file for '%s'", fi.m_FullPath.c_str());
+        return false;
+    }
 
-	fi.m_GlobalID = fid;
-	auto ptr = fi.GetPtr();
-	fti->CreateFile(fid, fi.m_InternalID, ptr ? ptr->GetSize() : 0 );
+    fi.m_GlobalID = fid;
+    auto ptr = fi.GetPtr();
+    fti->CreateFile(fid, fi.m_InternalID, ptr ? ptr->GetSize() : 0);
 
-	return true;
+    return true;
 }
 
 } //namespace Containers 
