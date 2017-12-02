@@ -171,8 +171,21 @@ bool RDCContainer::GetFileData(FileID ContainerFID, ByteTable &out) const {
 	return true;
 }
 
-FileID RDCContainer::FindFile(const String& ContainerFileName) const {
-	throw "RDCContainer::FindFile is not implemented";
+FileID RDCContainer::FindFile(const String& ContainerFileName) const {   
+    RDC::Version_1::HashTable hashtable;
+    if (!m_Reader->LoadHashTable(m_MountEntryInfo.m_MountEntry.HashTable, hashtable)) {
+        STARVFSErrorLog("Failed to load hash table for mount entry %d", m_MountEntryInfo.m_SectionIndex);
+        return 0;
+    }
+
+    auto hash = FilePathHashAlgorithm::Hash(ContainerFileName);
+    
+    for (FileID i = 0; i < hashtable.size(); ++i) {
+        if (hashtable[i] == hash)
+            return i;
+    }
+
+    return 0;
 }
 
 } //namespace Containers 
