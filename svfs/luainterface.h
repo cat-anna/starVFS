@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include "../svfslua/luasupport.h"
+#include "luasupport.h"
 
 struct LuaDeleter {
 	void operator()(lua_State *l) {

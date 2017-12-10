@@ -5,13 +5,11 @@ group "Tools"
 		links {
 			"StarVFS",
 			"OrbitLogger",
-            "svfslua",
 		}
 		files {
 			"**",
 		}	
 		includedirs {
-            "../svfslua/",
 			"%{cfg.objdir}",
 		}
 		
