@@ -41,6 +41,8 @@ struct unique_table {
 		m_Size = len;
 	}
 
+    bool empty() const { return m_Size == 0; }
+
 	///CAUTION: use this function very carefully!!
 	template <class OTHER> void make_copy(const OTHER *other, size_t count) {
 		if (!other || !count) {
