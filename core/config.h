@@ -4,10 +4,6 @@
 #include <string>
 #include <cassert>
 
-#ifdef GLOBAL_CONFIGURATION_FILE
-#include GLOBAL_CONFIGURATION_FILE
-#endif
-
 namespace StarVFS {
 
 struct Settings {
