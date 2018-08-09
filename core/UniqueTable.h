@@ -77,6 +77,10 @@ struct unique_table {
 		make_new(str.length());
 		memcpy(m_Table.get(), str.data(), byte_size());
 	}
+    void copy_from(const void *data, size_t length) {
+        make_new(length);
+        memcpy(m_Table.get(), data, byte_size());
+    }
 
 	T* get() { return m_Table.get(); }
 	const T* get() const { return m_Table.get(); }
