@@ -59,9 +59,10 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+    SVFS *svfsptr = svfs.get();
     luabridge::getGlobalNamespace(lua->GetState())
         .beginNamespace("inst")
-        .addPtrVariable<SVFS>("svfs", svfs.get())
+        .addVariable<SVFS*>("svfs", &svfsptr, false)
         .endNamespace()
         ;
 

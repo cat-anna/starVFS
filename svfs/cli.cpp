@@ -335,10 +335,11 @@ bool CLI::InstallApi() {
 		.endNamespace()
 		;
 
+    static CLI *This = this;
 	luabridge::getGlobalNamespace(m_Lua->GetState())
 		.beginNamespace("inst")
 			//.addProperty<CLI*, CLI*>("cli", &GetgCLI)
-			.addPtrVariable<CLI>("cli", this)
+			.addVariable<CLI*>("cli", &This, false)
 		.endNamespace()
 		;
 
